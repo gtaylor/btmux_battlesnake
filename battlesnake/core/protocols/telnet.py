@@ -111,7 +111,10 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
                 value=self.cmd_prefix)
             mux_commands.set_attr(
                 protocol=self, obj='me', name='BATTLESNAKE_KWARG_DELIMITER.D',
-                value=self.cmd_kwarg_delimeter)
+                value=self.cmd_kwarg_delimiter)
+            mux_commands.set_attr(
+                protocol=self, obj='me', name='BATTLESNAKE_LIST_DELIMITER.D',
+                value=self.cmd_kwarg_list_delimiter)
             self._start_keepalive_loop()
             self.response_monitor.start_expiration_loop()
             self.state = 'monitoring'
@@ -125,8 +128,8 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         if self.response_monitor.match_line(line):
             return
         parsed_line = parse_line(
-            line, self.cmd_prefix, self.cmd_kwarg_delimeter,
-            self.cmd_kwarg_list_delimeter)
+            line, self.cmd_prefix, self.cmd_kwarg_delimiter,
+            self.cmd_kwarg_list_delimiter)
         if not parsed_line:
             return
         matched_command = self.command_table.match_inbound_command(parsed_line)
@@ -155,8 +158,8 @@ class BattlesnakeTelnetFactory(ClientFactory):
     def _set_dynamic_attribs(self, protocol):
         # TODO: Set these dynamically.
         protocol.cmd_prefix = "@G$>"
-        protocol.cmd_kwarg_delimeter = "&R^"
-        protocol.cmd_kwarg_list_delimeter = "#E$"
+        protocol.cmd_kwarg_delimiter = "&R^"
+        protocol.cmd_kwarg_list_delimiter = "#E$"
 
     def _register_commands(self, protocol):
         protocol.command_table = InboundCommandTable()

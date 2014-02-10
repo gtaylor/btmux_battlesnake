@@ -78,7 +78,7 @@ def parse_line(line, prefix_str, kwarg_delim, list_delim):
         # Now let's see if our value is a list.
         val_items = val.split(list_delim)
         if len(val_items) > 1:
-            # Looks like we have at least one list delimeter.
+            # Looks like we have at least one list delimiter.
             # Only accept non-empty items.
             val = [item for item in val_items if item != '']
         kwargs[key] = val

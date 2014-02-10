@@ -31,7 +31,7 @@ class ParseLineTests(unittest.TestCase):
         """
 
         line1 = "{prefix_str}command{kwarg_delim}#212{kwarg_delim}key=val"
-        # Add a trailing delimeter. Make sure it doesn't impact the values.
+        # Add a trailing delimiter. Make sure it doesn't impact the values.
         line2 = "{prefix_str}command{kwarg_delim}#212{kwarg_delim}key=val{kwarg_delim}"
         parsed1 = parse_line(line1.format(**self.PARSE_KWARGS), **self.PARSE_KWARGS)
         parsed2 = parse_line(line2.format(**self.PARSE_KWARGS), **self.PARSE_KWARGS)
