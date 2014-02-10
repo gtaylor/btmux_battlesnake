@@ -1,0 +1,26 @@
+"""
+Contains base command classes for the other modules in this submodule to use.
+"""
+
+
+class BaseCommand(object):
+    """
+    A basic command class which all/most commands may inherit. Do not instantiate
+    this class directly.
+    """
+
+    # This is the trigger string that will cause the line reader to delegate
+    # parsing to the child sub-class.
+    trigger_str = None
+
+    def run(self, protocol, parsed_line):
+        """
+        Given the full parsed input from the command line, do some work.
+        This can be a deferred in your sub-class.
+
+        :param BattlesnakeTelnetProtocol protocol: A reference back to the
+            top level telnet protocol instance.
+        :param ParsedInboundCommandLine parsed_line: The parsed line.
+        """
+
+        raise NotImplementedError("Override this method on your sub-class.")

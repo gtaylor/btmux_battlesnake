@@ -1,0 +1,6 @@
+*.pyc
+*.pid
+*.log
+.idea
+*.cache
+battlesnake.cfg
