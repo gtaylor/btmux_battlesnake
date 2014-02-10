@@ -51,8 +51,8 @@ Here's an example inbound command with no additional data::
 
     PREFIXSTRsend_emailKWDELIM#212
 
-``prefix_str`` is ``PREFIXSTR``, ``trigger_str`` is ``send_email``,
-``kwarg_delim`` is ``KWDELIM``, and ``invoker_dbref`` is ``#212``.
+``<prefix_str>`` is ``PREFIXSTR``, ``<trigger_str>`` is ``send_email``,
+``<kwarg_delim>`` is ``KWDELIM``, and ``<invoker_dbref>`` is ``#212``.
 
 Sending key/value data with inbound commands
 --------------------------------------------
