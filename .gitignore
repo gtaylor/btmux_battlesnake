@@ -4,3 +4,4 @@
 .idea
 *.cache
 battlesnake.cfg
+doc_src/_build
