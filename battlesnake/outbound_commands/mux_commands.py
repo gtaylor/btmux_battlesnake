@@ -17,6 +17,14 @@ def set_attr(protocol, obj, name, value):
     protocol.write("@set %s=%s:%s" % (obj, name, value))
 
 
+def say(protocol, message):
+    """
+    Wrapper for say.
+    """
+
+    protocol.write("say " + message)
+
+
 def pemit(protocol, targets, message, switches=None, replace_returns=True):
     """
     Wrapper for @pemit. Handles multiple targets gracefully.

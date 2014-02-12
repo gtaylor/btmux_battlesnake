@@ -6,10 +6,11 @@ from twisted.internet.task import LoopingCall
 from battlesnake.conf import settings
 from battlesnake.core.inbound_command_handling.command_parser import parse_line
 from battlesnake.core.inbound_command_handling.command_table import InboundCommandTable
+from battlesnake.core.triggers import TriggerTable, Trigger
 from battlesnake.inbound_commands.bot_management import BotInfoCommand
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.core.response_watcher import ResponseMonitorManager
-
+from battlesnake.trigger_callbacks import examples as example_trigger_callbacks
 
 # noinspection PyClassHasNoInit,PyClassHasNoInit,PyClassicStyleClass
 class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
@@ -126,12 +127,24 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
 
     def telnet_monitoring(self, line):
         if self.response_monitor.match_line(line):
+            # Something was waiting to get a response value from a command,
+            # and we found the match.
             return
+
+        matched_trigger = self.trigger_table.match_line(line)
+        if matched_trigger:
+            trigger_obj, re_match = matched_trigger
+            trigger_obj.callback_func(self, line, re_match)
+
+        # Figure out if this line is an inbound command.
         parsed_line = parse_line(
             line, self.cmd_prefix, self.cmd_kwarg_delimiter,
             self.cmd_kwarg_list_delimiter)
         if not parsed_line:
+            # Wasn't a command, go no further.
             return
+
+        # This line was an inbound command.
         matched_command = self.command_table.match_inbound_command(parsed_line)
         if not matched_command:
             return
@@ -153,6 +166,7 @@ class BattlesnakeTelnetFactory(ClientFactory):
 
         self._set_dynamic_attribs(protocol)
         self._register_commands(protocol)
+        self._register_triggers(protocol)
         return protocol
 
     def _set_dynamic_attribs(self, protocol):
@@ -169,3 +183,15 @@ class BattlesnakeTelnetFactory(ClientFactory):
         ]
         for command in commands:
             protocol.command_table.register_command(command)
+
+    def _register_triggers(self, protocol):
+        protocol.trigger_table = TriggerTable()
+        # TODO: Un-hardcode this.
+        triggers = [
+            Trigger(
+                '(?P<talker>.*) says "[Hh]ello"',
+                example_trigger_callbacks.say_hello_callback
+            )
+        ]
+        for trigger in triggers:
+            protocol.trigger_table.register_trigger(trigger)
