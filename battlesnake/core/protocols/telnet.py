@@ -3,14 +3,13 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 
-from battlesnake.inbound_commands.bot_management import BotInfoCommand
+from battlesnake.inbound_commands.bot_management.tables import BotManagementCommandTable
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.trigger_callbacks import examples as example_trigger_callbacks
 from battlesnake.conf import settings
 from battlesnake.core.triggers import TriggerTable, Trigger
 from battlesnake.core.response_watcher import ResponseWatcherManager
 from battlesnake.core.inbound_command_handling.command_parser import parse_line
-from battlesnake.core.inbound_command_handling.command_table import InboundCommandTable
 
 
 # noinspection PyClassHasNoInit,PyClassHasNoInit,PyClassicStyleClass
@@ -146,10 +145,11 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             return
 
         # This line was an inbound command.
-        matched_command = self.command_table.match_inbound_command(parsed_line)
-        if not matched_command:
-            return
-        matched_command().run(self, parsed_line)
+        for command_table in self.command_tables:
+            matched_command = command_table.match_inbound_command(parsed_line)
+            if matched_command:
+                matched_command().run(self, parsed_line)
+                return
 
 
 # noinspection PyAttributeOutsideInit,PyClassHasNoInit,PyClassicStyleClass
@@ -177,13 +177,10 @@ class BattlesnakeTelnetFactory(ClientFactory):
         protocol.cmd_kwarg_list_delimiter = "#E$"
 
     def _register_commands(self, protocol):
-        protocol.command_table = InboundCommandTable()
         # TODO: Un-hardcode this.
-        commands = [
-            BotInfoCommand,
+        protocol.command_tables = [
+            BotManagementCommandTable()
         ]
-        for command in commands:
-            protocol.command_table.register_command(command)
 
     def _register_triggers(self, protocol):
         protocol.trigger_table = TriggerTable()

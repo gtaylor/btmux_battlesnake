@@ -2,22 +2,30 @@
 
 class InboundCommandTable(object):
     """
-    Handles inbound command lookups and registration.
+    Handles inbound command lookups and registration. Sub-class this and
+    modify the ``commands`` class attribute to contain your BaseCommand
+    sub-classes.
     """
+
+    # A list of BaseCommand sub-classes to register.
+    commands = []
 
     def __init__(self):
         # The keys are command names, the values are BaseCommand sub-classes.
-        self.commands = {}
+        self._command_dict = {}
+        # Get em' all registered at instantiation time.
+        for command in self.commands:
+            self.register_command(command)
 
     def register_command(self, command):
         """
         :param command: A BaseCommand sub-class to register.
         """
 
-        assert command.command_name not in self.commands, \
+        assert command.command_name not in self._command_dict, \
             "Inbound command name already registered: %s" % command.command_name
 
-        self.commands[command.command_name] = command
+        self._command_dict[command.command_name] = command
 
     def match_inbound_command(self, parsed_command_line):
         """
@@ -31,4 +39,4 @@ class InboundCommandTable(object):
             or None if there isn't.
         """
 
-        return self.commands.get(parsed_command_line.command_name, None)
+        return self._command_dict.get(parsed_command_line.command_name, None)
