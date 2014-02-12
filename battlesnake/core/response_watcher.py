@@ -14,45 +14,45 @@ from twisted.internet.task import LoopingCall
 from battlesnake.conf import settings
 
 
-class ResponseMonitorManager(object):
+class ResponseWatcherManager(object):
     """
     The higher level client protocol instantiates one of these to manage
-    all response monitors. We handle registration, matching, and expiration
+    all response watchers. We handle registration, matching, and expiration
     through this object.
     """
 
     def __init__(self):
-        self.monitor_store = {}
-        self.expiration_loop = LoopingCall(self.expire_stale_monitors)
+        self.watcher_store = {}
+        self.expiration_loop = LoopingCall(self.expire_stale_watchers)
 
-    def monitor(self, regex_str, timeout_secs, return_regex_group):
+    def watch(self, regex_str, timeout_secs, return_regex_group):
         """
-        Creates and registers a monitor in one shot.
+        Creates and registers a watcher in one shot.
 
         :param basestring regex_str: A regular expression string to match against.
         :param float timeout_secs: How many seconds to wait.
         :rtype: defer.Deferred
         """
 
-        mon = ResponseMonitor(regex_str, timeout_secs, return_regex_group)
-        self.register_monitor(mon)
+        mon = ResponseWatcher(regex_str, timeout_secs, return_regex_group)
+        self.register_watcher(mon)
         return mon.deferred
 
-    def register_monitor(self, monitor):
+    def register_watcher(self, watcher):
         """
-        Registers an existing ResponseMonitor.
+        Registers an existing ResponseWatcher.
 
-        :param ResponseMonitor monitor: The monitor to register.
+        :param ResponseWatcher watcher: The watcher to register.
         """
 
-        tdelt = datetime.timedelta(seconds=monitor.timeout_secs)
-        monitor.timeout = datetime.datetime.now() + tdelt
-        self.monitor_store[monitor.id] = monitor
+        tdelt = datetime.timedelta(seconds=watcher.timeout_secs)
+        watcher.timeout = datetime.datetime.now() + tdelt
+        self.watcher_store[watcher.id] = watcher
 
     def match_line(self, line):
         """
         Given a line read by the upstream protocol, see if it matches any
-        of the monitors. If so, we issue a callback on the deferred and
+        of the watchers. If so, we issue a callback on the deferred and
         return ``True``.
 
         :param basestring line: The line read by the protocol.
@@ -60,16 +60,16 @@ class ResponseMonitorManager(object):
         :returns: A MatchObject if ther was a match, or None if not.
         """
 
-        for monitor_id, monitor in self.monitor_store.items():
-            match = monitor.line_regex.search(line)
+        for watcher_id, watcher in self.watcher_store.items():
+            match = watcher.line_regex.search(line)
             if not match:
                 continue
             # At this point, we can assume there was a match.
-            if monitor.return_regex_group:
-                monitor.deferred.callback(match.group(monitor.return_regex_group))
+            if watcher.return_regex_group:
+                watcher.deferred.callback(match.group(watcher.return_regex_group))
             else:
-                monitor.deferred.callback(match)
-            del self.monitor_store[monitor_id]
+                watcher.deferred.callback(match)
+            del self.watcher_store[watcher_id]
             return True
         return False
 
@@ -78,27 +78,27 @@ class ResponseMonitorManager(object):
         Fires up the expiration loop.
         """
 
-        loop_interval = float(settings.get('bot', 'monitor_expire_check_interval'))
-        print "* Monitor expiration loop interval: %ss" % loop_interval
+        loop_interval = float(settings.get('bot', 'response_watcher_expire_check_interval'))
+        print "* Response watcher expiration loop interval: %ss" % loop_interval
         self.expiration_loop.start(loop_interval)
 
-    def expire_stale_monitors(self):
+    def expire_stale_watchers(self):
         """
-        Goes through the list of monitors and errbacks any that haven't
+        Goes through the list of watchers and errbacks any that haven't
         been matched in their allotted time window.
         """
 
         now = datetime.datetime.now()
-        for monitor_id, monitor in self.monitor_store.items():
-            if monitor.deferred.called:
-                del self.monitor_store[monitor_id]
+        for watcher_id, watcher in self.watcher_store.items():
+            if watcher.deferred.called:
+                del self.watcher_store[watcher_id]
                 continue
-            if now >= monitor.timeout:
-                monitor.deferred.errback(NoResponseMatchFoundError())
-                del self.monitor_store[monitor_id]
+            if now >= watcher.timeout:
+                watcher.deferred.errback(NoResponseMatchFoundError())
+                del self.watcher_store[watcher_id]
 
 
-class ResponseMonitor(object):
+class ResponseWatcher(object):
     """
     Encapsulates everything we need to wait for an expected output.
     """
@@ -106,7 +106,7 @@ class ResponseMonitor(object):
     def __init__(self, regex_str, timeout_secs, return_regex_group):
         self.id = uuid.uuid4().hex
         self.timeout_secs = timeout_secs
-        # This gets populated when this monitor is registered with the manager.
+        # This gets populated when this watcher is registered with the manager.
         self.timeout = None
         self.deferred = defer.Deferred()
         self.line_regex = re.compile(regex_str)
@@ -119,4 +119,4 @@ class NoResponseMatchFoundError(Exception):
     """
 
     def __init__(self, *args):
-        Exception.__init__(self, "No response match found.", *args)
+        Exception.__init__(self, "No response watch match found.", *args)

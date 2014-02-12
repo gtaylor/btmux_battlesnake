@@ -3,14 +3,15 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 
-from battlesnake.conf import settings
-from battlesnake.core.inbound_command_handling.command_parser import parse_line
-from battlesnake.core.inbound_command_handling.command_table import InboundCommandTable
-from battlesnake.core.triggers import TriggerTable, Trigger
 from battlesnake.inbound_commands.bot_management import BotInfoCommand
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.core.response_watcher import ResponseMonitorManager
 from battlesnake.trigger_callbacks import examples as example_trigger_callbacks
+from battlesnake.conf import settings
+from battlesnake.core.triggers import TriggerTable, Trigger
+from battlesnake.core.response_watcher import ResponseWatcherManager
+from battlesnake.core.inbound_command_handling.command_parser import parse_line
+from battlesnake.core.inbound_command_handling.command_table import InboundCommandTable
+
 
 # noinspection PyClassHasNoInit,PyClassHasNoInit,PyClassicStyleClass
 class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
@@ -89,7 +90,7 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         :rtype: defer.Deferred
         """
 
-        return self.response_monitor.monitor(
+        return self.watcher_manager.watch(
             regex_str, timeout_secs=timeout_secs, return_regex_group=return_regex_group)
 
     #
@@ -117,7 +118,7 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
                 protocol=self, obj='me', name='BATTLESNAKE_LIST_DELIMITER.D',
                 value=self.cmd_kwarg_list_delimiter)
             self._start_keepalive_loop()
-            self.response_monitor.start_expiration_loop()
+            self.watcher_manager.start_expiration_loop()
             self.state = 'monitoring'
         elif 'or has a different password.' in line:
             # Invalid username/password. Poop out.
@@ -126,7 +127,7 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             reactor.stop()
 
     def telnet_monitoring(self, line):
-        if self.response_monitor.match_line(line):
+        if self.watcher_manager.match_line(line):
             # Something was waiting to get a response value from a command,
             # and we found the match.
             return
@@ -162,7 +163,7 @@ class BattlesnakeTelnetFactory(ClientFactory):
     def buildProtocol(self, addr):
         protocol = self.protocol()
         protocol.factory = self
-        protocol.response_monitor = ResponseMonitorManager()
+        protocol.watcher_manager = ResponseWatcherManager()
 
         self._set_dynamic_attribs(protocol)
         self._register_commands(protocol)

@@ -35,7 +35,6 @@ Bot settings
 ``keepalive_interval`` (default: 30.0)
     Sets the interval (seconds) at which the bot sends an IDLE command to the MUX.
     This is useful to prevent timeouts over NATs.
-``monitor_expire_check_interval`` (default: 1.0)
-    Sets the interval (seconds) for when the response monitor loops through
-    all pending monitors and expires past-due entries. This should probably
-    not go into double digits.
+``response_watcher_expire_check_interval`` (default: 1.0)
+    Sets the interval (seconds) for how often to check for stale response
+    watchers to purge.

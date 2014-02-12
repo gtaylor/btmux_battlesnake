@@ -63,7 +63,7 @@ def idle(protocol):
     protocol.write("IDLE")
 
 
-def think(protocol, thought, monitor_output=True):
+def think(protocol, thought, return_output=True):
     """
     Runs the 'think' command, which is useful for performing actions or
     retrieving values from the MUX. By setting a dynamic prefix, we can
@@ -72,21 +72,21 @@ def think(protocol, thought, monitor_output=True):
 
     :param BattlesnakeTelnetProtocol protocol:
     :param basestring thought: The string to pass into the 'think' command.
-    :keyword bool monitor_output: If ``True``, this function returns a Deferred
+    :keyword bool return_output: If ``True``, this function returns a Deferred
         that will be called when the response of this 'think' invocation
         comes back. If ``False``, this function returns nothing. It's slightly
         more efficient to set this to False if you don't need to see
         the output.
     :rtype: None or defer.Deferred
-    :returns: A Deferred if ``monitor_output`` is ``True``, ``None`` if not.
+    :returns: A Deferred if ``return_output`` is ``True``, ``None`` if not.
     """
 
     prefix = generate_unique_token()
     command_str = 'think %s%s' % (prefix, thought)
-    if monitor_output:
+    if return_output:
         regex_str = r'^' + prefix + '(?P<value>.*)\r$'
         result = protocol.expect(regex_str, return_regex_group='value')
     protocol.write(command_str)
-    if monitor_output:
+    if return_output:
         # noinspection PyUnboundLocalVariable
         return result
