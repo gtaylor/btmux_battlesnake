@@ -78,7 +78,7 @@ class ResponseWatcherManager(object):
         Fires up the expiration loop.
         """
 
-        loop_interval = float(settings.get('bot', 'response_watcher_expire_check_interval'))
+        loop_interval = settings['bot']['response_watcher_expire_check_interval']
         print "* Response watcher expiration loop interval: %ss" % loop_interval
         self.expiration_loop.start(loop_interval)
 

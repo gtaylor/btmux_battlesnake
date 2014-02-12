@@ -27,24 +27,20 @@ suite, install the developer dependencies::
 
     pip install -r requirements_dev.txt
 
-Now create a ``battlesnake.cfg`` file and paste the following contents in::
+Now copy the starter config file and adjust the ``hostname``, ``port``,
+``username``, and ``password`` values::
 
-    [mux]
-    hostname = yourmux.com
-    port = 1234
-
-    [account]
-    username = Battlesnake
-    password = yourpassword
+    cp config/battlesnake.cfg.dist battlesnake.cfg
+    vim battlesnake.cfg (Or whatever your preferred editor is)
 
 You are now ready to run the bot (from within ``btmux_battlesnake``)::
 
     twistd -n battlesnake
 
-This defaults to using your ``battlesnake.cfg``, but you can run multiple
-bots or use an alternative location with the ``-c`` flag::
+This defaults to using the ``battlesnake.cfg`` file in your current directory,
+but you can run multiple bots or use an alternative location with the ``-c`` flag::
 
-    twistd -n battlesnake -c battlesnake2.cfg
+    twistd -n battlesnake -c battlesnake.cfg
 
 When in doubt, check out the help listing::
 

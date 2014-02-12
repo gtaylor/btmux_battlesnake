@@ -7,11 +7,14 @@ Settings
 
 When Battlesnake is started, the path to your config file is passed in
 via the ``-c`` flag. Default values are pulled from
-``battlesnake/config/defaults.cfg``. Any of the values detailed below may
+``battlesnake/config/configspec.cfg``. Any of the values detailed below may
 be overridden in your config file.
 
-MUX settings
-------------
+The name in brackets in each section below is the section name in the
+config file.
+
+[mux]
+-----
 
 ``hostname``
     The hostname or IP address of your game. **Must be overridden in your
@@ -20,8 +23,8 @@ MUX settings
     The port to connect to. **Must be overridden in your
     config file**.
 
-Account settings
-----------------
+[account]
+---------
 
 ``username`` (default: Battlesnake)
     The player username to connect as.
@@ -29,8 +32,8 @@ Account settings
     The player's password. **Must be overridden in your
     config file**.
 
-Bot settings
-------------
+[bot]
+-----
 
 ``keepalive_interval`` (default: 30.0)
     Sets the interval (seconds) at which the bot sends an IDLE command to the MUX.

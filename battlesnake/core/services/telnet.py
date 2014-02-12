@@ -11,7 +11,7 @@ def get_telnet_service():
     :returns: The TCPClient based Telnet service.
     """
 
-    hostname = settings.get("mux", "hostname")
-    port = int(settings.get("mux", "port"))
+    hostname = settings['mux']['hostname']
+    port = settings['mux']['port']
     # noinspection PyUnresolvedReferences
     return internet.TCPClient(hostname, port, BattlesnakeTelnetFactory())

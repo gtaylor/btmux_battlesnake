@@ -1,18 +1,14 @@
 import os
-import inspect
 import sys
-import ConfigParser
+import inspect
 
-settings = ConfigParser.SafeConfigParser()
+from configobj import ConfigObj, flatten_errors
+# noinspection PyPackageRequirements
+from validate import Validator
 
-REQUIRED_SETTINGS = {
-    'mux': [
-        'hostname', 'port'
-    ],
-    'account': [
-        'password',
-    ],
-}
+# This is populated with a ConfigObj by read_config(). All settings values
+# should be accessed through here.
+settings = None
 
 
 def read_config(config_file):
@@ -23,12 +19,31 @@ def read_config(config_file):
     :param basestring config_file: The user's config file to read in.
     """
 
+    global settings
+
+    check_for_config_file(config_file)
+
     project_root = os.path.dirname(os.path.dirname(
         os.path.abspath(inspect.getfile(inspect.currentframe()))))
-    check_for_config_file(config_file)
-    default_config_file = os.path.join(project_root, 'config', 'defaults.cfg')
-    settings.read([default_config_file, config_file])
-    validate_config()
+    configspec = os.path.join(project_root, 'config', 'configspec.cfg')
+    settings = ConfigObj(config_file, configspec=configspec)
+    results = settings.validate(Validator())
+    if results is True:
+        # Everything went fine. We're done here.
+        return
+    # Config file validation failed. Provide as much help as we can.
+    print "There were configuration error(s) in %s" % config_file
+    for (section_list, key, _) in flatten_errors(settings, results):
+        if key is not None:
+            print '  Error: The "%s" key in the config section "%s" failed validation' % (
+                key, ', '.join(section_list),
+            )
+        else:
+            print '  Error: The "%s" config section was missing' % (
+                ', '.join(section_list),
+            )
+    print "If in doubt, see: http://battlesnake.readthedocs.org/settings.html"
+    sys.exit(1)
 
 
 def check_for_config_file(config_file):
@@ -45,27 +60,3 @@ def check_for_config_file(config_file):
 
     print "Error: No such config file found: %s" % config_file
     sys.exit(1)
-
-
-def validate_config():
-    """
-    Really cheesy way to check for a few required values that we can't provide
-    defaults for. If we come up short, show an error message and sys.exit.
-    """
-
-    global settings, REQUIRED_SETTINGS
-
-    for section, req_settings in REQUIRED_SETTINGS.items():
-        for req_setting in req_settings:
-            try:
-                value = settings.get(section, req_setting)
-            except ConfigParser.NoOptionError:
-                print "Error: Missing config value for the '%s' setting in the [%s] section." % (
-                    req_setting, section)
-                sys.exit(1)
-            if value == "CHANGE_ME":
-                print(
-                    "Error: Replace the default CHANGE_ME config value for the '%s' "
-                    "setting in the [%s] section.") % (
-                        req_setting, section)
-                sys.exit(1)

@@ -1,0 +1,15 @@
+# battlesnake.cfg.dist
+#
+# Copy this file to use as a foundation for getting started.
+
+[mux]
+# The IP address or hostname of the MUX to connect to.
+hostname = CHANGE_ME
+# The port on the host to connect to.
+port = CHANGE_ME
+
+[account]
+# The name of the account the bot will try to connect as.
+username = Battlesnake
+# The password to use when connecting.
+password = CHANGE_ME

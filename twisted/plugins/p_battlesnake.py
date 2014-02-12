@@ -1,14 +1,8 @@
-import os
-import inspect
-
 from zope.interface import implements
 from twisted.application import service
 from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.application.service import IServiceMaker
-
-from battlesnake.conf import read_config
-from battlesnake.core.services.telnet import get_telnet_service
 
 
 class Options(usage.Options):
@@ -29,19 +23,20 @@ class ServiceMaker(object):
     description = "Runs a Battlesnake client."
     options = Options
 
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(inspect.getfile(inspect.currentframe())))))
-
     def makeService(self, options):
         """
-        And away we go!
+        And away we go! We import the battlesnake stuff in here to ensure
+        the correct import order. Need to make sure the settings have been
+        imported and populated first.
 
         :param Options options:
         """
 
+        from battlesnake.conf import read_config
         read_config(options['config'])
         top_service = service.MultiService()
 
+        from battlesnake.core.services.telnet import get_telnet_service
         telnet_service = get_telnet_service()
         telnet_service.setServiceParent(top_service)
 

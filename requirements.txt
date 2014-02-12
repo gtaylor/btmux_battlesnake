@@ -1,1 +1,2 @@
 Twisted==13.2.0
+configobj==4.7.2

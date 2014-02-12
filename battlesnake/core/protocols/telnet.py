@@ -3,19 +3,15 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 
-from battlesnake.inbound_commands.bot_management.tables import BotManagementCommandTable
-from battlesnake.outbound_commands import mux_commands
-from battlesnake.triggers import examples as example_trigger_callbacks
 from battlesnake.conf import settings
-from battlesnake.core.triggers import TriggerTable, Trigger
+from battlesnake.outbound_commands import mux_commands
+from battlesnake.triggers.examples.tables import ExampleTriggerTable
+from battlesnake.inbound_commands.bot_management.tables import BotManagementCommandTable
 from battlesnake.core.response_watcher import ResponseWatcherManager
 from battlesnake.core.inbound_command_handling.command_parser import parse_line
 
 
 # noinspection PyClassHasNoInit,PyClassHasNoInit,PyClassicStyleClass
-from battlesnake.triggers.examples.tables import ExampleTriggerTable
-
-
 class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
     """
     This is a stateful telnet protocol that is used to connect, listen to,
@@ -68,7 +64,7 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         def keepalive(protocol):
             mux_commands.idle(protocol)
         lc = LoopingCall(keepalive, self)
-        loop_interval = float(settings.get('bot', 'keepalive_interval'))
+        loop_interval = settings['bot']['keepalive_interval']
         if loop_interval:
             print "* Keepalive interval: %ss" % loop_interval
             lc.start(loop_interval)
@@ -103,8 +99,8 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         if 'QUIT' in line:
             # Found the trigger phase. Change state and send credentials.
             self.state = 'authenticate'
-            bot_username = settings.get('account', 'username')
-            bot_password = settings.get('account', 'password')
+            bot_username = settings['account']['username']
+            bot_password = settings['account']['password']
             self.write('connect "%s" %s' % (bot_username, bot_password))
 
     def telnet_authenticate(self, line):
