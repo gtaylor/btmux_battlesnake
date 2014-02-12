@@ -50,7 +50,7 @@ class Trigger(object):
     regex string.
     """
 
-    def __init__(self, re_str, callback_func):
-        self.line_regex = re.compile(re_str)
+    def __init__(self, regex_str, callback_func):
+        self.line_regex = re.compile(regex_str)
         # This is the function that gets called when the trigger is matched.
         self.callback_func = callback_func

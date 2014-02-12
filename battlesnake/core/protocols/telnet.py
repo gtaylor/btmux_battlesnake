@@ -189,7 +189,7 @@ class BattlesnakeTelnetFactory(ClientFactory):
         # TODO: Un-hardcode this.
         triggers = [
             Trigger(
-                '(?P<talker>.*) says "[Hh]ello"',
+                r'(?P<talker>.*) says "[Hh]ello"',
                 example_trigger_callbacks.say_hello_callback
             )
         ]

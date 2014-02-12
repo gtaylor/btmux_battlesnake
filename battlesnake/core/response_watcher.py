@@ -103,13 +103,13 @@ class ResponseMonitor(object):
     Encapsulates everything we need to wait for an expected output.
     """
 
-    def __init__(self, re_str, timeout_secs, return_regex_group):
+    def __init__(self, regex_str, timeout_secs, return_regex_group):
         self.id = uuid.uuid4().hex
         self.timeout_secs = timeout_secs
         # This gets populated when this monitor is registered with the manager.
         self.timeout = None
         self.deferred = defer.Deferred()
-        self.line_regex = re.compile(re_str)
+        self.line_regex = re.compile(regex_str)
         self.return_regex_group = return_regex_group
 
 
