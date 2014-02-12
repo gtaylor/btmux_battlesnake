@@ -13,7 +13,7 @@ class BotInfoCommand(BaseCommand):
     Shows some assorted info about the bot.
     """
 
-    trigger_str = "botinfo"
+    command_name = "botinfo"
 
     @inlineCallbacks
     def run(self, protocol, parsed_line):

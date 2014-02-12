@@ -9,9 +9,9 @@ class BaseCommand(object):
     this class directly.
     """
 
-    # This is the trigger string that will cause the line reader to delegate
+    # This is the command string that will cause the line reader to delegate
     # parsing to the child sub-class.
-    trigger_str = None
+    command_name = None
 
     def run(self, protocol, parsed_line):
         """

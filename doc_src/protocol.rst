@@ -25,16 +25,16 @@ A high level overview of inbound command syntax
 
 An simple inbound command ``@pemit`` syntax example::
 
-    <prefix_str><trigger_str><kwarg_delim><invoker_dbref>
+    <prefix_str><command_name><kwarg_delim><invoker_dbref>
 
 Breaking this down by component:
 
 **<prefix_str>**
     A randomized multi-character string that is set on the bot's player object
     when it connects. If the bot sees this at the beginning of a line of input,
-    it knows to look **trigger_str** up in its command table.
+    it knows to look **command_name** up in its command table.
 
-**<trigger_str>**
+**<command_name>**
     This is the command name that Battlesnake will look up in its internal
     command table. For example, *send_email*.
 
@@ -51,7 +51,7 @@ Here's an example inbound command with no additional data::
 
     PREFIXSTRsend_emailKWDELIM#212
 
-``<prefix_str>`` is ``PREFIXSTR``, ``<trigger_str>`` is ``send_email``,
+``<prefix_str>`` is ``PREFIXSTR``, ``<command_name>`` is ``send_email``,
 ``<kwarg_delim>`` is ``KWDELIM``, and ``<invoker_dbref>`` is ``#212``.
 
 Sending key/value data with inbound commands
@@ -61,7 +61,7 @@ We know how to send inbound commands now, but this isn't too useful unless
 we can also send in arbitrary bits of data. Expanding on our previous
 example, here's how that works::
 
-    <prefix_str><trigger_str><kwarg_delim><invoker_dbref><kwarg_delim>key1=value1<kwarg_delim>key2=value2
+    <prefix_str><command_name><kwarg_delim><invoker_dbref><kwarg_delim>key1=value1<kwarg_delim>key2=value2
 
 As you can see, **kwarg_delim** is used to split up key/value pairs. On the
 Battlesnake side, we convert these into Python dicts. Here's how the command
@@ -89,7 +89,7 @@ We've introduced a new delimiter, **list_delim**. Much like **prefix_str**
 and **kwarg_delim**, this is a randomly generated multi-character delimiter.
 The presence of a list delimiter in a kwarg's value causes it to be converted
 to a list in Battlesnake. Let's say we do something like this (omitted
-invoker/trigger/prefix for brevit)::
+invoker/command name/prefix for brevity)::
 
     <kwarg_delim>key=item1<list_delim>item2<list_delim>item3
 

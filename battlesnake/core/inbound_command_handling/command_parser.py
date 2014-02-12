@@ -6,14 +6,14 @@ class ParsedInboundCommandLine(object):
     table, and eventually an individual BaseCommand sub-class.
     """
 
-    def __init__(self, trigger_str, invoker_dbref, **kwargs):
-        self.trigger_str = trigger_str
+    def __init__(self, command_name, invoker_dbref, **kwargs):
+        self.command_name = command_name
         self.invoker_dbref = invoker_dbref
         self.kwargs = kwargs
 
     def __repr__(self):
         return "<Command: '%s' from %s, kwargs %s>" % (
-            self.trigger_str, self.invoker_dbref, self.kwargs)
+            self.command_name, self.invoker_dbref, self.kwargs)
 
 
 def parse_line(line, prefix_str, kwarg_delim, list_delim):
@@ -37,12 +37,12 @@ def parse_line(line, prefix_str, kwarg_delim, list_delim):
     stripped_line = line.strip()
     # We already know the prefix is there, lop it off to get to the goodies.
     cmd_str = stripped_line[len(prefix_str):]
-    # First half is the trigger string, second half is the invoker and kwargs.
+    # First half is the command name, second half is the invoker and kwargs.
     cmd_split = cmd_str.split(kwarg_delim, 1)
     if len(cmd_split) < 2:
         return None
 
-    trigger_str = cmd_split[0]
+    command_name = cmd_split[0]
     kwarg_str = cmd_split[1]
     # Break up the rest of the string into kwarg items.
     kwarg_split = kwarg_str.split(kwarg_delim)
@@ -83,4 +83,4 @@ def parse_line(line, prefix_str, kwarg_delim, list_delim):
             val = [item for item in val_items if item != '']
         kwargs[key] = val
 
-    return ParsedInboundCommandLine(trigger_str, invoker_dbref, **kwargs)
+    return ParsedInboundCommandLine(command_name, invoker_dbref, **kwargs)

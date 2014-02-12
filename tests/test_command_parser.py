@@ -21,7 +21,7 @@ class ParseLineTests(unittest.TestCase):
 
         line = "{prefix_str}command{kwarg_delim}#212{kwarg_delim}"
         parsed = parse_line(line.format(**self.PARSE_KWARGS), **self.PARSE_KWARGS)
-        self.assertEqual(parsed.trigger_str, 'command')
+        self.assertEqual(parsed.command_name, 'command')
         self.assertEqual(parsed.invoker_dbref, '#212')
         self.assertEqual(parsed.kwargs, {})
 
@@ -35,8 +35,8 @@ class ParseLineTests(unittest.TestCase):
         line2 = "{prefix_str}command{kwarg_delim}#212{kwarg_delim}key=val{kwarg_delim}"
         parsed1 = parse_line(line1.format(**self.PARSE_KWARGS), **self.PARSE_KWARGS)
         parsed2 = parse_line(line2.format(**self.PARSE_KWARGS), **self.PARSE_KWARGS)
-        self.assertEqual(parsed1.trigger_str, 'command')
-        self.assertEqual(parsed2.trigger_str, 'command')
+        self.assertEqual(parsed1.command_name, 'command')
+        self.assertEqual(parsed2.command_name, 'command')
         self.assertEqual(parsed1.invoker_dbref, '#212')
         self.assertEqual(parsed2.invoker_dbref, '#212')
         self.assertEqual(parsed1.kwargs, {'key': 'val'})
@@ -49,7 +49,7 @@ class ParseLineTests(unittest.TestCase):
 
         line1 = "{prefix_str}command{kwarg_delim}#212{kwarg_delim}key={kwarg_delim}"
         parsed1 = parse_line(line1.format(**self.PARSE_KWARGS), **self.PARSE_KWARGS)
-        self.assertEqual(parsed1.trigger_str, 'command')
+        self.assertEqual(parsed1.command_name, 'command')
         self.assertEqual(parsed1.invoker_dbref, '#212')
         self.assertEqual(parsed1.kwargs, {'key': ''})
 
@@ -62,7 +62,7 @@ class ParseLineTests(unittest.TestCase):
         # discarded.
         line1 = "{prefix_str}command{kwarg_delim}#212{kwarg_delim}JustAKey{kwarg_delim}key=val{kwarg_delim}"
         parsed1 = parse_line(line1.format(**self.PARSE_KWARGS), **self.PARSE_KWARGS)
-        self.assertEqual(parsed1.trigger_str, 'command')
+        self.assertEqual(parsed1.command_name, 'command')
         self.assertEqual(parsed1.invoker_dbref, '#212')
         self.assertEqual(parsed1.kwargs, {'key': 'val'})
 
@@ -82,8 +82,8 @@ class ParseLineTests(unittest.TestCase):
         }
         parsed1 = parse_line(line1.format(**vals), **self.PARSE_KWARGS)
         parsed2 = parse_line(line2.format(**vals), **self.PARSE_KWARGS)
-        self.assertEqual(parsed1.trigger_str, 'command')
-        self.assertEqual(parsed2.trigger_str, 'command')
+        self.assertEqual(parsed1.command_name, 'command')
+        self.assertEqual(parsed2.command_name, 'command')
         self.assertEqual(parsed1.invoker_dbref, '#212')
         self.assertEqual(parsed2.invoker_dbref, '#212')
         self.assertEqual(parsed1.kwargs, {'key': ['item1', 'item2']})
@@ -96,6 +96,6 @@ class ParseLineTests(unittest.TestCase):
 
         line1 = "{prefix_str}command{kwarg_delim}#212{kwarg_delim}key={list_delim}"
         parsed1 = parse_line(line1.format(**self.PARSE_KWARGS), **self.PARSE_KWARGS)
-        self.assertEqual(parsed1.trigger_str, 'command')
+        self.assertEqual(parsed1.command_name, 'command')
         self.assertEqual(parsed1.invoker_dbref, '#212')
         self.assertEqual(parsed1.kwargs, {'key': []})
