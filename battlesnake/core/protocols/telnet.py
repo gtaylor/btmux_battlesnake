@@ -5,7 +5,7 @@ from twisted.internet.task import LoopingCall
 
 from battlesnake.inbound_commands.bot_management.tables import BotManagementCommandTable
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.trigger_callbacks import examples as example_trigger_callbacks
+from battlesnake.triggers import examples as example_trigger_callbacks
 from battlesnake.conf import settings
 from battlesnake.core.triggers import TriggerTable, Trigger
 from battlesnake.core.response_watcher import ResponseWatcherManager
@@ -13,6 +13,9 @@ from battlesnake.core.inbound_command_handling.command_parser import parse_line
 
 
 # noinspection PyClassHasNoInit,PyClassHasNoInit,PyClassicStyleClass
+from battlesnake.triggers.examples.tables import ExampleTriggerTable
+
+
 class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
     """
     This is a stateful telnet protocol that is used to connect, listen to,
@@ -131,10 +134,12 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             # and we found the match.
             return
 
-        matched_trigger = self.trigger_table.match_line(line)
-        if matched_trigger:
-            trigger_obj, re_match = matched_trigger
-            trigger_obj.callback_func(self, line, re_match)
+        for trigger_table in self.trigger_tables:
+            matched_trigger = trigger_table.match_line(line)
+            if matched_trigger:
+                trigger_obj, re_match = matched_trigger
+                trigger_obj().run(self, line, re_match)
+                return
 
         # Figure out if this line is an inbound command.
         parsed_line = parse_line(
@@ -183,13 +188,8 @@ class BattlesnakeTelnetFactory(ClientFactory):
         ]
 
     def _register_triggers(self, protocol):
-        protocol.trigger_table = TriggerTable()
         # TODO: Un-hardcode this.
-        triggers = [
-            Trigger(
-                r'(?P<talker>.*) says "[Hh]ello"',
-                example_trigger_callbacks.say_hello_callback
-            )
+        protocol.trigger_tables = [
+            ExampleTriggerTable(),
         ]
-        for trigger in triggers:
-            protocol.trigger_table.register_trigger(trigger)
+

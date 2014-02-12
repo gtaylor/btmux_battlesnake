@@ -4,8 +4,6 @@ they can be matched and fired repeatedly. They also don't use deferreds,
 and instead run the callback function directly.
 """
 
-import re
-
 
 class TriggerTable(object):
     """
@@ -13,8 +11,14 @@ class TriggerTable(object):
     triggers. We handle trigger registration and matching through this class.
     """
 
+    # A list of Trigger sub-classes to register.
+    triggers = []
+
     def __init__(self):
-        self.triggers = []
+        self._triggers = []
+        # Get em' all registered at instantiation time.
+        for trigger in self.triggers:
+            self.register_trigger(trigger)
 
     def register_trigger(self, trigger):
         """
@@ -23,7 +27,7 @@ class TriggerTable(object):
         :param Trigger trigger:
         """
 
-        self.triggers.append(trigger)
+        self._triggers.append(trigger)
 
     def match_line(self, line):
         """
@@ -37,7 +41,7 @@ class TriggerTable(object):
             return None instead.
         """
 
-        for trigger in self.triggers:
+        for trigger in self._triggers:
             match = trigger.line_regex.search(line)
             if not match:
                 continue
@@ -47,10 +51,20 @@ class TriggerTable(object):
 class Trigger(object):
     """
     Encapsulates everything needed to match a line of output to a particular
-    regex string.
+    regex string. Sub-class this for each trigger.
     """
 
-    def __init__(self, regex_str, callback_func):
-        self.line_regex = re.compile(regex_str)
-        # This is the function that gets called when the trigger is matched.
-        self.callback_func = callback_func
+    # This must be set to a compiled regexp in your sub-class.
+    line_regex = None
+
+    def run(self, protocol, line, re_match):
+        """
+        This is called when the trigger is matched and fired.
+
+        :param BattlesnakeTelnetProtocol protocol: A reference back to the
+            top level telnet protocol instance.
+        :param basestring line: The line that set the trigger off.
+        :param re.MatchObject re_match: The Python regexp match object.
+        """
+
+        raise NotImplementedError("Override this method on your sub-class.")
