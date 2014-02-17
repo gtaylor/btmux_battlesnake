@@ -191,7 +191,7 @@ class BattlesnakeTelnetFactory(ClientFactory):
         """
 
         tables = []
-        for table in settings['commands']['tables']:
+        for table in settings['commands']['inbound_tables']:
             table_class = import_class(table)
             tables.append(table_class())
         return tables

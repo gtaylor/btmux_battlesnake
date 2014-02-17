@@ -41,3 +41,17 @@ config file.
 ``response_watcher_expire_check_interval`` (default: 1.0)
     Sets the interval (seconds) for how often to check for stale response
     watchers to purge.
+
+[commands]
+----------
+
+``inbound_tables`` (default: battlesnake.inbound_commands.bot_management.tables.BotManagementCommandTable)
+    A comma-separated list of InboundCommandTable sub-classes to register.
+    These are full Python paths.
+
+[triggers]
+----------
+
+``tables`` (default: battlesnake.triggers.examples.tables.ExampleTriggerTable)
+    A comma-separated list of TriggerTable sub-classes to register.
+    These are full Python paths.
