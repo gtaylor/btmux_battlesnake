@@ -4,6 +4,7 @@ from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 
 from battlesnake.conf import settings
+from battlesnake.core.py_importer import import_class
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.triggers.examples.tables import ExampleTriggerTable
 from battlesnake.inbound_commands.bot_management.tables import BotManagementCommandTable
@@ -184,13 +185,25 @@ class BattlesnakeTelnetFactory(ClientFactory):
         return protocol
 
     def _load_and_return_commands(self):
-        # TODO: Un-hardcode this.
-        return [
-            BotManagementCommandTable()
-        ]
+        """
+        Pull the command tables from settings and get them all instantiated
+        and registered.
+        """
+
+        tables = []
+        for table in settings['commands']['tables']:
+            table_class = import_class(table)
+            tables.append(table_class())
+        return tables
 
     def _load_and_return_triggers(self):
-        # TODO: Un-hardcode this.
-        return [
-            ExampleTriggerTable(),
-        ]
+        """
+        Pull the trigger tables from settings and get them all instantiated
+        and registered.
+        """
+
+        tables = []
+        for table in settings['triggers']['tables']:
+            table_class = import_class(table)
+            tables.append(table_class())
+        return tables
