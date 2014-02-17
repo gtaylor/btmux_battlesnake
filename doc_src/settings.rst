@@ -55,3 +55,10 @@ config file.
 ``tables`` (default: battlesnake.triggers.examples.tables.ExampleTriggerTable)
     A comma-separated list of TriggerTable sub-classes to register.
     These are full Python paths.
+
+[timers]
+--------
+
+``tables`` (default: battlesnake.timers.bot_misc.tables.BotMiscTimerTable)
+    A comma-separated list of TimerTable sub-classes to register.
+    These are full Python paths.

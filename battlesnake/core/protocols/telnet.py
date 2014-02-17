@@ -1,13 +1,10 @@
 from twisted.conch.telnet import StatefulTelnetProtocol
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
-from twisted.internet.task import LoopingCall
 
 from battlesnake.conf import settings
 from battlesnake.core.py_importer import import_class
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.triggers.examples.tables import ExampleTriggerTable
-from battlesnake.inbound_commands.bot_management.tables import BotManagementCommandTable
 from battlesnake.core.response_watcher import ResponseWatcherManager
 from battlesnake.core.inbound_command_handling.command_parser import parse_line
 
@@ -34,12 +31,13 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
     """
 
     def __init__(self, cmd_prefix, cmd_kwarg_delimiter, cmd_kwarg_list_delimiter,
-                 command_tables, trigger_tables):
+                 command_tables, trigger_tables, timer_tables):
         self.cmd_prefix = cmd_prefix
         self.cmd_kwarg_delimiter = cmd_kwarg_delimiter
         self.cmd_kwarg_list_delimiter = cmd_kwarg_list_delimiter
         self.command_tables = command_tables
         self.trigger_tables = trigger_tables
+        self.timer_tables = timer_tables
         self.watcher_manager = ResponseWatcherManager()
 
     def connectionMade(self):
@@ -63,21 +61,6 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         """
 
         return self.sendLine(line)
-
-    def _start_keepalive_loop(self):
-        """
-        If the bot is being ran from an external server, we use the IDLE
-        command on a loop to make sure that the connection doesn't drop
-        unexpectedly.
-        """
-
-        def keepalive(protocol):
-            mux_commands.idle(protocol)
-        lc = LoopingCall(keepalive, self)
-        loop_interval = settings['bot']['keepalive_interval']
-        if loop_interval:
-            print "* Keepalive interval: %ss" % loop_interval
-            lc.start(loop_interval)
 
     def expect(self, regex_str, timeout_secs=3.0, return_regex_group=None):
         """
@@ -125,7 +108,6 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             mux_commands.set_attr(
                 protocol=self, obj='me', name='BATTLESNAKE_LIST_DELIMITER.D',
                 value=self.cmd_kwarg_list_delimiter)
-            self._start_keepalive_loop()
             self.watcher_manager.start_expiration_loop()
             self.state = 'monitoring'
         elif 'or has a different password.' in line:
@@ -179,7 +161,11 @@ class BattlesnakeTelnetFactory(ClientFactory):
             cmd_kwarg_list_delimiter="#E$",
             command_tables=self._load_and_return_commands(),
             trigger_tables=self._load_and_return_triggers(),
+            # We need the protocol reference to do this.
+            timer_tables=None
         )
+        # TODO: Maybe there's a better way.
+        protocol.timer_tables = self._load_and_return_timers(protocol)
         protocol.factory = self
 
         return protocol
@@ -206,4 +192,16 @@ class BattlesnakeTelnetFactory(ClientFactory):
         for table in settings['triggers']['tables']:
             table_class = import_class(table)
             tables.append(table_class())
+        return tables
+
+    def _load_and_return_timers(self, protocol):
+        """
+        Pull the timer tables from settings and get them all instantiated
+        and registered.
+        """
+
+        tables = []
+        for table in settings['timers']['tables']:
+            table_class = import_class(table)
+            tables.append(table_class(protocol))
         return tables

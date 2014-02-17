@@ -1,2 +1,4 @@
 Twisted==13.2.0
+TxScheduling==1.1
 configobj==4.7.2
+crontab==0.18
