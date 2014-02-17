@@ -53,6 +53,8 @@ Documentation
    installation
    using_the_bot
    protocol
+   triggers
+   timers
    settings
 
 Indices and tables
