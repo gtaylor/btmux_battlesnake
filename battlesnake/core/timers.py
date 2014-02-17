@@ -44,7 +44,8 @@ class TimerTable(object):
         """
 
         lc = LoopingCall(timer_class.fire, self.protocol)
-        lc.start(timer_class.interval)
+        run_now = timer_class.run_after_registration
+        lc.start(timer_class.interval, now=run_now)
 
     def _register_crontab_timer(self, timer_class):
         """
@@ -117,9 +118,11 @@ class CronTimer(BaseTimer):
 class IntervalTimer(BaseTimer):
     """
     These timers fire every X seconds.
-
-    .. note:: All interval timers are fired immediately upon bot startup.
     """
 
     # An interval int in seconds.
     interval = None
+    # If this is True, the timer is ran immediately following registration.
+    # If your timer requires interacting with the MUX, don't set this, as
+    # registration happens before the bot connects to the game.
+    run_after_registration = False
