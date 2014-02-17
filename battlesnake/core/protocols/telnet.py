@@ -32,6 +32,15 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
       process supervisor is left to restart it.
     """
 
+    def __init__(self, cmd_prefix, cmd_kwarg_delimiter, cmd_kwarg_list_delimiter,
+                 command_tables, trigger_tables):
+        self.cmd_prefix = cmd_prefix
+        self.cmd_kwarg_delimiter = cmd_kwarg_delimiter
+        self.cmd_kwarg_list_delimiter = cmd_kwarg_list_delimiter
+        self.command_tables = command_tables
+        self.trigger_tables = trigger_tables
+        self.watcher_manager = ResponseWatcherManager()
+
     def connectionMade(self):
         print "Connection established."
         # Start looking for a trigger string on the connection banner to
@@ -162,30 +171,26 @@ class BattlesnakeTelnetFactory(ClientFactory):
     protocol = BattlesnakeTelnetProtocol
 
     def buildProtocol(self, addr):
-        protocol = self.protocol()
+        protocol = self.protocol(
+            # TODO: Set these dynamically.
+            cmd_prefix="@G$>",
+            cmd_kwarg_delimiter="&R^",
+            cmd_kwarg_list_delimiter="#E$",
+            command_tables=self._load_and_return_commands(),
+            trigger_tables=self._load_and_return_triggers(),
+        )
         protocol.factory = self
-        protocol.watcher_manager = ResponseWatcherManager()
 
-        self._set_dynamic_attribs(protocol)
-        self._register_commands(protocol)
-        self._register_triggers(protocol)
         return protocol
 
-    def _set_dynamic_attribs(self, protocol):
-        # TODO: Set these dynamically.
-        protocol.cmd_prefix = "@G$>"
-        protocol.cmd_kwarg_delimiter = "&R^"
-        protocol.cmd_kwarg_list_delimiter = "#E$"
-
-    def _register_commands(self, protocol):
+    def _load_and_return_commands(self):
         # TODO: Un-hardcode this.
-        protocol.command_tables = [
+        return [
             BotManagementCommandTable()
         ]
 
-    def _register_triggers(self, protocol):
+    def _load_and_return_triggers(self):
         # TODO: Un-hardcode this.
-        protocol.trigger_tables = [
+        return [
             ExampleTriggerTable(),
         ]
-
