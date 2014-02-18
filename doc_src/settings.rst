@@ -41,6 +41,9 @@ config file.
 ``response_watcher_expire_check_interval`` (default: 1.0)
     Sets the interval (seconds) for how often to check for stale response
     watchers to purge.
+``enable_hudinfo`` (default: False)
+    If True, generate and send a HUDINFO key. This will allow you to start
+    using HUDINFO commands.
 
 [commands]
 ----------

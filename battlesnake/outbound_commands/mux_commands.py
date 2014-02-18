@@ -1,6 +1,7 @@
 """
 Outbound command wrappers for base MUX commands.
 """
+
 from battlesnake.core.utils import generate_unique_token
 
 
@@ -85,8 +86,8 @@ def think(protocol, thought, return_output=True):
     command_str = 'think %s%s' % (prefix, thought)
     if return_output:
         regex_str = r'^' + prefix + '(?P<value>.*)\r$'
-        result = protocol.expect(regex_str, return_regex_group='value')
+        deferred = protocol.expect(regex_str, return_regex_group='value')
     protocol.write(command_str)
     if return_output:
         # noinspection PyUnboundLocalVariable
-        return result
+        return deferred

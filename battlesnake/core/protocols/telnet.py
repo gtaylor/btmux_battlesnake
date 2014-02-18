@@ -1,10 +1,12 @@
 from twisted.conch.telnet import StatefulTelnetProtocol
+from twisted.internet.defer import inlineCallbacks
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 
 from battlesnake.conf import settings
 from battlesnake.core.py_importer import import_class
-from battlesnake.outbound_commands import mux_commands
+from battlesnake.core.utils import generate_unique_token
+from battlesnake.outbound_commands import mux_commands, hudinfo_commands
 from battlesnake.core.response_watcher import ResponseWatcherManager
 from battlesnake.core.inbound_command_handling.command_parser import parse_line
 
@@ -39,6 +41,9 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         self.trigger_tables = trigger_tables
         self.timer_tables = timer_tables
         self.watcher_manager = ResponseWatcherManager()
+        self.hudinfo_enabled = settings['bot']['enable_hudinfo']
+        # This is populated once we set a key in-game.
+        self.hudinfo_key = None
 
     def connectionMade(self):
         print "Connection established."
@@ -84,6 +89,20 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         return self.watcher_manager.watch(
             regex_str, timeout_secs=timeout_secs, return_regex_group=return_regex_group)
 
+    @inlineCallbacks
+    def gen_and_set_hudinfo_key(self):
+        """
+        Generates and sets a HUDINFO key.
+        """
+
+        potential_key = generate_unique_token()[:20]
+        hudinfo_key = yield hudinfo_commands.hudinfo_set_key(self, potential_key)
+        if hudinfo_key:
+            self.hudinfo_key = hudinfo_key
+            print "* HUDINFO active. Key: %s" % self.hudinfo_key
+        else:
+            print "Error: Unable to set HUDINFO key %s" % potential_key
+
     #
     ## State-specific line handlers. See class docstring for specifics.
 
@@ -109,6 +128,8 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
                 protocol=self, obj='me', name='BATTLESNAKE_LIST_DELIMITER.D',
                 value=self.cmd_kwarg_list_delimiter)
             self.watcher_manager.start_expiration_loop()
+            if self.hudinfo_enabled:
+                self.gen_and_set_hudinfo_key()
             self.state = 'monitoring'
         elif 'or has a different password.' in line:
             # Invalid username/password. Poop out.
