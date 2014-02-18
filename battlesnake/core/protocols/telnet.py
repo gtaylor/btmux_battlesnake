@@ -128,9 +128,9 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
                 protocol=self, obj='me', name='BATTLESNAKE_LIST_DELIMITER.D',
                 value=self.cmd_kwarg_list_delimiter)
             self.watcher_manager.start_expiration_loop()
+            self.state = 'monitoring'
             if self.hudinfo_enabled:
                 self.gen_and_set_hudinfo_key()
-            self.state = 'monitoring'
         elif 'or has a different password.' in line:
             # Invalid username/password. Poop out.
             print "Failure to authenticate."
@@ -197,8 +197,10 @@ class BattlesnakeTelnetFactory(ClientFactory):
         and registered.
         """
 
+        print "Loading command tables..."
         tables = []
         for table in settings['commands']['inbound_tables']:
+            print "  - Loading", table
             table_class = import_class(table)
             tables.append(table_class())
         return tables
@@ -209,8 +211,10 @@ class BattlesnakeTelnetFactory(ClientFactory):
         and registered.
         """
 
+        print "Loading trigger tables..."
         tables = []
         for table in settings['triggers']['tables']:
+            print "  - Loading", table
             table_class = import_class(table)
             tables.append(table_class())
         return tables
@@ -221,8 +225,10 @@ class BattlesnakeTelnetFactory(ClientFactory):
         and registered.
         """
 
+        print "Loading timer tables..."
         tables = []
         for table in settings['timers']['tables']:
+            print "  - Loading", table
             table_class = import_class(table)
             tables.append(table_class(protocol))
         return tables
