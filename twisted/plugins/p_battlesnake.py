@@ -4,6 +4,8 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.application.service import IServiceMaker
 
+from battlesnake.core.py_importer import import_class
+
 
 class Options(usage.Options):
     optParameters = [
@@ -40,7 +42,27 @@ class ServiceMaker(object):
         telnet_service = get_telnet_service()
         telnet_service.setServiceParent(top_service)
 
+        self.load_extra_services(top_service)
+
         return top_service
+
+    def load_extra_services(self, top_service):
+        """
+        If the user has added additional services in their config file,
+        load and start them.
+        """
+
+        from battlesnake.conf import settings
+        extra_services = settings['bot']['extra_services']
+        if not extra_services:
+            print "NO SERVICES"
+            return
+        print "Loading extra services..."
+        for svc_loader in extra_services:
+            print "  - Loading %s" % svc_loader
+            loader = import_class(svc_loader)
+            svc = loader()
+            svc.setServiceParent(top_service)
 
 
 # This is where the Twisted magic takes over.
