@@ -2,7 +2,7 @@ import blinker
 from autobahn.wamp1.protocol import WampServerProtocol
 
 from battlesnake.contrib.hudinfo_cache.signals import on_new_unit_detected, \
-    on_unit_destroyed, on_stale_unit_removed, on_hit_landed
+    on_unit_destroyed, on_stale_unit_removed, on_hit_landed, on_shot_missed
 from battlesnake.contrib.hudinfo_cache.store import UNIT_STORE
 
 
@@ -36,6 +36,11 @@ class HexMapWampServerProtocol(WampServerProtocol):
                 'signal': on_hit_landed,
                 'topic': 'http://hexmap.com/unit/events/hit-landed',
                 'receiver': self._recv_on_hit_landed,
+            },
+            'on_shot_missed': {
+                'signal': on_shot_missed,
+                'topic': 'http://hexmap.com/unit/events/shot-missed',
+                'receiver': self._recv_on_shot_missed,
             },
         }
 
@@ -134,6 +139,24 @@ class HexMapWampServerProtocol(WampServerProtocol):
         """
 
         topic = self.signals['on_hit_landed']['topic']
+        """:type: str"""
+        self.dispatch(topic,
+            {
+                "victim_id": victim_id,
+                "aggressor_id": aggressor_id,
+                "weapon_name": weapon_name,
+            }
+        )
+
+    # noinspection PyUnusedLocal
+    def _recv_on_shot_missed(self, sender, victim_id, aggressor_id, weapon_name):
+        """
+        :param str victim_id:
+        :param str aggressor_id:
+        :param str weapon_name:
+        """
+
+        topic = self.signals['on_shot_missed']['topic']
         """:type: str"""
         self.dispatch(topic,
             {

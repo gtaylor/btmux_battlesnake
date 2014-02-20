@@ -4,7 +4,7 @@ import simplejson
 
 from battlesnake.conf import settings
 from battlesnake.contrib.hudinfo_cache.signals import on_stale_unit_removed, \
-    on_new_unit_detected, on_unit_destroyed, on_hit_landed
+    on_new_unit_detected, on_unit_destroyed, on_hit_landed, on_shot_missed
 
 
 class MapUnitStore(object):
@@ -74,6 +74,15 @@ class MapUnitStore(object):
         """
 
         on_hit_landed.send(
+            self, victim_id=victim_id, aggressor_id=aggressor_id,
+            weapon_name=weapon_name)
+
+    def record_miss(self, victim_id, aggressor_id, weapon_name):
+        """
+        Records a missed attack on a unit.
+        """
+
+        on_shot_missed.send(
             self, victim_id=victim_id, aggressor_id=aggressor_id,
             weapon_name=weapon_name)
 
