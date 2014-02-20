@@ -29,7 +29,8 @@ class MapUnitStore(object):
         if unit.contact_id not in self._unit_store and 'D' not in unit.status:
             print "New unit: %s" % unit
             self._unit_store[unit.contact_id] = unit
-            on_new_unit_detected.send(self, unit=unit)
+            unit_serialized = self.get_serialized_unit_by_id(unit.contact_id)
+            on_new_unit_detected.send(self, unit=unit, unit_serialized=unit_serialized)
         else:
             # TODO: Update selectively?
             self._unit_store[unit.contact_id] = unit
@@ -66,6 +67,15 @@ class MapUnitStore(object):
                 print "Removing stale unit:", unit
                 on_stale_unit_removed.send(self, unit=unit)
                 self.purge_unit_by_id(unit.contact_id)
+
+    def get_serialized_unit_by_id(self, unit_id):
+        """
+        :rtype: str
+        :returns: A serialized representation of a single unit.
+        """
+
+        unit = self._unit_store[unit_id]
+        return simplejson.dumps(unit, default=MapUnitEncoder.encode)
 
     def get_serialized_units(self):
         """
