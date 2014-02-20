@@ -26,14 +26,28 @@ class MapUnitStore(object):
         :param MapUnit unit: The unit to add or update.
         """
 
-        if unit.contact_id not in self._unit_store and 'D' not in unit.status:
-            print "New unit: %s" % unit
+        if 'D' in unit.status:
+            # We don't track destroyed units.
+            if unit.contact_id in self._unit_store:
+                self.purge_unit_by_id(unit.contact_id)
+            return
+
+        if unit.contact_id not in self._unit_store:
+            # New unit. Add it and let the connected clients know.
             self._unit_store[unit.contact_id] = unit
             unit_serialized = self.get_serialized_unit_by_id(unit.contact_id)
             on_new_unit_detected.send(self, unit=unit, unit_serialized=unit_serialized)
         else:
-            # TODO: Update selectively?
-            self._unit_store[unit.contact_id] = unit
+            # Compare the copy of the unit currently in the cache to the
+            # one we just got from in-game.
+            changes = self.compare_units(unit, self._unit_store[unit.contact_id])
+            if changes:
+                # This unit's state has changed. Update it.
+                self._unit_store[unit.contact_id] = unit
+            else:
+                # No changes, but we saw the unit. Mark it so it doesn't
+                # get stale purged.
+                self._unit_store[unit.contact_id].mark_as_seen()
 
     def mark_unit_as_destroyed_by_id(self, victim_id, killer_id):
         """
@@ -103,6 +117,28 @@ class MapUnitStore(object):
 
         return simplejson.dumps(self._unit_store, default=MapUnitEncoder.encode)
 
+    def compare_units(self, unit1, unit2):
+        """
+        Given two units of the same ID, determine what attributes (if any) are
+        different between the two.
+
+        :rtype: list
+        :returns: A list of changed attributes.
+        """
+
+        unit1_dict = unit1.__dict__
+        unit2_dict = unit2.__dict__
+        ignored_keys = ['last_seen']
+        changes = []
+        for key, val in unit1_dict.items():
+            if key in ignored_keys:
+                continue
+            unit1_val = val
+            unit2_val = unit2_dict[key]
+            if unit1_val != unit2_val:
+                changes.append(key)
+        return changes
+
 
 class MapUnitEncoder(object):
     """
@@ -140,6 +176,13 @@ class MapUnit(object):
         self.tonnage = tonnage
         self.heat = heat
         self.status = status
+
+        self.last_seen = datetime.datetime.now()
+
+    def mark_as_seen(self):
+        """
+        Called every time the bot sees this unit. Prevents expiration.
+        """
 
         self.last_seen = datetime.datetime.now()
 
