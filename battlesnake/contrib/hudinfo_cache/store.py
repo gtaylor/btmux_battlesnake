@@ -4,7 +4,8 @@ import simplejson
 
 from battlesnake.conf import settings
 from battlesnake.contrib.hudinfo_cache.signals import on_stale_unit_removed, \
-    on_new_unit_detected, on_unit_destroyed, on_hit_landed, on_shot_missed
+    on_new_unit_detected, on_unit_destroyed, on_hit_landed, on_shot_missed, \
+    on_unit_state_changed
 
 
 class MapUnitStore(object):
@@ -44,6 +45,12 @@ class MapUnitStore(object):
             if changes:
                 # This unit's state has changed. Update it.
                 self._unit_store[unit.contact_id] = unit
+                unit_serialized = self.get_serialized_unit_by_id(unit.contact_id)
+                # Broadcast the changes to all connected users.
+                on_unit_state_changed.send(
+                    self, unit=unit, unit_serialized=unit_serialized,
+                    changes=changes,
+                )
             else:
                 # No changes, but we saw the unit. Mark it so it doesn't
                 # get stale purged.

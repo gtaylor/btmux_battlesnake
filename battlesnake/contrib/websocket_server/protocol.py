@@ -2,7 +2,8 @@ import blinker
 from autobahn.wamp1.protocol import WampServerProtocol
 
 from battlesnake.contrib.hudinfo_cache.signals import on_new_unit_detected, \
-    on_unit_destroyed, on_stale_unit_removed, on_hit_landed, on_shot_missed
+    on_unit_destroyed, on_stale_unit_removed, on_hit_landed, on_shot_missed, \
+    on_unit_state_changed
 from battlesnake.contrib.hudinfo_cache.store import UNIT_STORE
 
 
@@ -41,6 +42,11 @@ class HexMapWampServerProtocol(WampServerProtocol):
                 'signal': on_shot_missed,
                 'topic': 'http://hexmap.com/unit/events/shot-missed',
                 'receiver': self._recv_on_shot_missed,
+            },
+            'on_unit_state_changed': {
+                'signal': on_unit_state_changed,
+                'topic': 'http://hexmap.com/unit/events/state-changed',
+                'receiver': self._recv_on_unit_state_changed,
             },
         }
 
@@ -97,6 +103,24 @@ class HexMapWampServerProtocol(WampServerProtocol):
         self.dispatch(topic,
             {
                 "unit": unit_serialized,
+            }
+        )
+
+    # noinspection PyUnusedLocal
+    def _recv_on_unit_state_changed(self, sender, unit, unit_serialized,
+                                    changes):
+        """
+        :param MapUnit unit:
+        :param dict unit_serialized:
+        :param list changes: A list of changed attributes on the unit.
+        """
+
+        topic = self.signals['on_unit_state_changed']['topic']
+        """:type: str"""
+        self.dispatch(topic,
+            {
+                "unit": unit_serialized,
+                "changes": changes,
             }
         )
 
