@@ -55,8 +55,6 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
     def connectionLost(self, reason):
         print "Connection lost."
         StatefulTelnetProtocol.connectionLost(self, reason)
-        if reactor.running:
-            reactor.stop()
 
     def write(self, line):
         """

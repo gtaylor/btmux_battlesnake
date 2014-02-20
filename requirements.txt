@@ -3,3 +3,5 @@ TxScheduling==1.1
 configobj==4.7.2
 crontab==0.18
 autobahn==0.8.1
+blinker==1.3
+simplejson==3.3.3

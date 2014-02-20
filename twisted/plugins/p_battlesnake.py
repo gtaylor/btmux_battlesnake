@@ -55,7 +55,6 @@ class ServiceMaker(object):
         from battlesnake.conf import settings
         extra_services = settings['bot']['extra_services']
         if not extra_services:
-            print "NO SERVICES"
             return
         print "Loading extra services..."
         for svc_loader in extra_services:

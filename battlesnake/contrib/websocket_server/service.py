@@ -1,8 +1,8 @@
 from twisted.application import internet
-from autobahn.twisted.websocket import WebSocketServerFactory
+from autobahn.wamp1.protocol import WampServerFactory
 
 from battlesnake.conf import settings
-from battlesnake.contrib.websocket_server.protocol import BSWebSocketServerProtocol
+from battlesnake.contrib.websocket_server.protocol import HexMapWampServerProtocol
 
 
 def get_websocket_service():
@@ -14,7 +14,7 @@ def get_websocket_service():
 
     bind_uri = settings['websocket_server']['bind_uri']
     port = settings['websocket_server']['port']
-    factory = WebSocketServerFactory(bind_uri, debug=False)
-    factory.protocol = BSWebSocketServerProtocol
+    factory = WampServerFactory(bind_uri, debugWamp=False)
+    factory.protocol = HexMapWampServerProtocol
     # noinspection PyUnresolvedReferences
     return internet.TCPServer(port, factory)

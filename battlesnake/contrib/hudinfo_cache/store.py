@@ -1,6 +1,10 @@
 import datetime
 
+import simplejson
+
 from battlesnake.conf import settings
+from battlesnake.contrib.hudinfo_cache.signals import on_stale_unit_removed, \
+    on_new_unit_detected
 
 
 class MapUnitStore(object):
@@ -24,7 +28,11 @@ class MapUnitStore(object):
 
         if unit.contact_id not in self._unit_store:
             print "New unit: %s" % unit
-        self._unit_store[unit.contact_id] = unit
+            self._unit_store[unit.contact_id] = unit
+            on_new_unit_detected.send(self, unit=unit)
+        else:
+            # TODO: Update selectively?
+            self._unit_store[unit.contact_id] = unit
 
     def purge_unit_by_id(self, unit_id):
         """
@@ -47,7 +55,30 @@ class MapUnitStore(object):
         for unit_id, unit in self._unit_store.items():
             if unit.last_seen < cutoff:
                 print "Removing stale unit:", unit
+                on_stale_unit_removed.send(self, unit=unit)
                 self.purge_unit_by_id(unit.contact_id)
+
+    def get_serialized_units(self):
+        """
+        :rtype: str
+        :returns: A serialized representation of the entire unit store.
+        """
+
+        return simplejson.dumps(self._unit_store, default=MapUnitEncoder.encode)
+
+
+class MapUnitEncoder(object):
+    """
+    Hastily thrown together encoder for MapUnit.
+    """
+
+    @staticmethod
+    def encode(obj):
+        if isinstance(obj, MapUnit):
+            odict = obj.__dict__
+            return odict
+        elif isinstance(obj, datetime.datetime):
+            return obj.isoformat()
 
 
 class MapUnit(object):
@@ -58,7 +89,7 @@ class MapUnit(object):
     def __init__(self, contact_id, unit_type, mech_name, x_coord, y_coord,
                  z_coord, speed, heading, jump_heading, range_to_hex_center,
                  bearing_to_hex_center, tonnage, heat, status):
-        self.contact_id = contact_id
+        self.contact_id = contact_id.upper()
         self.unit_type = unit_type
         self.mech_name = mech_name
         self.x_coord = x_coord
