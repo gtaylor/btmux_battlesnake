@@ -4,7 +4,7 @@ import simplejson
 
 from battlesnake.conf import settings
 from battlesnake.contrib.hudinfo_cache.signals import on_stale_unit_removed, \
-    on_new_unit_detected, on_unit_destroyed
+    on_new_unit_detected, on_unit_destroyed, on_hit_landed
 
 
 class MapUnitStore(object):
@@ -67,6 +67,15 @@ class MapUnitStore(object):
                 print "Removing stale unit:", unit
                 on_stale_unit_removed.send(self, unit=unit)
                 self.purge_unit_by_id(unit.contact_id)
+
+    def record_hit(self, victim_id, aggressor_id, weapon_name):
+        """
+        Records a successful attack on a unit.
+        """
+
+        on_hit_landed.send(
+            self, victim_id=victim_id, aggressor_id=aggressor_id,
+            weapon_name=weapon_name)
 
     def get_serialized_unit_by_id(self, unit_id):
         """
