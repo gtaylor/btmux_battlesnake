@@ -4,7 +4,7 @@ import simplejson
 
 from battlesnake.conf import settings
 from battlesnake.contrib.hudinfo_cache.signals import on_stale_unit_removed, \
-    on_new_unit_detected
+    on_new_unit_detected, on_unit_destroyed
 
 
 class MapUnitStore(object):
@@ -26,13 +26,22 @@ class MapUnitStore(object):
         :param MapUnit unit: The unit to add or update.
         """
 
-        if unit.contact_id not in self._unit_store:
+        if unit.contact_id not in self._unit_store and 'D' not in unit.status:
             print "New unit: %s" % unit
             self._unit_store[unit.contact_id] = unit
             on_new_unit_detected.send(self, unit=unit)
         else:
             # TODO: Update selectively?
             self._unit_store[unit.contact_id] = unit
+
+    def mark_unit_as_destroyed_by_id(self, victim_id, killer_id):
+        """
+        Called when a unit has been destroyed.
+        """
+
+        on_unit_destroyed.send(self, victim_id=victim_id, killer_id=killer_id)
+        if victim_id in self._unit_store:
+            self.purge_unit_by_id(victim_id)
 
     def purge_unit_by_id(self, unit_id):
         """
