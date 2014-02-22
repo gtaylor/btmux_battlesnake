@@ -204,19 +204,20 @@ class HudinfoCParser(object):
 
     def parse(self, contact_data):
         con_split = contact_data.split(',')
+        jump_heading = int(con_split[13]) if con_split[13] != '-' else None
         return MapUnit(
             contact_id=con_split[0],
             unit_type=con_split[3],
             mech_name=con_split[4],
-            x_coord=con_split[5],
-            y_coord=con_split[6],
-            z_coord=con_split[7],
-            speed=con_split[10],
-            heading=con_split[12],
-            jump_heading=con_split[13],
-            range_to_hex_center=con_split[14],
-            bearing_to_hex_center=con_split[15],
-            tonnage=con_split[16],
+            x_coord=int(con_split[5]),
+            y_coord=int(con_split[6]),
+            z_coord=int(con_split[7]),
+            speed=float(con_split[10]),
+            heading=int(con_split[12]),
+            jump_heading=jump_heading,
+            range_to_hex_center=float(con_split[14]),
+            bearing_to_hex_center=int(con_split[15]),
+            tonnage=int(con_split[16]),
             heat=con_split[17],
             status=con_split[18],
         )
