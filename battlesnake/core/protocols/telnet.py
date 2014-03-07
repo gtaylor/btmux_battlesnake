@@ -6,7 +6,8 @@ from twisted.internet import reactor
 from battlesnake.conf import settings
 from battlesnake.core.py_importer import import_class
 from battlesnake.core.utils import generate_unique_token
-from battlesnake.outbound_commands import mux_commands, hudinfo_commands
+from battlesnake.outbound_commands import think_fn_wrappers
+from battlesnake.outbound_commands import hudinfo_commands
 from battlesnake.core.response_watcher import ResponseWatcherManager
 from battlesnake.core.inbound_command_handling.command_parser import parse_line
 
@@ -116,15 +117,13 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
     def telnet_authenticate(self, line):
         if 'Connected.' in line:
             # Authentication was successful, go active.
-            mux_commands.set_attr(
-                protocol=self, obj='me', name='BATTLESNAKE_PREFIX.D',
-                value=self.cmd_prefix)
-            mux_commands.set_attr(
-                protocol=self, obj='me', name='BATTLESNAKE_KWARG_DELIMITER.D',
-                value=self.cmd_kwarg_delimiter)
-            mux_commands.set_attr(
-                protocol=self, obj='me', name='BATTLESNAKE_LIST_DELIMITER.D',
-                value=self.cmd_kwarg_list_delimiter)
+            botinfo_attribs = {
+                'BATTLESNAKE_PREFIX.D': self.cmd_prefix,
+                'BATTLESNAKE_KWARG_DELIMITER.D': self.cmd_kwarg_delimiter,
+                'BATTLESNAKE_LIST_DELIMITER.D': self.cmd_kwarg_list_delimiter,
+            }
+            think_fn_wrappers.set_attrs(
+                protocol=self, obj='me', attr_dict=botinfo_attribs)
             self.watcher_manager.start_expiration_loop()
             self.state = 'monitoring'
             if self.hudinfo_enabled:
