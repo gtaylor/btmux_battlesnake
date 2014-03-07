@@ -1,9 +1,11 @@
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.core.inbound_command_handling.base import BaseCommand
+from battlesnake.core.inbound_command_handling.command_table import \
+    InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.outbound_commands import think_fn_wrappers
-from battlesnake.contrib.unit_spawning.outbound_commands.unit_creation import \
+
+from battlesnake.contrib.unit_spawning.outbound_commands import \
     create_unit
 
 
@@ -45,3 +47,10 @@ class SpawnUnitCommand(BaseCommand):
             "%chspawnunit%cn <unit_ref>=<map_dbref>,<faction_alias>,<x>,<y>"
         )
         mux_commands.pemit(protocol, parsed_line.invoker_dbref, pval)
+
+
+class UnitSpawningCommandTable(InboundCommandTable):
+
+    commands = [
+        SpawnUnitCommand,
+    ]
