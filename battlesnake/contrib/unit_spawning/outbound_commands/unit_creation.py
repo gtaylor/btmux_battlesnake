@@ -6,22 +6,68 @@ from battlesnake.outbound_commands import mux_commands
 
 
 @inlineCallbacks
-def create_unit(protocol, unit_ref, map_dbref, faction_name, unit_x, unit_y):
+def create_unit(protocol, unit_ref, map_dbref, faction_name, team_num,
+                unit_x, unit_y, unit_z=''):
+    """
+    Creates a new unit on the given map at the specified coordinates.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str unit_ref: The unit ref to load.
+    :param str map_dbref: A MUX object string for the map.
+    :param str faction_name: The full name of the faction that the unit belongs to.
+    :param int team_num: A team number 1-255.
+    :param int unit_x: The X coord to place the unit on the map.
+    :param int unit_y: The Y coord to place the unit on the map.
+    :param int unit_z: The Z coord to place the unit on the map.
+    :rtype: defer.Deferred
+    :returns: A Deferred whose callback value will be the dbref of
+        the newly created unit.
+    """
+
+    p = protocol
+    # The unit isn't far enough along to be given a spiffy name yet. Give it
+    # a temporary BS name.
     unit_name = "UnitBeingCreated"
-    unit_parent_dbref = settings['unit_spawning']['unit_parent_dbref']
     unit_dbref = yield think_fn_wrappers.create(protocol, unit_name, otype='t')
+
+    # I can't remember the details, but there were some edge cases where not
+    # having a negative semaphore count caused issues.
+    mux_commands.drain(p, unit_dbref)
+    mux_commands.notify(p, unit_dbref)
+    mux_commands.parent(p, unit_dbref, settings['unit_spawning']['unit_parent_dbref'])
+    mux_commands.lock(p, unit_dbref, unit_dbref)
+    mux_commands.lock(p, unit_dbref, 'ELOCK/1', whichlock='enter')
+    mux_commands.lock(p, unit_dbref, 'LLOCK/1', whichlock='leave')
+    mux_commands.lock(p, unit_dbref, 'ULOCK/1', whichlock='use')
+    mux_commands.link(protocol, unit_dbref, map_dbref)
     yield think_fn_wrappers.set_attrs(protocol, unit_dbref, {
         'Mechtype': unit_ref,
-        'Mechname': 'Fun unit',
+        'Mechname': 'Loading...',
         'FACTION': faction_name,
         'Xtype': 'MECH',
 
     })
     yield think_fn_wrappers.teleport(protocol, unit_dbref, map_dbref)
     flags = ['INHERIT', 'IN_CHARACTER', 'XCODE', 'ENTER_OK', 'OPAQUE']
+    # At this point, the XCODE flag is set, so we're ready to rock.
     yield think_fn_wrappers.set_flags(protocol, unit_dbref, flags)
-    mux_commands.parent(protocol, unit_dbref, unit_parent_dbref)
-    yield think_fn_wrappers.btloadmech(protocol, unit_dbref, unit_ref)
+
+    # The unit now has its ref loaded, but is still not on a map.
+    yield think_fn_wrappers.btloadmech(p, unit_dbref, unit_ref)
+    yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'team', team_num)
+    # Get the name of the ref from the unit's mechname XCODE value.
+    unit_name = yield think_fn_wrappers.btgetxcodevalue(p, unit_dbref, 'mechname')
+    # Mechname is what shows up on 'contacts', so update it to contain
+    # the ref's mechname.
+    yield think_fn_wrappers.set_attrs(p, unit_dbref, {'Mechname': unit_name})
+    new_obj_name = '[u({unit_dbref}/UNITNAME.F,{unit_dbref})]'.format(
+        unit_dbref=unit_dbref)
+    mux_commands.name(p, unit_dbref, new_obj_name)
+    mux_commands.trigger(p, unit_dbref, 'SET_MECHDESC.T')
+
+    # This tosses the unit on the map. At this point, they're 100% finished.
     yield think_fn_wrappers.btsetxy(
-        protocol, unit_dbref, map_dbref, unit_x, unit_y)
+        p, unit_dbref, map_dbref, unit_x, unit_y, unit_z=unit_z)
+    # The whole shebang completes with the deferred callback passing the
+    # new unit's dbref.
     returnValue(unit_dbref)
