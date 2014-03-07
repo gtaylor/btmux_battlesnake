@@ -5,17 +5,31 @@ Outbound command wrappers for base MUX commands.
 from battlesnake.core.utils import generate_unique_token
 
 
-def set_attr(protocol, obj, name, value):
+def set_attr(protocol, obj, key, val):
     """
     Wrapper for @set, in the context of an attribute.
 
     :param BattlesnakeTelnetProtocol protocol:
     :param string obj: A valid MUX object string. 'me', 'here', a dbref, etc.
-    :param string name: The attribute name.
-    :param string value: The attribute value.
+    :param string key: The attribute name.
+    :param string val: The attribute value.
     """
 
-    protocol.write("@set %s=%s:%s" % (obj, name, value))
+    protocol.write("@set {obj}={key}:{val}".format(
+        obj=obj, key=key, val=val))
+
+
+def parent(protocol, obj, parent_obj):
+    """
+    Wrapper for @parent.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param string obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param string parent_obj: A MUX object string for the parent to set.
+    """
+
+    parent_str = "@parent {obj}={parent_obj}".format(obj=obj, parent_obj=parent_obj)
+    protocol.write(parent_str)
 
 
 def say(protocol, message):
