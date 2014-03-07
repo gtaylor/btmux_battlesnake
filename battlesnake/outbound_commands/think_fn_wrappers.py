@@ -45,7 +45,7 @@ def set_attrs(protocol, obj, attr_dict):
         iter_vals += "{key}:{val} ".format(key=key, val=val)
     think_str = "[iter({iter_vals},[set({obj},##)])]".format(
         iter_vals=iter_vals, obj=obj)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, return_output=False)
 
 
 def set_flags(protocol, obj, flags):
@@ -75,7 +75,7 @@ def teleport(protocol, obj, dest_obj):
 
     think_str = "[tel({obj},{dest_obj})]".format(
         obj=obj, dest_obj=dest_obj)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, return_output=False)
 
 
 def btloadmech(protocol, obj, unit_ref):
@@ -87,7 +87,7 @@ def btloadmech(protocol, obj, unit_ref):
 
     think_str = "[btloadmech({obj},{unit_ref})]".format(
         obj=obj, unit_ref=unit_ref)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, return_output=False)
 
 
 def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
@@ -103,4 +103,29 @@ def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
 
     think_str = "[btsetxy({obj},{map_obj},{unit_x},{unit_z})]".format(
         obj=obj, map_obj=map_obj, unit_x=unit_x, unit_y=unit_y, unit_z=unit_z)
+    return mux_commands.think(protocol, think_str, return_output=False)
+
+
+def btsetxcodevalue(protocol, obj, key, val):
+    """
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str key: The XCODE key to set.
+    :param val: The XCODE val to set on the key.
+    :rtype: defer.Deferred
+    """
+
+    think_str = "[btsetxcodevalue({obj},{key},{val})]".format(
+        obj=obj, key=key, val=val)
+    return mux_commands.think(protocol, think_str, return_output=False)
+
+
+def btgetxcodevalue(protocol, obj, key):
+    """
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str key: The XCODE key to retrieve the value for.
+    :rtype: defer.Deferred
+    """
+
+    think_str = "[btgetxcodevalue({obj},{key})]".format(
+        obj=obj, key=key)
     return mux_commands.think(protocol, think_str)
