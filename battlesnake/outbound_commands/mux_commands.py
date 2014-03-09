@@ -22,6 +22,21 @@ def set_attr(protocol, obj, attr, val):
     return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
 
 
+def startup(protocol, obj, startup_val):
+    """
+    Wrapper for @startup.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str startup_val: Value for the object's Startup attribute.
+    """
+
+    startup_str = "@startup {obj}={startup_val}".format(
+        obj=obj, startup_val=startup_val)
+    ack_regex = r'Startup - Set.\r$'
+    return protocol.write_and_wait(startup_str, ack_regex_str=ack_regex)
+
+
 def parent(protocol, obj, parent_obj):
     """
     Wrapper for @parent.
@@ -148,6 +163,20 @@ def link(protocol, obj, target_obj):
         obj=obj, target_obj=target_obj)
     ack_regex = r'Home set.\r$'
     return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+
+
+def force(protocol, obj, force_command):
+    """
+    Forces an object to do something.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str force_command: The command to force the object to do.
+    """
+
+    command_str = "@force {obj}={force_command}".format(
+        obj=obj, force_command=force_command)
+    return protocol.write_and_wait(command_str)
 
 
 def name(protocol, obj, new_name):
