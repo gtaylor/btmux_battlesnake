@@ -1,6 +1,7 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from battlesnake.conf import settings
+from battlesnake.contrib.unit_spawning.signals import on_unit_spawned
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 
@@ -68,6 +69,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction_name, team_num,
     # This tosses the unit on the map. At this point, they're 100% finished.
     yield think_fn_wrappers.btsetxy(
         p, unit_dbref, map_dbref, unit_x, unit_y, unit_z=unit_z)
+    # Let any listening stuff know.
+    on_unit_spawned.send(None, unit_dbref=unit_dbref, map_dbref=map_dbref)
     # The whole shebang completes with the deferred callback passing the
     # new unit's dbref.
     returnValue(unit_dbref)

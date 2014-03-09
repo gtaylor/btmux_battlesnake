@@ -35,7 +35,7 @@ class SpawnUnitCommand(BaseCommand):
         unit_dbref = yield create_unit(
             protocol, unit_ref, map_dbref, faction_name, team_num, unit_x, unit_y)
 
-        pval = "New unit {unit_dbref}".format(unit_dbref=unit_dbref)
+        pval = "New unit {unit_dbref} spawned.".format(unit_dbref=unit_dbref)
         mux_commands.pemit(protocol, parsed_line.invoker_dbref, pval)
 
     def handle_noargs(self, protocol, parsed_line):
