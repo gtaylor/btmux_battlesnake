@@ -64,7 +64,38 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         :param string line: The command to send.
         """
 
-        return self.sendLine(line)
+        self.sendLine(line)
+
+    def write_and_wait(self, line, ack_regex_str=None):
+        """
+        This is used for commands where we don't necessarily care about the
+        output, but we want to make sure that the command completed execution.
+
+        .. warning:: Despite getting a response and triggering the deferred,
+            the command may not actually be done yet. This is a pretty
+            flimsy way of handling this, but we may be able to figure
+            out something better in the future.
+
+        :param string line: The command to send.
+        """
+
+        if not ack_regex_str:
+            # No acknowledgement regex was specified, so we'll generate a
+            # token and run a 'think' after the command.
+            postfix_token = generate_unique_token()
+            postfix_line = "think " + postfix_token
+            regex_str = r'{postfix}\r$'.format(postfix=postfix_token)
+            deferred = self.expect(regex_str)
+            self.sendLine(postfix_line)
+        else:
+            postfix_line = None
+            deferred = self.expect(ack_regex_str)
+
+        self.sendLine(line)
+
+        if postfix_line:
+            self.sendLine(postfix_line)
+        return deferred
 
     def expect(self, regex_str, timeout_secs=3.0, return_regex_group=None):
         """

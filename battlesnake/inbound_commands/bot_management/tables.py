@@ -9,4 +9,5 @@ class BotManagementCommandTable(InboundCommandTable):
 
     commands = [
         bot_commands.BotInfoCommand,
+        bot_commands.BotWaitTestCommand,
     ]
