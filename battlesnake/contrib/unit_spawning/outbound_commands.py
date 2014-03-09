@@ -16,7 +16,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction_name, team_num,
     :param str unit_ref: The unit ref to load.
     :param str map_dbref: A MUX object string for the map.
     :param str faction_name: The full name of the faction that the unit belongs to.
-    :param int team_num: A team number 1-255.
+    :param int team_num: A team number int.
     :param int unit_x: The X coord to place the unit on the map.
     :param int unit_y: The Y coord to place the unit on the map.
     :param int unit_z: The Z coord to place the unit on the map.
