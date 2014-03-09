@@ -5,18 +5,21 @@ Outbound command wrappers for base MUX commands.
 from battlesnake.core.utils import generate_unique_token
 
 
-def set_attr(protocol, obj, key, val):
+def set_attr(protocol, obj, attr, val):
     """
     Wrapper for @set, in the context of an attribute.
 
     :param BattlesnakeTelnetProtocol protocol:
     :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
-    :param str key: The attribute name.
+    :param str attr: The attribute name.
     :param str val: The attribute value.
     """
 
-    protocol.write("@set {obj}={key}:{val}".format(
-        obj=obj, key=key, val=val))
+    command_str = "@set {obj}={attr}:{val}".format(
+        obj=obj, attr=attr, val=val)
+    u_attr = attr.upper()
+    ack_regex = r'{u_attr} - Set.\r$'.format(u_attr=u_attr)
+    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
 
 
 def parent(protocol, obj, parent_obj):
@@ -28,8 +31,10 @@ def parent(protocol, obj, parent_obj):
     :param str parent_obj: A MUX object string for the parent to set.
     """
 
-    parent_str = "@parent {obj}={parent_obj}".format(obj=obj, parent_obj=parent_obj)
-    protocol.write(parent_str)
+    parent_str = "@parent {obj}={parent_obj}".format(
+        obj=obj, parent_obj=parent_obj)
+    ack_regex = r'Parent set.\r$'
+    return protocol.write_and_wait(parent_str, ack_regex_str=ack_regex)
 
 
 def say(protocol, message):
@@ -126,7 +131,8 @@ def lock(protocol, obj, lockval, whichlock=None):
         whichlock_switch = ''
     command_str = "@lock{whichlock_switch} {obj}={lockval}".format(
         whichlock_switch=whichlock_switch, obj=obj, lockval=lockval)
-    protocol.write(command_str)
+    ack_regex = r'Locked.\r$'
+    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
 
 
 def link(protocol, obj, target_obj):
@@ -140,7 +146,8 @@ def link(protocol, obj, target_obj):
 
     command_str = "@link {obj}={target_obj}".format(
         obj=obj, target_obj=target_obj)
-    protocol.write(command_str)
+    ack_regex = r'Home set.\r$'
+    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
 
 
 def name(protocol, obj, new_name):
@@ -154,7 +161,8 @@ def name(protocol, obj, new_name):
 
     command_str = "@name {obj}={new_name}".format(
         obj=obj, new_name=new_name)
-    protocol.write(command_str)
+    ack_regex = r'Name set.\r$'
+    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
 
 
 def drain(protocol, obj):
@@ -166,7 +174,8 @@ def drain(protocol, obj):
     """
 
     command_str = "@drain {obj}".format(obj=obj)
-    protocol.write(command_str)
+    ack_regex = r'Drained.\r$'
+    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
 
 
 def notify(protocol, obj):
@@ -178,7 +187,8 @@ def notify(protocol, obj):
     """
 
     command_str = "@notify {obj}".format(obj=obj)
-    protocol.write(command_str)
+    ack_regex = r'Notified.\r$'
+    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
 
 
 def trigger(protocol, obj, attr, params=None):
@@ -197,4 +207,6 @@ def trigger(protocol, obj, attr, params=None):
         param_str = "=" + ','.join(params)
     command_str = "@trigger {obj}/{attr}{param_str}".format(
         obj=obj, attr=attr, param_str=param_str)
-    protocol.write(command_str)
+    u_attr = attr.upper()
+    ack_regex = r'{u_attr} - Triggered.\r$'.format(u_attr=u_attr)
+    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
