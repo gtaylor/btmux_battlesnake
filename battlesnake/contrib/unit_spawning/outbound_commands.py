@@ -32,14 +32,14 @@ def create_unit(protocol, unit_ref, map_dbref, faction_name, team_num,
 
     # I can't remember the details, but there were some edge cases where not
     # having a negative semaphore count caused issues.
-    mux_commands.drain(p, unit_dbref)
-    mux_commands.notify(p, unit_dbref)
-    mux_commands.parent(p, unit_dbref, settings['unit_spawning']['unit_parent_dbref'])
-    mux_commands.lock(p, unit_dbref, unit_dbref)
-    mux_commands.lock(p, unit_dbref, 'ELOCK/1', whichlock='enter')
-    mux_commands.lock(p, unit_dbref, 'LLOCK/1', whichlock='leave')
-    mux_commands.lock(p, unit_dbref, 'ULOCK/1', whichlock='use')
-    mux_commands.link(protocol, unit_dbref, map_dbref)
+    yield mux_commands.drain(p, unit_dbref)
+    yield mux_commands.notify(p, unit_dbref)
+    yield mux_commands.parent(p, unit_dbref, settings['unit_spawning']['unit_parent_dbref'])
+    yield mux_commands.lock(p, unit_dbref, unit_dbref)
+    yield mux_commands.lock(p, unit_dbref, 'ELOCK/1', whichlock='enter')
+    yield mux_commands.lock(p, unit_dbref, 'LLOCK/1', whichlock='leave')
+    yield mux_commands.lock(p, unit_dbref, 'ULOCK/1', whichlock='use')
+    yield mux_commands.link(protocol, unit_dbref, map_dbref)
     yield think_fn_wrappers.set_attrs(protocol, unit_dbref, {
         'Mechtype': unit_ref,
         'Mechname': 'Loading...',
@@ -62,8 +62,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction_name, team_num,
     yield think_fn_wrappers.set_attrs(p, unit_dbref, {'Mechname': unit_name})
     new_obj_name = '[u({unit_dbref}/UNITNAME.F,{unit_dbref})]'.format(
         unit_dbref=unit_dbref)
-    mux_commands.name(p, unit_dbref, new_obj_name)
-    mux_commands.trigger(p, unit_dbref, 'SET_MECHDESC.T')
+    yield mux_commands.name(p, unit_dbref, new_obj_name)
+    yield mux_commands.trigger(p, unit_dbref, 'SET_MECHDESC.T')
 
     # This tosses the unit on the map. At this point, they're 100% finished.
     yield think_fn_wrappers.btsetxy(
