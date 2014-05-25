@@ -10,14 +10,14 @@ from battlesnake.outbound_commands import mux_commands
 
 @inlineCallbacks
 def start_unit_ai(
-        protocol, unit_dbref, gunnery_skill=4, piloting_skill=4):
+        protocol, unit_dbref, piloting_skill=4, gunnery_skill=4):
     """
     Creates and starts an AI on the given unit.
 
     :param BattlesnakeTelnetProtocol protocol:
     :param str unit_dbref: A MUX object string for the unit to AI'ify.
-    :param int gunnery_skill: Gunnery skill value for the AI pilot.
     :param int piloting_skill: Piloting skill value for the AI pilot.
+    :param int gunnery_skill: Gunnery skill value for the AI pilot.
     :rtype: defer.Deferred
     :returns: A Deferred whose callback value will be the dbref of
         the newly created AI.
