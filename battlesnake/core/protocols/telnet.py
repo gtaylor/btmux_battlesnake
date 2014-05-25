@@ -4,10 +4,14 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 
 from battlesnake.conf import settings
-from battlesnake.core.py_importer import import_class
-from battlesnake.core.utils import generate_unique_token
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import hudinfo_commands
+from battlesnake.outbound_commands import mux_commands
+
+from battlesnake.core.inbound_command_handling.btargparse import \
+    BTMuxArgumentParserExit
+from battlesnake.core.py_importer import import_class
+from battlesnake.core.utils import generate_unique_token
 from battlesnake.core.response_watcher import ResponseWatcherManager
 from battlesnake.core.inbound_command_handling.command_parser import parse_line
 
@@ -173,10 +177,11 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
 
         for trigger_table in self.trigger_tables:
             matched_trigger = trigger_table.match_line(line)
-            if matched_trigger:
-                trigger_obj, re_match = matched_trigger
-                trigger_obj().run(self, line, re_match)
-                return
+            if not matched_trigger:
+                continue
+            trigger_obj, re_match = matched_trigger
+            trigger_obj().run(self, line, re_match)
+            return
 
         # Figure out if this line is an inbound command.
         parsed_line = parse_line(
@@ -189,9 +194,18 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         # This line was an inbound command.
         for command_table in self.command_tables:
             matched_command = command_table.match_inbound_command(parsed_line)
-            if matched_command:
-                matched_command().run(self, parsed_line)
-                return
+            if not matched_command:
+                continue
+
+            invoker_dbref = parsed_line.invoker_dbref
+            try:
+                matched_command().run(self, parsed_line, invoker_dbref)
+            except BTMuxArgumentParserExit as exc:
+                # The command used BTMuxArgumentParser and ran into an
+                # exit() call. This is usually an error.
+                if invoker_dbref and exc.message:
+                    mux_commands.pemit(self, invoker_dbref, str(exc.message))
+            return
 
 
 # noinspection PyAttributeOutsideInit,PyClassHasNoInit,PyClassicStyleClass

@@ -17,7 +17,7 @@ class SpawnUnitCommand(BaseCommand):
     command_name = "spawnunit"
 
     @inlineCallbacks
-    def run(self, protocol, parsed_line):
+    def run(self, protocol, parsed_line, invoker_dbref):
         if not parsed_line.kwargs:
             self.handle_noargs(protocol, parsed_line)
             return
@@ -36,7 +36,7 @@ class SpawnUnitCommand(BaseCommand):
             protocol, unit_ref, map_dbref, faction_name, team_num, unit_x, unit_y)
 
         pval = "New unit {unit_dbref} spawned.".format(unit_dbref=unit_dbref)
-        mux_commands.pemit(protocol, parsed_line.invoker_dbref, pval)
+        mux_commands.pemit(protocol, invoker_dbref, pval)
 
     def handle_noargs(self, protocol, parsed_line):
         """

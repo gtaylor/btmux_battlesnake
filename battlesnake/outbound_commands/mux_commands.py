@@ -74,6 +74,7 @@ def pemit(protocol, targets, message, switches=None, replace_returns=True):
 
     if replace_returns:
         message = message.replace('\r', '%r')
+        message = message.replace('\n', '%r')
 
     if not switches:
         switches = set([])

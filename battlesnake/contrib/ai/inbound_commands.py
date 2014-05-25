@@ -15,7 +15,7 @@ class StartUnitAICommand(BaseCommand):
     command_name = "startunitai"
 
     @inlineCallbacks
-    def run(self, protocol, parsed_line):
+    def run(self, protocol, parsed_line, invoker_dbref):
         if not parsed_line.kwargs:
             self.handle_noargs(protocol, parsed_line)
             return

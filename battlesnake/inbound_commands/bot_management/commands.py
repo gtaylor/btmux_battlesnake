@@ -7,6 +7,8 @@ from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.core.inbound_command_handling.base import BaseCommand
+from battlesnake.core.inbound_command_handling.btargparse import \
+    BTMuxArgumentParser
 from battlesnake.outbound_commands import mux_commands
 
 
@@ -18,8 +20,7 @@ class BotInfoCommand(BaseCommand):
     command_name = "botinfo"
 
     @inlineCallbacks
-    def run(self, protocol, parsed_line):
-        invoker_dbref = parsed_line.invoker_dbref
+    def run(self, protocol, parsed_line, invoker_dbref):
         bot_dbref = yield mux_commands.think(protocol, "%#")
         bot_name = yield mux_commands.think(protocol, "[name(%#)]")
         pval = (
@@ -48,8 +49,7 @@ class BotWaitTestCommand(BaseCommand):
     command_name = "botwaittest"
 
     @inlineCallbacks
-    def run(self, protocol, parsed_line):
-        invoker_dbref = parsed_line.invoker_dbref
+    def run(self, protocol, parsed_line, invoker_dbref):
         delay_secs = int(parsed_line.kwargs['delay'])
         msg = "Response will happen in approximately %d seconds..." % delay_secs
         mux_commands.pemit(protocol, invoker_dbref, msg)
@@ -61,3 +61,28 @@ class BotWaitTestCommand(BaseCommand):
 
     def pemit_response(self, protocol, invoker_dbref):
         mux_commands.pemit(protocol, invoker_dbref, "Response!")
+
+
+class CliffTestCommand(BaseCommand):
+    """
+    Tests the Python cliff CLI module integration.
+    """
+
+    command_name = "clifftest"
+
+    def run(self, protocol, parsed_line, invoker_dbref):
+        cmd_line = parsed_line.kwargs['cmd'].split()
+
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="clifftest", description='Process some integers.')
+        parser.add_argument(
+            'integers', metavar='N', type=int, nargs='+',
+            help='an integer for the accumulator')
+        parser.add_argument(
+            '--sum', dest='accumulate', action='store_const',
+            const=sum, default=max,
+            help='sum the integers (default: find the max)')
+
+        args = parser.parse_args(args=cmd_line)
+        output = str(args.accumulate(args.integers))
+        mux_commands.pemit(protocol, invoker_dbref, output)

@@ -13,7 +13,7 @@ class BaseCommand(object):
     # parsing to the child sub-class.
     command_name = None
 
-    def run(self, protocol, parsed_line):
+    def run(self, protocol, parsed_line, invoker_dbref):
         """
         Given the full parsed input from the command line, do some work.
         This can be a deferred in your sub-class.
@@ -21,6 +21,7 @@ class BaseCommand(object):
         :param BattlesnakeTelnetProtocol protocol: A reference back to the
             top level telnet protocol instance.
         :param ParsedInboundCommandLine parsed_line: The parsed line.
+        :param str invoker_dbref: The DBRef of the invoking player.
         """
 
         raise NotImplementedError("Override this method on your sub-class.")
