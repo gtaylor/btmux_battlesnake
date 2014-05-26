@@ -23,14 +23,14 @@ class BotInfoCommand(BaseCommand):
     def run(self, protocol, parsed_line, invoker_dbref):
         bot_dbref = yield mux_commands.think(protocol, "%#")
         bot_name = yield mux_commands.think(protocol, "[name(%#)]")
-        pval = (
-            "============ Battlesnake Botinfo ============\r"
+        pval = self._get_header_str("Battlesnake Botinfo", width=50)
+        pval += (
+            "\r"
             " Bot name: {bot_name}\r"
             " Bot DBref: {bot_dbref}\r"
             " Command Prefix: {cmd_prefix}\r"
             " Command Kwarg Delim: {cmd_kwarg_delimiter}\r"
-            " Command Kwarg List Delim: {cmd_kwarg_list_delimiter}\r"
-            "============================================="
+            " Command Kwarg List Delim: {cmd_kwarg_list_delimiter}"
         ).format(
             bot_name=bot_name,
             bot_dbref=bot_dbref,
@@ -38,6 +38,7 @@ class BotInfoCommand(BaseCommand):
             cmd_kwarg_delimiter=protocol.cmd_kwarg_delimiter,
             cmd_kwarg_list_delimiter=protocol.cmd_kwarg_list_delimiter,
         )
+        pval += self._get_footer_str(width=50)
         mux_commands.pemit(protocol, invoker_dbref, pval)
 
 
