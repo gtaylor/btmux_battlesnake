@@ -8,6 +8,7 @@ from battlesnake.core.inbound_command_handling.btargparse import \
     BTMuxArgumentParser
 from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
+from battlesnake.core.utils import is_valid_dbref
 from battlesnake.outbound_commands import mux_commands
 
 from battlesnake.contrib.unit_spawning.outbound_commands import \
@@ -31,6 +32,9 @@ class SpawnUnitCommand(BaseCommand):
         parser.add_argument(
             "--ai", action="store_true", default=False,
             help="Spawn with an AI pilot")
+        parser.add_argument(
+            "--pilot", type=str,
+            help="The pilot's dbref. Sets comtitles/tics.")
 
         parser.add_argument(
             'unit_ref', type=str,
@@ -64,9 +68,14 @@ class SpawnUnitCommand(BaseCommand):
         faction = get_faction(args.faction_dbref)
         unit_x = args.x
         unit_y = args.y
+        pilot_dbref = args.pilot
+
+        if pilot_dbref:
+            assert is_valid_dbref(args.pilot), "Invalid pilot dbref."
 
         unit_dbref = yield create_unit(
-            protocol, unit_ref, map_dbref, faction, unit_x, unit_y)
+            protocol, unit_ref, map_dbref, faction, unit_x, unit_y,
+            pilot_dbref=pilot_dbref)
 
         pval = "New unit {unit_dbref} spawned.".format(unit_dbref=unit_dbref)
         mux_commands.pemit(protocol, invoker_dbref, pval)

@@ -38,4 +38,8 @@ def is_valid_dbref(dbref):
     if dbref == '#-1':
         return False
 
+    # noinspection PyUnresolvedReferences
+    if not dbref[1:].isdigit():
+        return False
+
     return True

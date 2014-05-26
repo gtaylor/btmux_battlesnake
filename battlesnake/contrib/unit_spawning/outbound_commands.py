@@ -68,6 +68,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         unit_dbref=unit_dbref)
     mux_commands.name(p, unit_dbref, new_obj_name)
     mux_commands.trigger(p, unit_dbref, 'UPDATE_FREQ.T')
+    if pilot_dbref:
+        mux_commands.trigger(p, unit_dbref, 'SETLOADPREFS.T')
 
     # This tosses the unit on the map. At this point, they're 100% finished.
     yield think_fn_wrappers.btsetxy(
