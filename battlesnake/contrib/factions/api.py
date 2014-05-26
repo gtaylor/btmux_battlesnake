@@ -36,3 +36,12 @@ def get_faction(dbref):
 
     assert is_valid_faction_dbref(dbref), "Invalid faction dbref"
     return FACTIONS.get(dbref)
+
+
+def get_faction_list():
+    """
+    :rtype: list
+    :returns: A list of Faction instances.
+    """
+
+    return FACTIONS.values()

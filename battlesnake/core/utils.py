@@ -8,6 +8,8 @@ another module.
 
 import uuid
 
+from battlesnake.core.ansi import remove_ansi_codes
+
 
 def generate_unique_token():
     """
@@ -43,3 +45,21 @@ def is_valid_dbref(dbref):
         return False
 
     return True
+
+
+def remove_all_percent_sequences(text):
+    """
+    Given a string, remove all %-sequences. This includes color codes,
+    escaped parenthesis, spaces, tabs, etc.
+    """
+
+    text = text.replace('%b', ' ')
+    text = text.replace('%t', '\t')
+    text = text.replace('%r', '\r')
+    text = text.replace('%(', '(')
+    text = text.replace('%)', ')')
+    text = text.replace('%[', '[')
+    text = text.replace('%]', ']')
+    text = text.replace('%%', '%')
+    text = remove_ansi_codes(text)
+    return text

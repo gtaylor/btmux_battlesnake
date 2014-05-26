@@ -1,6 +1,4 @@
 from twisted.internet.defer import inlineCallbacks
-from battlesnake.contrib.ai.outbound_commands import start_unit_ai
-from battlesnake.contrib.factions.api import get_faction
 
 from battlesnake.core.inbound_command_handling.base import BaseCommand, \
     CommandError
@@ -10,6 +8,8 @@ from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.core.utils import is_valid_dbref
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.contrib.ai.outbound_commands import start_unit_ai
+from battlesnake.contrib.factions.api import get_faction
 
 from battlesnake.contrib.unit_spawning.outbound_commands import \
     create_unit

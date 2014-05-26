@@ -6,5 +6,5 @@ from battlesnake.contrib.factions.faction_obj import Faction
 
 FACTIONS = {
     '#91': Faction('#91', 'Defenders'),
-    '#94': Faction('#91', 'Attackers'),
+    '#94': Faction('#94', 'Attackers'),
 }
