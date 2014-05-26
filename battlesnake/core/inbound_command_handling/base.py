@@ -25,3 +25,12 @@ class BaseCommand(object):
         """
 
         raise NotImplementedError("Override this method on your sub-class.")
+
+
+class CommandError(Exception):
+    """
+    Raised to provide a generic way to abort a command with an error.
+    """
+
+    def __init__(self, message):
+        Exception.__init__(self, message)

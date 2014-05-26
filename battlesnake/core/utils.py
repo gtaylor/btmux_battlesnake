@@ -19,3 +19,23 @@ def generate_unique_token():
     """
 
     return uuid.uuid4().hex
+
+
+def is_valid_dbref(dbref):
+    """
+    :param str dbref: The DBRef string to validate.
+    :rtype: bool
+    :returns: True if the given string is a valid dbref, False if not.
+    """
+
+    if not isinstance(dbref, basestring):
+        return False
+
+    # noinspection PyUnresolvedReferences
+    if not dbref.startswith('#'):
+        return False
+
+    if dbref == '#-1':
+        return False
+
+    return True

@@ -1,6 +1,9 @@
 from twisted.internet.defer import inlineCallbacks
+from battlesnake.contrib.ai.outbound_commands import start_unit_ai
+from battlesnake.contrib.factions.api import get_faction
 
-from battlesnake.core.inbound_command_handling.base import BaseCommand
+from battlesnake.core.inbound_command_handling.base import BaseCommand, \
+    CommandError
 from battlesnake.core.inbound_command_handling.btargparse import \
     BTMuxArgumentParser
 from battlesnake.core.inbound_command_handling.command_table import \
@@ -26,6 +29,10 @@ class SpawnUnitCommand(BaseCommand):
             prog="spawnunit", description='Spawns a unit on a map.')
 
         parser.add_argument(
+            "--ai", action="store_true", default=False,
+            help="Spawn with an AI pilot")
+
+        parser.add_argument(
             'unit_ref', type=str,
             help="The unit template ref to spawn")
         parser.add_argument(
@@ -42,7 +49,10 @@ class SpawnUnitCommand(BaseCommand):
             help="The Y coordinate to spawn to.")
 
         args = parser.parse_args(args=cmd_line)
-        yield self.handle(protocol, invoker_dbref, args)
+        try:
+            yield self.handle(protocol, invoker_dbref, args)
+        except AssertionError as exc:
+            raise CommandError(exc.message)
 
     @inlineCallbacks
     def handle(self, protocol, invoker_dbref, args):
@@ -51,19 +61,21 @@ class SpawnUnitCommand(BaseCommand):
 
         unit_ref = args.unit_ref
         map_dbref = args.map_dbref
-        # TODO: Do something with this.
-        faction_alias = args.faction_dbref
-        faction_name = "Admin"
+        faction = get_faction(args.faction_dbref)
         unit_x = args.x
         unit_y = args.y
-        # TODO: Un-hardcode.
-        team_num = 1
 
         unit_dbref = yield create_unit(
-            protocol, unit_ref, map_dbref, faction_name, team_num, unit_x, unit_y)
+            protocol, unit_ref, map_dbref, faction, unit_x, unit_y)
 
         pval = "New unit {unit_dbref} spawned.".format(unit_dbref=unit_dbref)
         mux_commands.pemit(protocol, invoker_dbref, pval)
+
+        if args.ai:
+            ai_dbref = yield start_unit_ai(protocol, unit_dbref)
+            pval = "AI pilot {ai_dbref} is taking control of {unit_dbref}.".format(
+                ai_dbref=ai_dbref, unit_dbref=unit_dbref)
+            mux_commands.pemit(protocol, invoker_dbref, pval)
 
 
 class UnitSpawningCommandTable(InboundCommandTable):

@@ -4,6 +4,7 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 
 from battlesnake.conf import settings
+from battlesnake.core.inbound_command_handling.base import CommandError
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import hudinfo_commands
 from battlesnake.outbound_commands import mux_commands
@@ -203,9 +204,9 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             # may or may not return deferreds.
             d = maybeDeferred(
                 command_instance.run, self, parsed_line, invoker_dbref)
-            d.addErrback(self._command_errback)
+            d.addErrback(self._command_errback, invoker_dbref)
 
-    def _command_errback(self, err):
+    def _command_errback(self, err, invoker_dbref):
         """
         Inbound commands may or may not be a deferred, so we have to
         handle exceptions in here.
@@ -213,7 +214,9 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
 
         # BTMuxArgumentParserExit isn't necessarily an error, just our
         # modified ArgParse doing a fake "exit".
-        err.trap(BTMuxArgumentParserExit)
+        e = err.trap(BTMuxArgumentParserExit, CommandError)
+        if e == CommandError:
+            mux_commands.pemit(self, invoker_dbref, str(err.value))
 
 
 # noinspection PyAttributeOutsideInit,PyClassHasNoInit,PyClassicStyleClass
