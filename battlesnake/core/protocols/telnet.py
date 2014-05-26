@@ -1,5 +1,5 @@
 from twisted.conch.telnet import StatefulTelnetProtocol
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, maybeDeferred
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 
@@ -198,14 +198,22 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
                 continue
 
             invoker_dbref = parsed_line.invoker_dbref
-            try:
-                matched_command().run(self, parsed_line, invoker_dbref)
-            except BTMuxArgumentParserExit as exc:
-                # The command used BTMuxArgumentParser and ran into an
-                # exit() call. This is usually an error.
-                if invoker_dbref and exc.message:
-                    mux_commands.pemit(self, invoker_dbref, str(exc.message))
-            return
+            command_instance = matched_command()
+            # Outbound commands are executed through their run() method. These
+            # may or may not return deferreds.
+            d = maybeDeferred(
+                command_instance.run, self, parsed_line, invoker_dbref)
+            d.addErrback(self._command_errback)
+
+    def _command_errback(self, err):
+        """
+        Inbound commands may or may not be a deferred, so we have to
+        handle exceptions in here.
+        """
+
+        # BTMuxArgumentParserExit isn't necessarily an error, just our
+        # modified ArgParse doing a fake "exit".
+        err.trap(BTMuxArgumentParserExit)
 
 
 # noinspection PyAttributeOutsideInit,PyClassHasNoInit,PyClassicStyleClass

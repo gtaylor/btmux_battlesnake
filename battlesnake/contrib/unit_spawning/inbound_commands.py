@@ -1,6 +1,8 @@
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.core.inbound_command_handling.base import BaseCommand
+from battlesnake.core.inbound_command_handling.btargparse import \
+    BTMuxArgumentParser
 from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
@@ -18,17 +20,42 @@ class SpawnUnitCommand(BaseCommand):
 
     @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
-        if not parsed_line.kwargs:
-            self.handle_noargs(protocol, parsed_line)
-            return
+        cmd_line = parsed_line.kwargs['cmd'].split()
 
-        unit_ref = parsed_line.kwargs['ref']
-        map_dbref = parsed_line.kwargs['map_dbref']
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="spawnunit", description='Spawns a unit on a map.')
+
+        parser.add_argument(
+            'unit_ref', type=str,
+            help="The unit template ref to spawn")
+        parser.add_argument(
+            'map_dbref', type=str,
+            help="The dbref of the map to spawn to")
+        parser.add_argument(
+            'faction_dbref', type=str,
+            help="The faction dbref the unit belongs to.")
+        parser.add_argument(
+            'x', type=int,
+            help="The X coordinate to spawn to.")
+        parser.add_argument(
+            'y', type=int,
+            help="The Y coordinate to spawn to.")
+
+        args = parser.parse_args(args=cmd_line)
+        yield self.handle(protocol, invoker_dbref, args)
+
+    @inlineCallbacks
+    def handle(self, protocol, invoker_dbref, args):
+        output = str(args)
+        mux_commands.pemit(protocol, invoker_dbref, output)
+
+        unit_ref = args.unit_ref
+        map_dbref = args.map_dbref
         # TODO: Do something with this.
-        faction_alias = parsed_line.kwargs['faction_alias']
+        faction_alias = args.faction_dbref
         faction_name = "Admin"
-        unit_x = parsed_line.kwargs['x']
-        unit_y = parsed_line.kwargs['y']
+        unit_x = args.x
+        unit_y = args.y
         # TODO: Un-hardcode.
         team_num = 1
 
@@ -37,16 +64,6 @@ class SpawnUnitCommand(BaseCommand):
 
         pval = "New unit {unit_dbref} spawned.".format(unit_dbref=unit_dbref)
         mux_commands.pemit(protocol, invoker_dbref, pval)
-
-    def handle_noargs(self, protocol, parsed_line):
-        """
-        No arguments passed to the command. Show a brief cheat sheet.
-        """
-
-        pval = (
-            "%chspawnunit%cn <unit_ref>=<map_dbref>,<faction_alias>,<x>,<y>"
-        )
-        mux_commands.pemit(protocol, parsed_line.invoker_dbref, pval)
 
 
 class UnitSpawningCommandTable(InboundCommandTable):

@@ -46,8 +46,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction_name, team_num,
         'Mechname': 'Loading...',
         'FACTION': faction_name,
         'Xtype': 'MECH',
-
     })
+
     yield think_fn_wrappers.teleport(protocol, unit_dbref, map_dbref)
     flags = ['INHERIT', 'IN_CHARACTER', 'XCODE', 'ENTER_OK', 'OPAQUE']
     # At this point, the XCODE flag is set, so we're ready to rock.
