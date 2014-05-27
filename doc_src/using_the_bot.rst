@@ -25,16 +25,11 @@ A crude botinfo example
 Now choose an object to put a command on. This could be in your master room
 or in your current location. Here's the attribute we'll set::
 
-    BOTINFO.C: $botinfo:think [setr(0,#123)][setq(1,get(%q0/BATTLESNAKE_PREFIX.D))][setr(2,get(%q0/BATTLESNAKE_KWARG_DELIMITER.D))];@pemit %q0=[%q1]botinfo[%q2][%#]
+    BOTINFO.C: $botinfo:think [u(#47/SET_BOT_REGISTERS.F)][u(#47/SENDPACKET.F,botinfo)]
 
-The important part to note is the last::
-
-    @pemit %q0=[%q1]botinfo[%q2][%#]
-
-Breaking this down, ``%q0`` is the bot's dbref (``#123`` in this example),
-``%q1`` is the inbound command prefix, ``botinfo`` is the command on the
-bot side, ``%q2`` is the kwarg delimiter, and ``%#`` is, of course, the
-invoker.
+Breaking this down, ``SET_BOT_REGISTERS.F`` sets some %q registers that
+``SENDPACKET.F`` uses to form a ``pemit()`` call to a connected bot.
+The ``botinfo`` command is being sent to the bot.
 
 You'll probably want to set your bot ``WIZARD`` first, then try running your
 new ``botinfo`` command within your MUX. If everything is set up correctly,

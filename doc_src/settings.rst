@@ -35,9 +35,6 @@ config file.
 [bot]
 -----
 
-``keepalive_interval`` (default: 30.0)
-    Sets the interval (seconds) at which the bot sends an IDLE command to the MUX.
-    This is useful to prevent timeouts over NATs.
 ``response_watcher_expire_check_interval`` (default: 1.0)
     Sets the interval (seconds) for how often to check for stale response
     watchers to purge.
@@ -46,28 +43,32 @@ config file.
     using HUDINFO commands.
 ``extra_services`` (default: [])
     A list of Python paths to loader functions that return a Service. See
-    ``battlesnake.contrib.websocket_server.service`` for a convenient example.
+    ``battlesnake.plugins.contrib.websocket_server.service`` for a convenient example.
     If you only have one item to add to the list, make sure there is a
     trailing comma or you'll get a validation error. A comma causes our
     config system to convert the string to a list.
+``plugins`` (default: 'battlesnake.plugins.example_plugin.plugin.ExamplePlugin','battlesnake.plugins.nat_idler.plugin.NatIdlerPlugin')
+    A comma-separated list of BattlesnakePlugin sub-classes to register.
+    Plugins can contain :doc:`triggers`, :doc:`timers`, and commands.
 
-[commands]
-----------
+Plugins
+-------
 
-``inbound_tables`` (default: battlesnake.inbound_commands.bot_management.tables.BotManagementCommandTable)
-    A comma-separated list of InboundCommandTable sub-classes to register.
-    These are full Python paths.
+[nat_idler]
+^^^^^^^^^^^
 
-[triggers]
-----------
+``keepalive_interval`` (default: 30.0)
+    Sets the interval (seconds) at which the bot sends an IDLE command to the MUX.
+    This is useful to prevent timeouts over NATs.
 
-``tables`` (default: battlesnake.triggers.examples.tables.ExampleTriggerTable)
-    A comma-separated list of TriggerTable sub-classes to register.
-    These are full Python paths.
+[unit_spawning]
+^^^^^^^^^^^^^^^
 
-[timers]
---------
+``unit_parent_dbref`` (default: #66)
+    Your mech/unit parent's dbref.
 
-``tables`` (default: battlesnake.timers.bot_misc.tables.BotMiscTimerTable)
-    A comma-separated list of TimerTable sub-classes to register.
-    These are full Python paths.
+[ai]
+^^^^
+
+``ai_parent_dbref`` (default: #69)
+    Your AI parent's dbref.

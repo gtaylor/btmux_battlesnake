@@ -5,6 +5,11 @@
 Installation
 ============
 
+.. warning:: Battlesnake currently requires a game database with a very
+    specific set of objects/functions/parents. If you don't have a DB from
+    Kelvin, you'll want to find him on the Frontier's BTMux channel and ask.
+    We'll eventually have one up for download once this stabilizes.
+
 Battlesnake is developed on GitHub_ in a git_ repository. We don't do any
 point releases at this time, as things are still evolving, and the expected
 audience for this software is pretty niche.
