@@ -39,17 +39,18 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
     """
 
     def __init__(self, cmd_prefix, cmd_kwarg_delimiter, cmd_kwarg_list_delimiter,
-                 command_tables, trigger_tables, timer_tables):
+                 plugins):
         self.cmd_prefix = cmd_prefix
         self.cmd_kwarg_delimiter = cmd_kwarg_delimiter
         self.cmd_kwarg_list_delimiter = cmd_kwarg_list_delimiter
-        self.command_tables = command_tables
-        self.trigger_tables = trigger_tables
-        self.timer_tables = timer_tables
+        self.command_tables = []
+        self.trigger_tables = []
+        self.timer_tables = []
         self.watcher_manager = ResponseWatcherManager()
         self.hudinfo_enabled = settings['bot']['enable_hudinfo']
         # This is populated once we set a key in-game.
         self.hudinfo_key = None
+        self.plugins = plugins
 
     def connectionMade(self):
         print "Connection established."
@@ -125,7 +126,7 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             regex_str, timeout_secs=timeout_secs, return_regex_group=return_regex_group)
 
     @inlineCallbacks
-    def gen_and_set_hudinfo_key(self):
+    def _gen_and_set_hudinfo_key(self):
         """
         Generates and sets a HUDINFO key.
         """
@@ -137,6 +138,23 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             print "* HUDINFO active. Key: %s" % self.hudinfo_key
         else:
             print "Error: Unable to set HUDINFO key %s" % potential_key
+
+    def _load_plugins(self):
+        """
+        Plugins are how timers, triggers, and commands are grouped together.
+        Cycle through the instantiated plugins that were loaded at initial
+        startup and run their post-connect setup methods.
+
+        The end result of this method will be fully populated command,
+        trigger, and timer tables.
+        """
+
+        for plugin in self.plugins:
+            trigger_tables, timer_tables, command_tables = \
+                plugin.post_connect_setup(self)
+            self.trigger_tables += trigger_tables
+            self.timer_tables += timer_tables
+            self.command_tables += command_tables
 
     #
     ## State-specific line handlers. See class docstring for specifics.
@@ -161,9 +179,10 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             think_fn_wrappers.set_attrs(
                 protocol=self, obj='me', attr_dict=botinfo_attribs)
             self.watcher_manager.start_expiration_loop()
+            self._load_plugins()
             self.state = 'monitoring'
             if self.hudinfo_enabled:
-                self.gen_and_set_hudinfo_key()
+                self._gen_and_set_hudinfo_key()
         elif 'or has a different password.' in line:
             # Invalid username/password. Poop out.
             print "Failure to authenticate."
@@ -233,55 +252,21 @@ class BattlesnakeTelnetFactory(ClientFactory):
             cmd_prefix="@G$>",
             cmd_kwarg_delimiter="&R^",
             cmd_kwarg_list_delimiter="#E$",
-            command_tables=self._load_and_return_commands(),
-            trigger_tables=self._load_and_return_triggers(),
-            # We need the protocol reference to do this.
-            timer_tables=None
+            plugins=self._load_and_return_plugins(),
         )
-        # TODO: Maybe there's a better way.
-        protocol.timer_tables = self._load_and_return_timers(protocol)
         protocol.factory = self
 
         return protocol
 
-    def _load_and_return_commands(self):
+    def _load_and_return_plugins(self):
         """
-        Pull the command tables from settings and get them all instantiated
-        and registered.
-        """
-
-        print "Loading command tables..."
-        tables = []
-        for table in settings['commands']['inbound_tables']:
-            print "  - Loading", table
-            table_class = import_class(table)
-            tables.append(table_class())
-        return tables
-
-    def _load_and_return_triggers(self):
-        """
-        Pull the trigger tables from settings and get them all instantiated
-        and registered.
+        Loads all external plugins for use.
         """
 
-        print "Loading trigger tables..."
-        tables = []
-        for table in settings['triggers']['tables']:
-            print "  - Loading", table
-            table_class = import_class(table)
-            tables.append(table_class())
-        return tables
-
-    def _load_and_return_timers(self, protocol):
-        """
-        Pull the timer tables from settings and get them all instantiated
-        and registered.
-        """
-
-        print "Loading timer tables..."
-        tables = []
-        for table in settings['timers']['tables']:
-            print "  - Loading", table
-            table_class = import_class(table)
-            tables.append(table_class(protocol))
-        return tables
+        print "Loading plugins..."
+        plugins = []
+        for plugin in settings['bot']['plugins']:
+            print "  - Loading", plugin
+            plugin_class = import_class(plugin)
+            plugins.append(plugin_class())
+        return plugins
