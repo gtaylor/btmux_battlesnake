@@ -23,6 +23,15 @@ class ArenaMasterPuppetStore(object):
         for puppet in self._puppet_store.values():
             yield puppet
 
+    @property
+    def puppet_count(self):
+        """
+        :rtype: int
+        :returns: The number of puppets in the store.
+        """
+
+        return len(self._puppet_store)
+
     def update_or_add_puppet(self, puppet):
         """
         If the puppet isn't already in the store, add it. If it is, replace
@@ -43,15 +52,6 @@ class ArenaMasterPuppetStore(object):
         assert is_valid_dbref(puppet_dbref), "Invalid puppet dbref."
         del self._puppet_store[puppet_dbref]
 
-    @property
-    def puppet_count(self):
-        """
-        :rtype: int
-        :returns: The number of puppets in the store.
-        """
-
-        return len(self._puppet_store)
-
 
 class ArenaMasterPuppet(object):
     """
@@ -62,7 +62,7 @@ class ArenaMasterPuppet(object):
         self.dbref = dbref
         self.map_dbref = map_dbref
         # A cache for all units in the arena, plus their states.
-        self.unit_store = ArenaMapUnitStore()
+        self.unit_store = ArenaMapUnitStore(self)
 
 
 # Lame that we have to pollute the global namespace, but whatevs.

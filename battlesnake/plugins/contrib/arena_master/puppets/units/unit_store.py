@@ -13,8 +13,14 @@ class ArenaMapUnitStore(object):
     and easily accessed elsewhere.
     """
 
-    def __init__(self):
+    def __init__(self, arena_master_puppet):
+        """
+        :param ArenaMasterPuppet arena_master_puppet: The puppet that this
+            store resides within.
+        """
+
         self._unit_store = {}
+        self.arena_master_puppet = arena_master_puppet
 
     def update_or_add_unit(self, unit):
         """
@@ -22,7 +28,7 @@ class ArenaMapUnitStore(object):
         now there is no difference between add and update, but we may
         eventually do something.
 
-        :param MapUnit unit: The unit to add or update.
+        :param ArenaMapUnit unit: The unit to add or update.
         """
 
         if 'D' in unit.status:
@@ -107,6 +113,8 @@ class ArenaMapUnitStore(object):
         Given two units of the same ID, determine what attributes (if any) are
         different between the two.
 
+        :param ArenaMapUnit unit1:
+        :param ArenaMapUnit unit2:
         :rtype: list
         :returns: A list of changed attributes.
         """
@@ -130,23 +138,25 @@ class ArenaMapUnit(object):
     Represents a single unit on the map. A mech, tank, vtol, suit, etc.
     """
 
-    def __init__(self, contact_id, unit_type, mech_name, x_coord, y_coord,
-                 z_coord, speed, heading, jump_heading, range_to_hex_center,
-                 bearing_to_hex_center, tonnage, heat, status):
+    def __init__(self, dbref, contact_id, unit_ref, unit_type, unit_move_type, mech_name,
+                 x_coord, y_coord, z_coord, speed, heading, tonnage, heat,
+                 status, status2, critstatus):
+        self.dbref = dbref
         self.contact_id = contact_id.upper()
+        self.unit_ref = unit_ref
         self.unit_type = unit_type
+        self.unit_move_type = unit_move_type
         self.mech_name = mech_name
         self.x_coord = x_coord
         self.y_coord = y_coord
         self.z_coord = z_coord
         self.speed = speed
         self.heading = heading
-        self.jump_heading = jump_heading
-        self.range_to_hex_center = range_to_hex_center
-        self.bearing_to_hex_center = bearing_to_hex_center
         self.tonnage = tonnage
         self.heat = heat
         self.status = status
+        self.status2 = status2
+        self.critstatus = critstatus
 
         self.last_seen = datetime.datetime.now()
 
