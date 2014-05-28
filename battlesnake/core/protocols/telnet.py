@@ -151,10 +151,11 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
 
         for plugin in self.plugins:
             trigger_tables, timer_tables, command_tables = \
-                plugin.post_connect_setup(self)
+                plugin.load_plugin_tables(self)
             self.trigger_tables += trigger_tables
             self.timer_tables += timer_tables
             self.command_tables += command_tables
+            plugin.do_after_plugin_is_loaded()
 
     #
     ## State-specific line handlers. See class docstring for specifics.
@@ -179,10 +180,10 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             think_fn_wrappers.set_attrs(
                 protocol=self, obj='me', attr_dict=botinfo_attribs)
             self.watcher_manager.start_expiration_loop()
-            self._load_plugins()
             self.state = 'monitoring'
             if self.hudinfo_enabled:
                 self._gen_and_set_hudinfo_key()
+            self._load_plugins()
         elif 'or has a different password.' in line:
             # Invalid username/password. Poop out.
             print "Failure to authenticate."

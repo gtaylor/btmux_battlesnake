@@ -13,10 +13,10 @@ class BattlesnakePlugin(object):
     def __init__(self):
         self.protocol = None
 
-    def post_connect_setup(self, protocol):
+    def load_plugin_tables(self, protocol):
         """
-        Handles loading the plugin once the telnet protocol has succesfully
-        connected and authenticated.
+        Handles loading the plugin's tables once the telnet protocol has
+        successfully connected and authenticated.
 
         :param BattlesnakeTelnetProtocol protocol: The telnet protocol instance.
         :rtype: tuple
@@ -37,3 +37,11 @@ class BattlesnakePlugin(object):
         for command_table in self.command_tables:
             command_tables.append(command_table())
         return trigger_tables, timer_tables, command_tables
+
+    def do_after_plugin_is_loaded(self):
+        """
+        Other setup work that happens immediately after the plugin's tables
+        and other basic components are loaded.
+        """
+
+        pass
