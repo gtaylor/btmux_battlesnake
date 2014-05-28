@@ -1,7 +1,7 @@
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.core.base_plugin import BattlesnakePlugin
-from battlesnake.plugins.contrib.arena_master.puppets.outbound_commands import \
+from battlesnake.plugins.contrib.arena_master.puppets.units.outbound_commands import \
     populate_puppet_store
 from battlesnake.plugins.contrib.arena_master.puppets.units.timers import \
     ArenaPuppetMasterUnitStoreTimerTable

@@ -1,7 +1,7 @@
 from battlesnake.conf import settings
 from battlesnake.core.timers import TimerTable, IntervalTimer
 
-from battlesnake.plugins.contrib.arena_master.puppets.outbound_commands import \
+from battlesnake.plugins.contrib.arena_master.puppets.units.outbound_commands import \
     update_store_from_btfuncs
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE

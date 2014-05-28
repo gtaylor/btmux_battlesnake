@@ -140,7 +140,7 @@ class ArenaMapUnit(object):
 
     def __init__(self, dbref, contact_id, unit_ref, unit_type, unit_move_type, mech_name,
                  x_coord, y_coord, z_coord, speed, heading, tonnage, heat,
-                 status, status2, critstatus):
+                 status, status2, critstatus, faction_dbref, battle_value):
         self.dbref = dbref
         self.contact_id = contact_id.upper()
         self.unit_ref = unit_ref
@@ -157,6 +157,8 @@ class ArenaMapUnit(object):
         self.status = status
         self.status2 = status2
         self.critstatus = critstatus
+        self.faction_dbref = faction_dbref
+        self.battle_value = battle_value
 
         self.last_seen = datetime.datetime.now()
 
@@ -166,6 +168,71 @@ class ArenaMapUnit(object):
         """
 
         self.last_seen = datetime.datetime.now()
+
+    def is_landed(self):
+        return 'a' in self.status
+
+    def is_started(self):
+        return 'd' in self.status
+
+    def is_destroyed(self):
+        return 'f' in self.status
+
+    def is_jumping(self):
+        return 'g' in self.status
+
+    def is_fallen(self):
+        return 'h' in self.status
+
+    def is_immobile(self):
+        """
+        :rtype: bool
+        :returns: True if this unit is incapable of moving by its primary
+            means of locomotion.
+        """
+
+        if self.unit_type == "Vehicle" and 'h' in self.status:
+            return True
+        return False
+
+    def is_doing_something(self):
+        """
+        :rtype: bool
+        :returns: True if the unit's "doing something" flag has been set.
+            This is only done by softcoded systems.
+        """
+
+        return 'j' in self.status
+
+    def is_pilot_unconscious(self):
+        return 'n' in self.status
+
+    def is_masc_enabled(self):
+        return 'u' in self.status
+
+    def is_combat_safe(self):
+        return 'w' in self.status
+
+    def is_ecm_enabled(self):
+        return 'a' in self.status2 or 'i' in self.status2
+
+    def is_eccm_enabled(self):
+        return 'b' in self.status2 or 'j' in self.status2
+
+    def is_affected_by_ecm(self):
+        return 'c' in self.status2 or 'l' in self.status2
+
+    def is_protected_by_ecm(self):
+        return 'd' in self.status2 or 'k' in self.status2
+
+    def is_sprinting(self):
+        return 'q' in self.status2
+
+    def is_evading(self):
+        return 'r' in self.status2
+
+    def is_dodging(self):
+        return 's' in self.status2
 
     def __repr__(self):
         return "[%s] %s" % (self.contact_id, self.mech_name)

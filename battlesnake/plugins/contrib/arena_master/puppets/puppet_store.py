@@ -6,6 +6,7 @@ map events and to issue orders to the AIs.
 
 from battlesnake.core.utils import is_valid_dbref
 
+from battlesnake.plugins.contrib.factions.defines import FACTIONS
 from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
     ArenaMapUnitStore
 
