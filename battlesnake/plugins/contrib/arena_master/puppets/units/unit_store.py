@@ -138,9 +138,11 @@ class ArenaMapUnit(object):
     Represents a single unit on the map. A mech, tank, vtol, suit, etc.
     """
 
-    def __init__(self, dbref, contact_id, unit_ref, unit_type, unit_move_type, mech_name,
-                 x_coord, y_coord, z_coord, speed, heading, tonnage, heat,
-                 status, status2, critstatus, faction_dbref, battle_value):
+    def __init__(self, dbref, contact_id, unit_ref, unit_type, unit_move_type,
+                 mech_name, x_coord, y_coord, z_coord, speed, heading, tonnage,
+                 heat, status, status2, critstatus, critstatus2, faction_dbref,
+                 battle_value, target_dbref, shots_fired, shots_landed,
+                 damage_inflicted, shots_missed, units_killed):
         self.dbref = dbref
         self.contact_id = contact_id.upper()
         self.unit_ref = unit_ref
@@ -157,8 +159,15 @@ class ArenaMapUnit(object):
         self.status = status
         self.status2 = status2
         self.critstatus = critstatus
+        self.critstatus2 = critstatus2
         self.faction_dbref = faction_dbref
         self.battle_value = battle_value
+        self.target_dbref = target_dbref
+        self.shots_fired = shots_fired
+        self.shots_landed = shots_landed
+        self.shots_missed = shots_missed
+        self.damage_inflicted = damage_inflicted
+        self.units_killed = units_killed
 
         self.last_seen = datetime.datetime.now()
 
@@ -168,6 +177,18 @@ class ArenaMapUnit(object):
         """
 
         self.last_seen = datetime.datetime.now()
+
+    def get_target_dbref(self):
+        """
+        :rtype: str or None
+        :returns: The dbref of the unit's target. None if no target is locked.
+            If they have a hex locked, this will be None as well.
+        """
+
+        target_dbref = self.target_dbref
+        if target_dbref == '-1':
+            return None
+        return '#' + target_dbref
 
     def is_landed(self):
         return 'a' in self.status
@@ -182,7 +203,7 @@ class ArenaMapUnit(object):
         return 'g' in self.status
 
     def is_fallen(self):
-        return 'h' in self.status
+        return self.unit_type == "Mech" and 'h' in self.status
 
     def is_immobile(self):
         """
@@ -192,6 +213,8 @@ class ArenaMapUnit(object):
         """
 
         if self.unit_type == "Vehicle" and 'h' in self.status:
+            return True
+        elif self.is_fallen() and self.is_gyro_destroyed():
             return True
         return False
 
@@ -233,6 +256,12 @@ class ArenaMapUnit(object):
 
     def is_dodging(self):
         return 's' in self.status2
+
+    def is_gyro_destroyed(self):
+        return 'a' in self.critstatus or 'a' in self.critstatus2
+
+    def is_invisible(self):
+        return 'A' in self.critstatus
 
     def __repr__(self):
         return "[%s] %s" % (self.contact_id, self.mech_name)
