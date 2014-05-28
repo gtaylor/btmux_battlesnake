@@ -6,6 +6,9 @@ map events and to issue orders to the AIs.
 
 from battlesnake.core.utils import is_valid_dbref
 
+from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
+    ArenaMapUnitStore
+
 
 class ArenaMasterPuppetStore(object):
     """
@@ -58,6 +61,8 @@ class ArenaMasterPuppet(object):
     def __init__(self, dbref, map_dbref):
         self.dbref = dbref
         self.map_dbref = map_dbref
+        # A cache for all units in the arena, plus their states.
+        self.unit_store = ArenaMapUnitStore()
 
 
 # Lame that we have to pollute the global namespace, but whatevs.

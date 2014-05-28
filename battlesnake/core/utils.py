@@ -14,7 +14,7 @@ from battlesnake.core.ansi import remove_ansi_codes
 def generate_unique_token():
     """
     Generates a [probably] unique token. This is useful for cycling keys
-    and respose monitors.
+    and response monitors.
 
     :rtype: str
     :returns: A unique token.

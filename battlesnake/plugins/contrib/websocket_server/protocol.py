@@ -1,6 +1,6 @@
 from autobahn.wamp1.protocol import WampServerProtocol
 
-from battlesnake.plugins.contrib.hudinfo_cache.signals import on_new_unit_detected, \
+from battlesnake.plugins.contrib.arena_master.puppets.units.signals import on_new_unit_detected, \
     on_unit_destroyed, on_stale_unit_removed, on_hit_landed, on_shot_missed, \
     on_unit_state_changed
 from battlesnake.plugins.contrib.hudinfo_cache.store import UNIT_STORE
