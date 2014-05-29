@@ -10,7 +10,7 @@ from battlesnake.outbound_commands import mux_commands
 
 @inlineCallbacks
 def start_unit_ai(
-        protocol, unit_dbref, piloting_skill=4, gunnery_skill=4):
+        protocol, unit_dbref, piloting_skill=3, gunnery_skill=3):
     """
     Creates and starts an AI on the given unit.
 
@@ -50,7 +50,7 @@ def start_unit_ai(
     yield mux_commands.parent(p, ai_dbref, settings['ai']['ai_parent_dbref'])
     yield mux_commands.lock(p, ai_dbref, ai_dbref)
     # This sequence will engage the AI and start the unit.
-    force_cmd = "{addcommand startup;addcommand autogun on;engage;@wait 4=sendchannel a=Engaged and starting up!}"
+    force_cmd = "{addcommand startup;addcommand autogun on;engage;@wait 1=sendchannel a=Engaged and starting up!}"
     yield mux_commands.force(p, ai_dbref, force_cmd)
 
     on_unit_ai_started.send(None, ai_dbref=ai_dbref, unit_dbref=unit_dbref)

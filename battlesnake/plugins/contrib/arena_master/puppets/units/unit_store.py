@@ -22,11 +22,52 @@ class ArenaMapUnitStore(object):
         self._unit_store = {}
         self.arena_master_puppet = arena_master_puppet
 
+    def add_unit(self, unit):
+        """
+        We've got a unit we haven't seen before. Add it to the store as new.
+
+        :param ArenaMapUnit unit: The unit to add.
+        """
+
+        # New unit. Add it and let the connected clients know.
+        self._unit_store[unit.contact_id] = unit
+        on_new_unit_detected.send(self, unit=unit)
+
+    def update_unit(self, new_unit):
+        """
+        Given a new unit received from one of the populating methods, see
+        what has changed compared to what we already have locally.
+        Update the values on a per-field basis instead of wholesale
+        instance replacement. This preserves any AI state values we've got
+        on said unit.
+
+        :param ArenaMapUnit new_unit: The new unit data we've received.
+        """
+
+        # What we already have on file.
+        old_unit = self._unit_store[new_unit.contact_id]
+        # Always mark the unit as seen, regardless of if there were changes.
+        old_unit.mark_as_seen()
+        # Compare the copy of the unit currently in the cache to the
+        # one we just got from in-game.
+        changes = self.compare_units(new_unit, old_unit)
+        if not changes:
+            return
+
+        # Update all fields that have changed.
+        # This could be a lot more efficient, but we'll worry about that later.
+        for change in changes:
+            new_value = getattr(new_unit, change)
+            setattr(old_unit, change, new_value)
+
+        # Broadcast the changes to all connected users.
+        on_unit_state_changed.send(
+            self, unit=old_unit, changes=changes,
+        )
+
     def update_or_add_unit(self, unit):
         """
-        Given a unit, add it to the store or update an existing record. Right
-        now there is no difference between add and update, but we may
-        eventually do something.
+        Given a unit, add it to the store or update an existing record.
 
         :param ArenaMapUnit unit: The unit to add or update.
         """
@@ -38,24 +79,9 @@ class ArenaMapUnitStore(object):
             return
 
         if unit.contact_id not in self._unit_store:
-            # New unit. Add it and let the connected clients know.
-            self._unit_store[unit.contact_id] = unit
-            on_new_unit_detected.send(self, unit=unit)
+            self.add_unit(unit)
         else:
-            # Compare the copy of the unit currently in the cache to the
-            # one we just got from in-game.
-            changes = self.compare_units(unit, self._unit_store[unit.contact_id])
-            if changes:
-                # This unit's state has changed. Update it.
-                self._unit_store[unit.contact_id] = unit
-                # Broadcast the changes to all connected users.
-                on_unit_state_changed.send(
-                    self, unit=unit, changes=changes,
-                )
-            else:
-                # No changes, but we saw the unit. Mark it so it doesn't
-                # get stale purged.
-                self._unit_store[unit.contact_id].mark_as_seen()
+            self.update_unit(unit)
 
     def mark_unit_as_destroyed_by_id(self, victim_id, killer_id):
         """
