@@ -41,6 +41,7 @@ def start_unit_ai(
     yield think_fn_wrappers.set_attrs(protocol, unit_dbref, {
         'MECHSKILLS': '%s %s' % (piloting_skill, gunnery_skill),
         'PILOT': ai_dbref,
+        'IS_AI_CONTROLLED': '1',
     })
     flags = [
         'INHERIT', 'STAFF', 'XCODE', 'MONITOR', 'IN_CHARACTER',

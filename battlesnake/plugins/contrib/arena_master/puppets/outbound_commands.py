@@ -1,8 +1,6 @@
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
-    ArenaMasterPuppet
 
 
 @inlineCallbacks

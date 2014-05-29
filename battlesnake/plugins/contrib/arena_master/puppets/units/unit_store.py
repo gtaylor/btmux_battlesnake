@@ -15,12 +15,16 @@ class ArenaMapUnitStore(object):
 
     def __init__(self, arena_master_puppet):
         """
-        :param ArenaMasterPuppet arena_master_puppet: The puppet that this
+        :param battlesnake.plugins.contrib.arena_master.puppets.puppet.ArenaMasterPuppet arena_master_puppet: The puppet that this
             store resides within.
         """
 
         self._unit_store = {}
         self.arena_master_puppet = arena_master_puppet
+
+    def __iter__(self):
+        for unit in self._unit_store.values():
+            yield unit
 
     def add_unit(self, unit):
         """
@@ -101,6 +105,25 @@ class ArenaMapUnitStore(object):
 
         del self._unit_store[unit_id]
 
+    def list_units_by_faction(self):
+        """
+        Breaks the units up by faction into a dict of lists.
+
+        :rtype: dict
+        :returns: A dict with the keys being faction dbrefs and the values
+            being a list of units belonging to said faction.
+        """
+
+        units_by_faction = {}
+        for unit in self.__iter__():
+            unit_faction = unit.faction_dbref
+            if not unit_faction:
+                continue
+            if unit_faction not in units_by_faction:
+                units_by_faction[unit_faction] = []
+            units_by_faction[unit_faction].append(unit)
+        return units_by_faction
+
     def purge_stale_units(self):
         """
         Goes through all of the units in the store, expiring any that we
@@ -147,7 +170,7 @@ class ArenaMapUnitStore(object):
 
         unit1_dict = unit1.__dict__
         unit2_dict = unit2.__dict__
-        ignored_keys = ['last_seen']
+        ignored_keys = ['last_seen', 'ai_last_destination']
         changes = []
         for key, val in unit1_dict.items():
             if key in ignored_keys:
@@ -168,34 +191,53 @@ class ArenaMapUnit(object):
                  mech_name, x_coord, y_coord, z_coord, speed, heading, tonnage,
                  heat, status, status2, critstatus, critstatus2, faction_dbref,
                  battle_value, target_dbref, shots_fired, shots_landed,
-                 damage_inflicted, shots_missed, units_killed):
+                 damage_inflicted, shots_missed, units_killed, maxspeed,
+                 is_ai):
         self.dbref = dbref
         self.contact_id = contact_id.upper()
         self.unit_ref = unit_ref
         self.unit_type = unit_type
         self.unit_move_type = unit_move_type
         self.mech_name = mech_name
-        self.x_coord = x_coord
-        self.y_coord = y_coord
-        self.z_coord = z_coord
-        self.speed = speed
-        self.heading = heading
-        self.tonnage = tonnage
-        self.heat = heat
+        self.x_coord = int(x_coord)
+        self.y_coord = int(y_coord)
+        self.z_coord = int(z_coord)
+        self.speed = float(speed)
+        self.heading = float(heading)
+        self.tonnage = int(tonnage)
+        self.heat = float(heat)
         self.status = status
         self.status2 = status2
         self.critstatus = critstatus
         self.critstatus2 = critstatus2
         self.faction_dbref = faction_dbref
-        self.battle_value = battle_value
+        self.battle_value = int(battle_value)
         self.target_dbref = target_dbref
-        self.shots_fired = shots_fired
-        self.shots_landed = shots_landed
-        self.shots_missed = shots_missed
-        self.damage_inflicted = damage_inflicted
-        self.units_killed = units_killed
+        self.shots_fired = int(shots_fired)
+        self.shots_landed = int(shots_landed)
+        self.shots_missed = int(shots_missed)
+        self.damage_inflicted = int(damage_inflicted)
+        self.units_killed = int(units_killed)
+        self.maxspeed = float(maxspeed)
+        self.is_ai = is_ai == '1'
+
+        # If the arena master wanted this unit to go somewhere, this is
+        # where it last asked.
+        self.ai_last_destination = None
 
         self.last_seen = datetime.datetime.now()
+
+    def is_at_ai_destination(self):
+        """
+        :rtype: bool or None
+        :returns: True if the unit is at its last specified AI destination.
+            False if not, or if None if no destination has been set.
+        """
+
+        if not self.ai_last_destination:
+            return
+        dest_x, dest_y = self.ai_last_destination
+        return self.x_coord == dest_x and self.y_coord == dest_y
 
     def mark_as_seen(self):
         """
@@ -238,6 +280,8 @@ class ArenaMapUnit(object):
             means of locomotion.
         """
 
+        if self.maxspeed == '0.0' or self.unit_move_type == 'None':
+            return True
         if self.unit_type == "Vehicle" and 'h' in self.status:
             return True
         elif self.is_fallen() and self.is_gyro_destroyed():

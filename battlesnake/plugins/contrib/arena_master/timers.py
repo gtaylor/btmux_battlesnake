@@ -2,6 +2,9 @@ from battlesnake.conf import settings
 from battlesnake.core.timers import IntervalTimer
 from battlesnake.core.timers import TimerTable
 
+from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
+    PUPPET_STORE
+
 
 class StrategyTicTimer(IntervalTimer):
     """
@@ -17,7 +20,8 @@ class StrategyTicTimer(IntervalTimer):
         print "* Arena master puppet strategic tic interval: %ss" % cls.interval
 
     def run(self, protocol):
-        pass
+        for puppet in PUPPET_STORE:
+            puppet.do_strategic_tic()
 
 
 class ArenaPuppetMasterTimerTable(TimerTable):
