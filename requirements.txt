@@ -5,3 +5,4 @@ crontab==0.18
 autobahn==0.8.1
 blinker==1.3
 simplejson==3.3.3
+fysom==1.0.15
