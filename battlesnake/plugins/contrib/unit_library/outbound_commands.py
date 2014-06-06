@@ -1,10 +1,7 @@
-import time
-
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.conf import settings
 from battlesnake.core.inbound_command_handling.base import CommandError
-from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands.think_fn_wrappers import btloadmech, \
     btgetxcodevalue_ref, set_attrs, btdesignex
 

@@ -60,6 +60,19 @@ def say(protocol, message):
     protocol.write("say " + message)
 
 
+def remit(protocol, obj, message):
+    """
+    Emits a message to a room.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str message: The message to emit
+    """
+
+    remit_str = "@remit {obj}={message}".format(obj=obj, message=message)
+    protocol.write(remit_str)
+
+
 def pemit(protocol, targets, message, switches=None, replace_returns=True):
     """
     Wrapper for @pemit. Handles multiple targets gracefully.
