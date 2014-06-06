@@ -2,7 +2,7 @@
 Functions wrappers using the 'think' command.
 """
 
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from battlesnake.outbound_commands import mux_commands
 
@@ -17,6 +17,21 @@ def create(protocol, name, otype='r'):
 
     think_str = "[create({name},1,{otype})]".format(
         name=name, otype=otype,
+    )
+    return mux_commands.think(protocol, think_str)
+
+
+def pemit(protocol, objects, message):
+    """
+    :param list objects: A list of dbrefs to pemit() to.
+    :param str message: The message to pemit().
+    :rtype: defer.Deferred
+    :returns: A deferred that will fire with the new object's dbref.
+    """
+
+    obj_dbrefs = ' '.join(objects)
+    think_str = "[pemit({obj_dbrefs},{message})]".format(
+        obj_dbrefs=obj_dbrefs, message=message,
     )
     return mux_commands.think(protocol, think_str)
 
@@ -133,3 +148,76 @@ def btgetxcodevalue(protocol, obj, key):
     think_str = "[btgetxcodevalue({obj},{key})]".format(
         obj=obj, key=key)
     return mux_commands.think(protocol, think_str)
+
+
+def btgetxcodevalue_ref(protocol, unit_ref, key):
+    """
+    :param str unit_ref: The unit reference to retrieve values for.
+    :param str key: The XCODE key to retrieve the value for.
+    :rtype: defer.Deferred
+    """
+
+    think_str = "[btgetxcodevalue_ref({unit_ref},{key})]".format(
+        unit_ref=unit_ref, key=key)
+    return mux_commands.think(protocol, think_str)
+
+
+@inlineCallbacks
+def btgetbv_ref(protocol, unit_ref):
+    """
+    :param str unit_ref: The unit reference to retrieve the BV for.
+    :rtype: defer.Deferred
+    """
+
+    think_str = "[btgetbv_ref({unit_ref})]".format(unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    returnValue(float(func_result))
+
+
+@inlineCallbacks
+def btgetbv2_ref(protocol, unit_ref):
+    """
+    :param str unit_ref: The unit reference to retrieve the BV2 for.
+    :rtype: float
+    """
+
+    think_str = "[btgetbv2_ref({unit_ref})]".format(unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    returnValue(float(func_result))
+
+
+@inlineCallbacks
+def btfasabasecost_ref(protocol, unit_ref):
+    """
+    :param str unit_ref: The unit reference to calculate a base cost for.
+    :rtype: int
+    """
+
+    think_str = "[btfasabasecost_ref({unit_ref})]".format(unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    returnValue(int(func_result))
+
+
+@inlineCallbacks
+def btdesignex(protocol, unit_ref):
+    """
+    :param str unit_ref: A unit reference to check.
+    :rtype: bool
+    :returns: True if the reference exists, False if not.
+    """
+
+    think_str = "[btdesignex({unit_ref})]".format(
+        unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    returnValue(func_result == '1')
+
+@inlineCallbacks
+def bttechlist_ref(protocol, unit_ref):
+    """
+    :param str unit_ref: The unit reference to get the tech list for.
+    :rtype: list
+    """
+
+    think_str = "[bttechlist_ref({unit_ref})]".format(unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    returnValue(set(func_result.split()))

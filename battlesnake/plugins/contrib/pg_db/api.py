@@ -1,9 +1,10 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
-from txpostgres import txpostgres, reconnection
+from txpostgres import reconnection
 
 from battlesnake.conf import settings
+from battlesnake.plugins.contrib.pg_db.dict_conn import DictConnection
 
-__DBCONN = txpostgres.Connection(detector=reconnection.DeadConnectionDetector())
+__DBCONN = DictConnection(detector=reconnection.DeadConnectionDetector())
 __DB = None
 
 

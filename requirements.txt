@@ -8,3 +8,5 @@ simplejson==3.5.2
 fysom==1.0.15
 git+https://github.com/wulczer/txpostgres.git
 psycopg2==2.5.3
+git+https://github.com/gtaylor/btmux_template_io.git
+git+https://github.com/gtaylor/btmux_maplib.git
