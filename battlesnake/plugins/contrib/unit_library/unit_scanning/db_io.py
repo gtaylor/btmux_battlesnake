@@ -45,6 +45,7 @@ def update_unit_in_db(
         '  defensive_battle_value2=%s,'
         '  weapons_loadout=%s,'
         '  build_parts=%s,'
+        '  sections=%s,'
         '  cargo_space=%s,'
         '  cargo_max_tonnage=%s,'
         '  jumpjet_range=%s,'
@@ -69,6 +70,7 @@ def update_unit_in_db(
         defensive_bv2,
         Json(payload),
         Json(build_parts),
+        Json(unit.sections),
         unit.cargo_space,
         unit.cargo_max_ton or 0,
         unit.jumpjet_range,
@@ -103,10 +105,10 @@ def insert_unit_in_db(
         '  (reference, name, unit_type, unit_move_type, weight, max_speed,'
         '   tro_id, engine_size, armor_total, internals_total, heatsink_total,'
         '   battle_value, battle_value2, offensive_battle_value2, weapons_loadout,'
-        '   build_parts, defensive_battle_value2, cargo_space, cargo_max_tonnage,'
-        '   jumpjet_range, base_cost, special_tech_raw)'
+        '   build_parts, sections, defensive_battle_value2, cargo_space,'
+        '   cargo_max_tonnage, jumpjet_range, base_cost, special_tech_raw)'
         '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,'
-        '   %s, %s, %s, %s, %s, %s, %s)'
+        '   %s, %s, %s, %s, %s, %s, %s, %s)'
     )
     value_tuple = (
         unit.reference,
@@ -126,6 +128,7 @@ def insert_unit_in_db(
         defensive_bv2,
         Json(payload),
         Json(build_parts),
+        Json(unit.sections),
         unit.cargo_space,
         unit.cargo_max_ton or 0,
         unit.jumpjet_range,
