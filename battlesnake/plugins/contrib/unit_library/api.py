@@ -57,7 +57,7 @@ def get_tro_id_from_name(tro_name):
 
 @inlineCallbacks
 def save_unit_to_db(unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list,
-                    payload):
+                    payload, build_parts):
     """
     Given a BTMuxUnit instance, save it to the DB. This will either be
     an insert or update, depending on whether the unit is already in the DB.
@@ -69,6 +69,7 @@ def save_unit_to_db(unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list
     :param int base_cost: The in-game calculated base cost.
     :param set tech_list: A set of special tech in the unit.
     :param dict payload: A dict breaking down the unit's weapons/ammo payload.
+    :param dict build_parts: A dict containing the unit's parts list.
     """
 
     exists = yield get_unit_by_ref(unit.reference)
@@ -76,8 +77,8 @@ def save_unit_to_db(unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list
     if exists:
         update_unit_in_db(
             unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list,
-            tro_id, payload)
+            tro_id, payload, build_parts)
     else:
         insert_unit_in_db(
             unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list,
-            tro_id, payload)
+            tro_id, payload, build_parts)

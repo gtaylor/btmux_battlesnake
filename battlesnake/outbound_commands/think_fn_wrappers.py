@@ -259,9 +259,26 @@ def btpayload_ref(protocol, unit_ref):
 
     think_str = "[btpayload_ref({unit_ref})]".format(unit_ref=unit_ref)
     func_result = yield mux_commands.think(protocol, think_str)
-    retval = []
+    retval = {}
     weapon_split = func_result.split('|')
     for weapon_pair in weapon_split:
         weapon, quantity = weapon_pair.split(':')
-        retval.append((weapon, quantity))
+        retval[weapon] = quantity
+    returnValue(retval)
+
+
+@inlineCallbacks
+def btunitpartslist_ref(protocol, unit_ref):
+    """
+    :param str unit_ref: The unit reference to get the parts list for.
+    :rtype: list
+    """
+
+    think_str = "[btunitpartslist_ref({unit_ref})]".format(unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    retval = {}
+    part_split = func_result.split('|')
+    for part_pair in part_split:
+        part, quantity = part_pair.split(':')
+        retval[part] = quantity
     returnValue(retval)

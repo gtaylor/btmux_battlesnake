@@ -12,7 +12,7 @@ from battlesnake.plugins.contrib.pg_db.api import get_db_connection
 @inlineCallbacks
 def update_unit_in_db(
         unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list, tro_id,
-        payload):
+        payload, build_parts):
     """
     :param btmux_template_io.unit.BTMuxUnit unit: The unit to save in the DB.
     :param int bv: The in-game calculated battle value.
@@ -23,6 +23,7 @@ def update_unit_in_db(
     :type tro_id: int or None
     :param tro_id: The unit's TRO's ID or None if no TRO is set.
     :param dict payload: A dict breaking down the unit's weapons/ammo payload.
+    :param dict build_parts: A dict containing the unit's parts list.
     """
 
     conn = yield get_db_connection()
@@ -42,7 +43,8 @@ def update_unit_in_db(
         '  battle_value2=%s,'
         '  offensive_battle_value2=%s,'
         '  defensive_battle_value2=%s,'
-        '  weapons_loadout=%s,'''
+        '  weapons_loadout=%s,'
+        '  build_parts=%s,'
         '  cargo_space=%s,'
         '  cargo_max_tonnage=%s,'
         '  jumpjet_range=%s,'
@@ -66,6 +68,7 @@ def update_unit_in_db(
         offensive_bv2,
         defensive_bv2,
         Json(payload),
+        Json(build_parts),
         unit.cargo_space,
         unit.cargo_max_ton or 0,
         unit.jumpjet_range,
@@ -80,7 +83,7 @@ def update_unit_in_db(
 @inlineCallbacks
 def insert_unit_in_db(
         unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list, tro_id,
-        payload):
+        payload, build_parts):
     """
     :param btmux_template_io.unit.BTMuxUnit unit: The unit to save in the DB.
     :param int bv: The in-game calculated battle value.
@@ -91,6 +94,7 @@ def insert_unit_in_db(
     :type tro_id: int or None
     :param tro_id: The unit's TRO's ID or None if no TRO is set.
     :param dict payload: A dict breaking down the unit's weapons/ammo payload.
+    :param dict build_parts: A dict containing the unit's parts list.
     """
 
     conn = yield get_db_connection()
@@ -99,10 +103,10 @@ def insert_unit_in_db(
         '  (reference, name, unit_type, unit_move_type, weight, max_speed,'
         '   tro_id, engine_size, armor_total, internals_total, heatsink_total,'
         '   battle_value, battle_value2, offensive_battle_value2, weapons_loadout,'
-        '   defensive_battle_value2, cargo_space, cargo_max_tonnage,'
+        '   build_parts, defensive_battle_value2, cargo_space, cargo_max_tonnage,'
         '   jumpjet_range, base_cost, special_tech_raw)'
         '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,'
-        '   %s, %s, %s, %s, %s, %s)'
+        '   %s, %s, %s, %s, %s, %s, %s)'
     )
     value_tuple = (
         unit.reference,
@@ -121,6 +125,7 @@ def insert_unit_in_db(
         offensive_bv2,
         defensive_bv2,
         Json(payload),
+        Json(build_parts),
         unit.cargo_space,
         unit.cargo_max_ton or 0,
         unit.jumpjet_range,

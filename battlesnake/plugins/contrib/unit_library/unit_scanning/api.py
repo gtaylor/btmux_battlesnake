@@ -7,7 +7,7 @@ from battlesnake.conf import settings
 from battlesnake.core.inbound_command_handling.base import CommandError
 from battlesnake.outbound_commands.think_fn_wrappers import \
     btgetxcodevalue, btfasabasecost_ref, btgetbv_ref, bttechlist_ref, \
-    btgetobv_ref, btgetdbv_ref, btpayload_ref
+    btgetobv_ref, btgetdbv_ref, btpayload_ref, btunitpartslist_ref
 
 from battlesnake.plugins.contrib.unit_library.api import save_unit_to_db
 
@@ -34,11 +34,13 @@ def scan_unit_from_templater(protocol, invoker_dbref):
     defensive_bv2 = yield btgetdbv_ref(p, unit_ref)
     base_cost = yield btfasabasecost_ref(p, unit_ref)
     tech_list = yield bttechlist_ref(p, unit_ref)
-    payload = {w: q for w, q in (yield btpayload_ref(p, unit_ref))}
+    payload = yield btpayload_ref(p, unit_ref)
+    build_parts = yield btunitpartslist_ref(p, unit_ref)
 
     # Marshall the unit and send it to the DB.
     yield save_unit_to_db(
-        unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list, payload)
+        unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list, payload,
+        build_parts)
 
 
 def _load_template_from_mechs_dir(unit_ref):
