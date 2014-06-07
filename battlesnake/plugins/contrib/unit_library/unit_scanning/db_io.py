@@ -39,7 +39,7 @@ def update_unit_in_db(unit, bv, bv2, base_cost, tech_list, tro_id):
         '  cargo_max_tonnage=%s,'
         '  jumpjet_range=%s,'
         '  base_cost=%s,'
-        '  special_tech=%s'
+        '  special_tech_raw=%s'
         ' WHERE reference=%s'
     )
     value_tuple = (
@@ -84,7 +84,7 @@ def insert_unit_in_db(unit, bv, bv2, base_cost, tech_list, tro_id):
         '  (reference, name, unit_type, unit_move_type, weight, max_speed,'
         '   tro_id, engine_size, armor_total, internals_total, heatsink_total,'
         '   battle_value, battle_value2, cargo_space, cargo_max_tonnage,'
-        '   jumpjet_range, base_cost, special_tech)'
+        '   jumpjet_range, base_cost, special_tech_raw)'
         '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,'
         '   %s, %s, %s)'
     )
