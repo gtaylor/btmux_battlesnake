@@ -187,6 +187,32 @@ def btgetbv2_ref(protocol, unit_ref):
 
 
 @inlineCallbacks
+def btgetobv_ref(protocol, unit_ref):
+    """
+    :param str unit_ref: The unit reference to retrieve the offensive
+        BV2 for.
+    :rtype: float
+    """
+
+    think_str = "[btgetobv_ref({unit_ref})]".format(unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    returnValue(float(func_result))
+
+
+@inlineCallbacks
+def btgetdbv_ref(protocol, unit_ref):
+    """
+    :param str unit_ref: The unit reference to retrieve the defensive
+        BV2 for.
+    :rtype: float
+    """
+
+    think_str = "[btgetdbv_ref({unit_ref})]".format(unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    returnValue(float(func_result))
+
+
+@inlineCallbacks
 def btfasabasecost_ref(protocol, unit_ref):
     """
     :param str unit_ref: The unit reference to calculate a base cost for.

@@ -5,8 +5,9 @@ from btmux_template_io.parser import parse_from_file
 
 from battlesnake.conf import settings
 from battlesnake.core.inbound_command_handling.base import CommandError
-from battlesnake.outbound_commands.think_fn_wrappers import btgetbv2_ref, \
-    btgetxcodevalue, btfasabasecost_ref, btgetbv_ref, bttechlist_ref
+from battlesnake.outbound_commands.think_fn_wrappers import \
+    btgetxcodevalue, btfasabasecost_ref, btgetbv_ref, bttechlist_ref, \
+    btgetobv_ref, btgetdbv_ref
 
 from battlesnake.plugins.contrib.unit_library.api import save_unit_to_db
 
@@ -29,13 +30,15 @@ def scan_unit_from_templater(protocol, invoker_dbref):
     # The template files sometimes have this in them, but we can calculate
     # it dynamically in-game.
     bv = yield btgetbv_ref(p, unit_ref)
-    bv2 = yield btgetbv2_ref(p, unit_ref)
+    offensive_bv2 = yield btgetobv_ref(p, unit_ref)
+    defensive_bv2 = yield btgetdbv_ref(p, unit_ref)
     base_cost = yield btfasabasecost_ref(p, unit_ref)
     tech_list = yield bttechlist_ref(p, unit_ref)
     unit = _load_template_from_mechs_dir(unit_ref)
 
     # Marshall the unit and send it to the DB.
-    yield save_unit_to_db(unit, bv, bv2, base_cost, tech_list)
+    yield save_unit_to_db(
+        unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list)
 
 
 def _load_template_from_mechs_dir(unit_ref):

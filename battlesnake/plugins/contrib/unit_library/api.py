@@ -56,14 +56,15 @@ def get_tro_id_from_name(tro_name):
 
 
 @inlineCallbacks
-def save_unit_to_db(unit, bv, bv2, base_cost, tech_list):
+def save_unit_to_db(unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list):
     """
     Given a BTMuxUnit instance, save it to the DB. This will either be
     an insert or update, depending on whether the unit is already in the DB.
 
     :param btmux_template_io.unit.BTMuxUnit unit: The unit to save in the DB.
     :param int bv: The in-game calculated battle value.
-    :param float bv2: The in-game calculated battle value 2.
+    :param float offensive_bv2: The in-game calculated offensive battle value 2.
+    :param float defensive_bv2: The in-game calculated defensive battle value 2.
     :param int base_cost: The in-game calculated base cost.
     :param set tech_list: A set of special tech in the unit.
     """
@@ -71,6 +72,8 @@ def save_unit_to_db(unit, bv, bv2, base_cost, tech_list):
     exists = yield get_unit_by_ref(unit.reference)
     tro_id = yield get_tro_id_from_name(unit.unit_tro)
     if exists:
-        update_unit_in_db(unit, bv, bv2, base_cost, tech_list, tro_id)
+        update_unit_in_db(
+            unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list, tro_id)
     else:
-        insert_unit_in_db(unit, bv, bv2, base_cost, tech_list, tro_id)
+        insert_unit_in_db(
+            unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list, tro_id)
