@@ -237,6 +237,7 @@ def btdesignex(protocol, unit_ref):
     func_result = yield mux_commands.think(protocol, think_str)
     returnValue(func_result == '1')
 
+
 @inlineCallbacks
 def bttechlist_ref(protocol, unit_ref):
     """
@@ -247,3 +248,20 @@ def bttechlist_ref(protocol, unit_ref):
     think_str = "[bttechlist_ref({unit_ref})]".format(unit_ref=unit_ref)
     func_result = yield mux_commands.think(protocol, think_str)
     returnValue(set(func_result.split()))
+
+
+@inlineCallbacks
+def btpayload_ref(protocol, unit_ref):
+    """
+    :param str unit_ref: The unit reference to get the payload for.
+    :rtype: list
+    """
+
+    think_str = "[btpayload_ref({unit_ref})]".format(unit_ref=unit_ref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    retval = []
+    weapon_split = func_result.split('|')
+    for weapon_pair in weapon_split:
+        weapon, quantity = weapon_pair.split(':')
+        retval.append((weapon, quantity))
+    returnValue(retval)
