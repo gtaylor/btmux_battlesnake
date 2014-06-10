@@ -1,3 +1,5 @@
+import os
+
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.conf import settings
@@ -23,6 +25,10 @@ class ScanUnitCommand(BaseCommand):
     @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
         reference = parsed_line.kwargs['reference']
+        yield self._scan_unit(protocol, invoker_dbref, reference)
+
+    @inlineCallbacks
+    def _scan_unit(self, protocol, invoker_dbref, reference):
         templater_dbref = settings['unit_library']['templater_dbref']
         pval = "Re-loading %s in templater..." % reference
         yield mux_commands.remit(protocol, templater_dbref, pval)
@@ -31,6 +37,30 @@ class ScanUnitCommand(BaseCommand):
         yield mux_commands.remit(
             protocol, templater_dbref,
             "Finished scanning %s" % reference)
+
+
+class ScanLibraryCommand(ScanUnitCommand):
+    """
+    Scans all template files in the mechs directory into the template library.
+    """
+
+    command_name = "ul_scanlibrary"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        mechs_dir_path = settings['unit_library']['mechs_dir_path']
+        templater_dbref = settings['unit_library']['templater_dbref']
+
+        for template_file in os.listdir(mechs_dir_path):
+            full_path = os.path.join(mechs_dir_path, template_file)
+            if template_file == 'Mechwarrior' or template_file.startswith('.'):
+                continue
+            if not os.path.isfile(full_path):
+                continue
+            yield mux_commands.remit(
+                protocol, templater_dbref,
+                "Attempting to scan %s" % template_file)
+            yield self._scan_unit(protocol, invoker_dbref, template_file)
 
 
 class LoadUnitCommand(BaseCommand):
@@ -62,5 +92,6 @@ class UnitLibraryCommandTable(InboundCommandTable):
 
     commands = [
         ScanUnitCommand,
+        ScanLibraryCommand,
         LoadUnitCommand,
     ]

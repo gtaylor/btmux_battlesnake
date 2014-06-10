@@ -8,6 +8,7 @@ from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.core.utils import is_valid_dbref
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.outbound_commands.think_fn_wrappers import btdesignex
 from battlesnake.plugins.contrib.ai.outbound_commands import start_unit_ai
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
@@ -71,6 +72,10 @@ class SpawnUnitCommand(BaseCommand):
 
         if pilot_dbref:
             assert is_valid_dbref(args.pilot), "Invalid pilot dbref."
+
+        is_valid_ref = yield btdesignex(protocol, unit_ref)
+        if not is_valid_ref:
+            raise CommandError("Invalid unit reference.")
 
         unit_dbref = yield create_unit(
             protocol, unit_ref, map_dbref, faction, unit_x, unit_y,

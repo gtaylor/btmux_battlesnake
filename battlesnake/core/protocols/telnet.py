@@ -1,3 +1,5 @@
+from StringIO import StringIO
+
 from twisted.conch.telnet import StatefulTelnetProtocol
 from twisted.internet.defer import inlineCallbacks, maybeDeferred
 from twisted.internet.protocol import ClientFactory
@@ -62,6 +64,8 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
     def connectionLost(self, reason):
         print "Connection lost."
         StatefulTelnetProtocol.connectionLost(self, reason)
+        # noinspection PyUnresolvedReferences
+        reactor.stop()
 
     def write(self, line):
         """
@@ -234,9 +238,19 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
 
         # BTMuxArgumentParserExit isn't necessarily an error, just our
         # modified ArgParse doing a fake "exit".
-        e = err.trap(BTMuxArgumentParserExit, CommandError)
-        if e == CommandError:
+        e = err.trap(
+            BTMuxArgumentParserExit, CommandError, Exception
+        )
+        if e == BTMuxArgumentParserExit:
+            pass
+        elif e == CommandError:
             mux_commands.pemit(self, invoker_dbref, str(err.value))
+        else:
+            strobj = StringIO()
+            err.printTraceback(file=strobj)
+
+            mux_commands.pemit(self, invoker_dbref, strobj.getvalue())
+            raise err
 
 
 # noinspection PyAttributeOutsideInit,PyClassHasNoInit,PyClassicStyleClass

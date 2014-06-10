@@ -1,7 +1,7 @@
 import os
 
 from twisted.internet.defer import inlineCallbacks
-from btmux_template_io.parser import parse_from_file
+from btmux_template_io.parsers.btmux import parse_from_file
 
 from battlesnake.conf import settings
 from battlesnake.core.inbound_command_handling.base import CommandError

@@ -72,7 +72,7 @@ def update_unit_in_db(
         Json(build_parts),
         Json(unit.sections),
         unit.cargo_space,
-        unit.cargo_max_ton or 0,
+        unit.cargo_max_ton,
         unit.jumpjet_range,
         base_cost,
         ' '.join(list(tech_list)),
@@ -104,9 +104,10 @@ def insert_unit_in_db(
         'INSERT INTO unit_library_unit'
         '  (reference, name, unit_type, unit_move_type, weight, max_speed,'
         '   tro_id, engine_size, armor_total, internals_total, heatsink_total,'
-        '   battle_value, battle_value2, offensive_battle_value2, weapons_loadout,'
-        '   build_parts, sections, defensive_battle_value2, cargo_space,'
-        '   cargo_max_tonnage, jumpjet_range, base_cost, special_tech_raw)'
+        '   battle_value, battle_value2, offensive_battle_value2, '
+        '   defensive_battle_value2, weapons_loadout, build_parts, sections,'
+        '   cargo_space, cargo_max_tonnage, jumpjet_range, base_cost,'
+        '   special_tech_raw)'
         '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,'
         '   %s, %s, %s, %s, %s, %s, %s, %s)'
     )
@@ -130,7 +131,7 @@ def insert_unit_in_db(
         Json(build_parts),
         Json(unit.sections),
         unit.cargo_space,
-        unit.cargo_max_ton or 0,
+        unit.cargo_max_ton,
         unit.jumpjet_range,
         base_cost,
         ' '.join(list(tech_list)),

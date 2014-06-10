@@ -120,8 +120,12 @@ def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
     :rtype: defer.Deferred
     """
 
-    think_str = "[btsetxy({obj},{map_obj},{unit_x},{unit_z})]".format(
-        obj=obj, map_obj=map_obj, unit_x=unit_x, unit_y=unit_y, unit_z=unit_z)
+    if unit_z:
+        think_str = "[btsetxy({obj},{map_obj},{unit_x},{unit_y},{unit_z})]".format(
+            obj=obj, map_obj=map_obj, unit_x=unit_x, unit_y=unit_y, unit_z=unit_z)
+    else:
+        think_str = "[btsetxy({obj},{map_obj},{unit_x},{unit_y})]".format(
+            obj=obj, map_obj=map_obj, unit_x=unit_x, unit_y=unit_y)
     return mux_commands.think(protocol, think_str, return_output=False)
 
 
@@ -171,6 +175,8 @@ def btgetbv_ref(protocol, unit_ref):
 
     think_str = "[btgetbv_ref({unit_ref})]".format(unit_ref=unit_ref)
     func_result = yield mux_commands.think(protocol, think_str)
+    if func_result.startswith("#-1"):
+        raise ValueError(func_result)
     returnValue(float(func_result))
 
 
@@ -260,6 +266,8 @@ def btpayload_ref(protocol, unit_ref):
     think_str = "[btpayload_ref({unit_ref})]".format(unit_ref=unit_ref)
     func_result = yield mux_commands.think(protocol, think_str)
     retval = {}
+    if not func_result:
+        returnValue(retval)
     weapon_split = func_result.split('|')
     for weapon_pair in weapon_split:
         weapon, quantity = weapon_pair.split(':')
@@ -277,8 +285,12 @@ def btunitpartslist_ref(protocol, unit_ref):
     think_str = "[btunitpartslist_ref({unit_ref})]".format(unit_ref=unit_ref)
     func_result = yield mux_commands.think(protocol, think_str)
     retval = {}
+    if not func_result:
+        returnValue(retval)
     part_split = func_result.split('|')
     for part_pair in part_split:
+        if not part_pair:
+            continue
         part, quantity = part_pair.split(':')
         retval[part] = quantity
     returnValue(retval)
