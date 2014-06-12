@@ -1,4 +1,5 @@
 import math
+import random
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
@@ -45,3 +46,32 @@ def pick_refs_for_wave(wave_num, num_players, difficulty_modifier):
         wave_bv += row['battle_value2']
 
     returnValue(refs)
+
+
+def choose_unit_spawn_spot(map_width, map_height):
+    """
+    :param int map_width: The 1-indexed width of the map.
+    :param int map_height: The 1-indexed height of the map.
+    :rtype: tuple
+    :returns: A tuple of x,y coordinates for a unit to spawn at.
+    """
+
+    x = 0
+    y = 0
+    padding = 5
+    spawn_side = random.choice(['left', 'right', 'top', 'bottom'])
+    if spawn_side == 'left':
+        x = random.randrange(0, padding)
+    elif spawn_side == 'right':
+        x = random.randrange(map_width - padding, map_width)
+    if spawn_side in ['left', 'right']:
+        y = random.randrange(0, map_height)
+
+    if spawn_side == 'top':
+        y = random.randrange(0, padding)
+    elif spawn_side == 'bottom':
+        y = random.randrange(map_height - padding, map_height)
+    if spawn_side in ['top', 'bottom']:
+        x = random.randrange(0, map_width)
+
+    return x, y
