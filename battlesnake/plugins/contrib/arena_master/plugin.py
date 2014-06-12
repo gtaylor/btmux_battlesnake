@@ -2,6 +2,8 @@ from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.core.base_plugin import BattlesnakePlugin
 
+from battlesnake.plugins.contrib.arena_master.inbound_commands import \
+    ArenaMasterCommandTable
 from battlesnake.plugins.contrib.arena_master.puppets.units.outbound_commands import \
     populate_puppet_store
 from battlesnake.plugins.contrib.arena_master.puppets.units.timers import \
@@ -14,6 +16,10 @@ class ArenaMasterPlugin(BattlesnakePlugin):
     """
     Central tie-in point for the arena master.
     """
+
+    command_tables = [
+        ArenaMasterCommandTable,
+    ]
 
     timer_tables = [
         ArenaPuppetMasterUnitStoreTimerTable,

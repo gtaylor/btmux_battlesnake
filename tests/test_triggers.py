@@ -1,6 +1,6 @@
 import unittest
 
-from battlesnake.triggers.examples.tables import ExampleTriggerTable
+from battlesnake.plugins.example_plugin.triggers import ExampleTriggerTable
 
 
 class TriggerTests(unittest.TestCase):
