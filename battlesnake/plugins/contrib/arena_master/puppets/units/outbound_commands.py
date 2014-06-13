@@ -1,13 +1,22 @@
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from battlesnake.conf import settings
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions
+from battlesnake.plugins.contrib.ai.outbound_commands import start_unit_ai
+
 from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
     ArenaMasterPuppet
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
     ArenaMapUnit
+from battlesnake.plugins.contrib.arena_master.puppets.units.waves import \
+    pick_refs_for_wave, choose_unit_spawn_spot
+from battlesnake.plugins.contrib.factions.api import get_faction
+from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF
+from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
+    create_unit
 
 
 @inlineCallbacks
@@ -101,6 +110,7 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
     for unit_entry in unit_data:
         if not unit_entry:
             continue
+
         unit_split = unit_entry.split(':')
         dbref, contact_id, unit_ref, unit_type, unit_move_type, mech_name,\
             x_coord, y_coord, z_coord, speed, heading, tonnage, heat,\
@@ -122,3 +132,34 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
         )
         arena_unit_store.update_or_add_unit(unit_obj)
     arena_unit_store.purge_stale_units()
+
+
+@inlineCallbacks
+def spawn_wave(protocol, wave_num, num_players, difficulty_modifier,
+               map_dbref):
+    """
+    Spawns a wave of attackers.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param int wave_num: The wave number to spawn. Higher waves are
+        more difficult.
+    :param int num_players: The number of defending players.
+    :param float difficulty_modifier: 1.0 = moderate difficulty,
+        anything less is easier, anything more is harder.
+    :param str map_dbref: The DBref of the map to spawn units to.
+    :rtype: list
+    :returns: A list of tuples containing details on the spawned units.
+        Tuples are in the form of (unit_ref, unit_dbref).
+    """
+
+    map_width, map_height = yield get_map_dimensions(protocol, map_dbref)
+    refs = yield pick_refs_for_wave(wave_num, num_players, difficulty_modifier)
+    faction = get_faction(ATTACKER_FACTION_DBREF)
+    spawned = []
+    for unit_ref in refs:
+        unit_x, unit_y = choose_unit_spawn_spot(map_width, map_height)
+        unit_dbref = yield create_unit(
+            protocol, unit_ref, map_dbref, faction, unit_x, unit_y)
+        start_unit_ai(protocol, unit_dbref)
+        spawned.append((unit_ref, unit_dbref))
+    returnValue(spawned)

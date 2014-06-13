@@ -25,6 +25,9 @@ class ArenaMasterPuppet(object):
         self.map_height = int(map_height)
         self.map_width = int(map_width)
 
+    def __str__(self):
+        return u"<ArenaMasterPuppet: %s for map %s>" % (self.dbref, self.map_dbref)
+
     def do_strategic_tic(self):
         """
         For now, we use smallish maps and get the AI to stumble into the

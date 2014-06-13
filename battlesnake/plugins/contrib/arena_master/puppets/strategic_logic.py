@@ -58,7 +58,7 @@ def move_idle_units(puppet, friendly_ai_units):
         print "  - New destination", new_dest
 
         unit.ai_last_destination = new_dest
-        move_orders = "{ai_id} dgoto {x} {y}".format(
+        move_orders = "{ai_id} goto {x} {y}".format(
             ai_id=unit.contact_id, x=new_dest[0], y=new_dest[1])
         ai_commands.order_ai(protocol, puppet, move_orders)
         chase_orders = "{ai_id} chasetarg on".format(ai_id=unit.contact_id)

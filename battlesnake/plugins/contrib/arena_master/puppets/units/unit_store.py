@@ -76,7 +76,7 @@ class ArenaMapUnitStore(object):
         :param ArenaMapUnit unit: The unit to add or update.
         """
 
-        if 'D' in unit.status:
+        if unit.is_destroyed():
             # We don't track destroyed units.
             if unit.contact_id in self._unit_store:
                 self.purge_unit_by_id(unit.contact_id)

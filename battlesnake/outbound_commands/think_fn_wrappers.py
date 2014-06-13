@@ -294,3 +294,18 @@ def btunitpartslist_ref(protocol, unit_ref):
         part, quantity = part_pair.split(':')
         retval[part] = quantity
     returnValue(retval)
+
+
+@inlineCallbacks
+def get_map_dimensions(protocol, map_dbref):
+    """
+    :param str map_dbref: A valid MAP dbref.
+    :rtype: tuple
+    :returns: A tuple in the form of (width, height).
+    """
+
+    think_str = "[btgetxcodevalue({map_dbref}, mapwidth)] [btgetxcodevalue({map_dbref}, mapheight)]".format(
+        map_dbref=map_dbref)
+    func_result = yield mux_commands.think(protocol, think_str)
+    coords = func_result.split()
+    returnValue((int(coords[0]), int(coords[1])))
