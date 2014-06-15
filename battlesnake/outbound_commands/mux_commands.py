@@ -179,6 +179,21 @@ def link(protocol, obj, target_obj):
     return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
 
 
+def newpassword(protocol, obj, new_password):
+    """
+    Changes a player's password.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str new_password: The player's new password.
+    """
+
+    command_str = "@newpassword {obj}={new_password}".format(
+        obj=obj, new_password=new_password)
+    ack_regex = r'Password changed.\r$'
+    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+
+
 def force(protocol, obj, force_command):
     """
     Forces an object to do something.

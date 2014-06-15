@@ -142,6 +142,28 @@ def btsetxcodevalue(protocol, obj, key, val):
     return mux_commands.think(protocol, think_str, return_output=False)
 
 
+def btsetcharvalue(protocol, obj, skill_or_attrib, val, mode):
+    """
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str skill_or_attrib: A skill or character attribute name.
+    :param int val: The value to set the skill or attribute to.
+    :param int mode: See mode values below.
+    :rtype: defer.Deferred
+
+    Valid modes:
+
+    * 0 - set the actual value of <skill/attribute> to <value>
+    * 1 - set the BTH of <skill> to <value> (increasing the skill level to
+          the necessary extent)
+    * 2 - adds <value> to the XP amount of <skill/attribute>
+    * 3 - set XP amount of <skill/attribute> to <value>
+    """
+
+    think_str = "[btsetcharvalue({obj},{skill_or_attrib},{val},{mode})]".format(
+        obj=obj, skill_or_attrib=skill_or_attrib, val=val, mode=mode)
+    return mux_commands.think(protocol, think_str, return_output=False)
+
+
 def btgetxcodevalue(protocol, obj, key):
     """
     :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
