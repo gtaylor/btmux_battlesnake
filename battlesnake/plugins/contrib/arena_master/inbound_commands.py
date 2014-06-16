@@ -55,7 +55,7 @@ class PickWaveCommand(BaseCommand):
 
 class SpawnWaveCommand(BaseCommand):
     """
-    Picks a wave full of units based on the provided conditions.
+    Picks and spawns a wave full of units based on the provided conditions.
     """
 
     command_name = "am_spawnwave"
