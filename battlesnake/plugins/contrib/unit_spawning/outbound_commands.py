@@ -31,10 +31,6 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     unit_name = "UnitBeingCreated"
     unit_dbref = yield think_fn_wrappers.create(protocol, unit_name, otype='t')
 
-    # I can't remember the details, but there were some edge cases where not
-    # having a negative semaphore count caused issues.
-    yield mux_commands.drain(p, unit_dbref)
-    yield mux_commands.notify(p, unit_dbref)
     yield mux_commands.parent(p, unit_dbref, settings['unit_spawning']['unit_parent_dbref'])
     yield mux_commands.lock(p, unit_dbref, unit_dbref)
     yield mux_commands.lock(p, unit_dbref, 'ELOCK/1', whichlock='enter')
@@ -52,7 +48,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     yield think_fn_wrappers.set_attrs(protocol, unit_dbref, unit_attrs)
 
     yield think_fn_wrappers.teleport(protocol, unit_dbref, map_dbref)
-    flags = ['INHERIT', 'IN_CHARACTER', 'XCODE', 'ENTER_OK', 'OPAQUE']
+    flags = ['INHERIT', 'IN_CHARACTER', 'XCODE', 'ENTER_OK', 'OPAQUE', 'QUIET']
     # At this point, the XCODE flag is set, so we're ready to rock.
     yield think_fn_wrappers.set_flags(protocol, unit_dbref, flags)
 

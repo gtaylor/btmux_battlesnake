@@ -29,6 +29,15 @@ class ArenaMasterPuppetStore(object):
 
         return len(self._puppet_store)
 
+    def get_puppet_by_dbref(self, puppet_dbref):
+        """
+        :param str puppet_dbref: The dbref of the puppet to get.
+        :rtype: ArenaMasterPuppet
+        :raises: KeyError when encountering an invalid puppet dbref.
+        """
+
+        return self._puppet_store[puppet_dbref]
+
     def update_or_add_puppet(self, puppet):
         """
         If the puppet isn't already in the store, add it. If it is, replace

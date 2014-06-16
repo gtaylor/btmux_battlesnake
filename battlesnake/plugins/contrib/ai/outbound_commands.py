@@ -44,7 +44,7 @@ def start_unit_ai(
         'IS_AI_CONTROLLED': '1',
     })
     flags = [
-        'INHERIT', 'STAFF', 'XCODE', 'MONITOR', 'IN_CHARACTER',
+        'INHERIT', 'STAFF', 'XCODE', 'MONITOR', 'QUIET',
     ]
     # This activates the AI when the XCODE flag is set.
     yield think_fn_wrappers.set_flags(protocol, ai_dbref, flags)

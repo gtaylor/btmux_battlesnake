@@ -17,7 +17,7 @@ def get_unit_by_ref(unit_ref):
 
     conn = yield get_db_connection()
     results = yield conn.runQuery(
-        'SELECT * FROM unit_library_unit WHERE reference=%s',
+        'SELECT * FROM unit_library_unit WHERE reference ILIKE %s',
         (unit_ref,)
     )
     for row in results:

@@ -21,6 +21,17 @@ def create(protocol, name, otype='r'):
     return mux_commands.think(protocol, think_str)
 
 
+def tel(protocol, obj, dest):
+    """
+    :param str obj: The dbref of the object to teleport.
+    :param str dest: The dbref of the teleportation destination.
+    :rtype: defer.Deferred
+    """
+
+    think_str = "[tel({obj},{dest})]".format(obj=obj, dest=dest)
+    return mux_commands.think(protocol, think_str)
+
+
 def pemit(protocol, objects, message):
     """
     :param list objects: A list of dbrefs to pemit() to.

@@ -22,8 +22,8 @@ class ArenaMasterPuppet(object):
         self.attacking_faction_dbref = ATTACKER_FACTION_DBREF
         # And our protagonists.
         self.defending_faction_dbref = DEFENDER_FACTION_DBREF
-        self.map_height = int(map_height)
         self.map_width = int(map_width)
+        self.map_height = int(map_height)
 
     def __str__(self):
         return u"<ArenaMasterPuppet: %s for map %s>" % (self.dbref, self.map_dbref)
@@ -42,3 +42,11 @@ class ArenaMasterPuppet(object):
         attacking_ai_units = [unit for unit in attacking_units if unit.is_ai]
         # Put any slackers to work roaming around.
         move_idle_units(self, attacking_ai_units)
+
+    def get_defender_spawn_coords(self):
+        """
+        :rtype: tuple
+        :returns: A tuple of defender spawn coordinates.
+        """
+
+        return self.map_width / 2, self.map_height / 2

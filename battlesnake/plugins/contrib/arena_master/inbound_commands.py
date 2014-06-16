@@ -7,11 +7,19 @@ from battlesnake.core.inbound_command_handling.btargparse import \
 from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.outbound_commands import think_fn_wrappers
+from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
+    PUPPET_STORE
+from battlesnake.plugins.contrib.factions.api import get_faction
+from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
+from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
+
 from battlesnake.plugins.contrib.arena_master.puppets.units.outbound_commands import \
     spawn_wave
-
 from battlesnake.plugins.contrib.arena_master.puppets.units.waves import \
     pick_refs_for_wave
+from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
+    create_unit
 
 
 class PickWaveCommand(BaseCommand):
@@ -97,9 +105,42 @@ class SpawnWaveCommand(BaseCommand):
             "Spawning wave.")
 
 
+class SimpleSpawnCommand(BaseCommand):
+    """
+    A really basic spawn command we can use to test arenas.
+    """
+
+    command_name = "am_simplespawn"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        unit_ref = parsed_line.kwargs['unit_ref']
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+
+        unit = yield get_unit_by_ref(unit_ref)
+        if not unit:
+            raise CommandError('Invalid unit reference!')
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        map_dbref = puppet.map_dbref
+        faction = get_faction(DEFENDER_FACTION_DBREF)
+        unit_x, unit_y = puppet.get_defender_spawn_coords()
+
+        unit_dbref = yield create_unit(
+            protocol, unit.reference, map_dbref, faction, unit_x, unit_y,
+            pilot_dbref=invoker_dbref)
+        yield think_fn_wrappers.tel(protocol, invoker_dbref, unit_dbref)
+        yield mux_commands.force(protocol, invoker_dbref, 'startup')
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
         PickWaveCommand,
         SpawnWaveCommand,
+        SimpleSpawnCommand,
     ]

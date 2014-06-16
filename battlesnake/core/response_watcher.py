@@ -94,7 +94,7 @@ class ResponseWatcherManager(object):
                 del self.watcher_store[watcher_id]
                 continue
             if now >= watcher.timeout:
-                watcher.deferred.errback(NoResponseMatchFoundError())
+                watcher.deferred.errback(NoResponseMatchFoundError(watcher))
                 del self.watcher_store[watcher_id]
 
 
@@ -118,5 +118,8 @@ class NoResponseMatchFoundError(Exception):
     Raised when no match for expected output is found within the timeout window.
     """
 
-    def __init__(self, *args):
-        Exception.__init__(self, "No response watch match found.", *args)
+    def __init__(self, watcher, *args):
+        self.watcher = watcher
+        self.message = "No response watch match found: %s" % watcher.line_regex.pattern
+        Exception.__init__(
+            self, self.message, watcher, *args)
