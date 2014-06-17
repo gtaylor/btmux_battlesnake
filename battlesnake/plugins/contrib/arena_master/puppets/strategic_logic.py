@@ -2,6 +2,11 @@ import random
 from battlesnake.plugins.contrib.arena_master.puppets import outbound_commands as ai_commands
 
 
+# This is the maximum number of tics that a unit can be speed 0.0 with
+# a destination before we try to assign a new one.
+MAX_IDLE_COUNTER = 25
+
+
 def get_logical_roam_destination(puppet, edge_padding=8):
     """
     Since we're relying on smaller maps to make sure that our AI eventually
@@ -44,13 +49,37 @@ def move_idle_units(puppet, friendly_ai_units):
             # Lost cause.
             continue
 
-        if unit.speed != 0.0 and not unit.is_at_ai_destination():
-            # He's moving, don't bother him.
+        if unit.is_fallen():
+            unit.ai_idle_counter = 0
             continue
 
-        if unit.ai_last_destination and not unit.is_at_ai_destination():
+        if unit.speed != 0.0 and not unit.is_at_ai_destination():
+            # He's moving, don't bother him.
+            unit.ai_idle_counter = 0
+            continue
+
+        if unit.target_dbref != '#-1':
+            unit.ai_idle_counter = 0
+            continue
+
+        if unit.speed == 0.0 and unit.ai_last_destination and \
+           unit.ai_idle_counter < MAX_IDLE_COUNTER:
+            # This unit has a destination but is sitting still. Increment
+            # the idle timer, don't try to order it to do anything.
+            # Once the counter gets high enough, we'll fall through to
+            # the order section.
+            print "+Idle", \
+                unit, unit.ai_last_destination, unit.ai_idle_counter
+            unit.ai_idle_counter += 1
+            continue
+
+        if unit.ai_last_destination and not unit.is_at_ai_destination() and \
+           unit.ai_idle_counter < MAX_IDLE_COUNTER:
             # He's got something to do, don't bother him.
             continue
+
+        # We're going to tell them to do something. Reset the idle counter.
+        unit.ai_idle_counter = 0
 
         print "Unit needs new orders:", unit
         print "  - Last destination", unit.ai_last_destination
@@ -63,3 +92,36 @@ def move_idle_units(puppet, friendly_ai_units):
         ai_commands.order_ai(protocol, puppet, move_orders)
         chase_orders = "{ai_id} chasetarg on".format(ai_id=unit.contact_id)
         ai_commands.order_ai(protocol, puppet, chase_orders)
+
+
+def handle_ai_target_change(puppet, old_unit, new_unit):
+    """
+    This gets called when an AI's target changes.
+
+    :param ArenaMasterPuppet puppet:
+    :param ArenaMapUnit old_unit: The old version of the unit in the
+        store. This doesn't have the new changes that were picked up.
+    :param ArenaMapUnit new_unit: The new unit instance generated from
+        polling the units on the map. The store will copy over the
+        changed attributes from this instance to ``old_unit`` after this
+        handler runs.
+    """
+
+    protocol = puppet.protocol
+    aggressor_id = old_unit.contact_id
+    if new_unit.target_dbref == '#-1':
+        # Had a lock but lost it.
+        return
+    # If we get this far, the AI has a new lock. They need to follow
+    # this guy.
+    victim = puppet.unit_store.get_unit_by_dbref(new_unit.target_dbref)
+    victim_id = victim.contact_id
+
+    # We clear these out so that a new destination may be assigned immediately
+    # if something happens to the target and the unit comes to a stop.
+    old_unit.ai_last_destination = None
+    new_unit.ai_last_destination = None
+
+    chase_orders = "{aggressor_id} follow {victim_id}".format(
+        aggressor_id=aggressor_id, victim_id=victim_id)
+    ai_commands.order_ai(protocol, puppet, chase_orders)

@@ -13,14 +13,16 @@ class ArenaMapUnitStore(object):
     and easily accessed elsewhere.
     """
 
-    def __init__(self, arena_master_puppet):
+    def __init__(self, arena_master_puppet, unit_change_callback):
         """
         :param battlesnake.plugins.contrib.arena_master.puppets.puppet.ArenaMasterPuppet arena_master_puppet: The puppet that this
             store resides within.
+        :param callable unit_change_callback: Called when a unit's state cahnges.
         """
 
         self._unit_store = {}
         self.arena_master_puppet = arena_master_puppet
+        self.unit_change_callback = unit_change_callback
 
     def __iter__(self):
         for unit in self._unit_store.values():
@@ -35,6 +37,7 @@ class ArenaMapUnitStore(object):
 
         # New unit. Add it and let the connected clients know.
         self._unit_store[unit.contact_id] = unit
+        print "New unit detected", unit
         on_new_unit_detected.send(self, unit=unit)
 
     def update_unit(self, new_unit):
@@ -57,6 +60,9 @@ class ArenaMapUnitStore(object):
         changes = self.compare_units(new_unit, old_unit)
         if not changes:
             return
+
+        # Notify the callback that a unit has changed.
+        self.unit_change_callback(old_unit, new_unit, changes)
 
         # Update all fields that have changed.
         # This could be a lot more efficient, but we'll worry about that later.
@@ -104,6 +110,21 @@ class ArenaMapUnitStore(object):
         """
 
         del self._unit_store[unit_id]
+
+    def get_unit_by_dbref(self, dbref):
+        """
+        Not to be confused with :py:meth:`get_unit_by_id`, this method retrieves
+        a unit by its contact ID (its designation on the map) instead of dbref.
+
+        :param str dbref: The dbref of the unit to retrieve.
+        :rtype: ArenaMapUnit
+        :raises: ValueError when an invalid dbref is provided.
+        """
+
+        for unit in self:
+            if unit.dbref == dbref:
+                return unit
+        raise ValueError('Invalid unit dbref')
 
     def list_units_by_faction(self):
         """
@@ -170,7 +191,7 @@ class ArenaMapUnitStore(object):
 
         unit1_dict = unit1.__dict__
         unit2_dict = unit2.__dict__
-        ignored_keys = ['last_seen', 'ai_last_destination']
+        ignored_keys = ['last_seen', 'ai_last_destination', 'ai_idle_counter']
         changes = []
         for key, val in unit1_dict.items():
             if key in ignored_keys:
@@ -194,7 +215,7 @@ class ArenaMapUnit(object):
                  damage_inflicted, shots_missed, units_killed, maxspeed,
                  is_ai):
         self.dbref = dbref
-        self.contact_id = contact_id.upper()
+        self.contact_id = contact_id.strip().upper()
         self.unit_ref = unit_ref
         self.unit_type = unit_type
         self.unit_move_type = unit_move_type
@@ -212,7 +233,7 @@ class ArenaMapUnit(object):
         self.critstatus2 = critstatus2
         self.faction_dbref = faction_dbref
         self.battle_value = int(battle_value)
-        self.target_dbref = target_dbref
+        self.target_dbref = '#%s' % target_dbref
         self.shots_fired = int(shots_fired)
         self.shots_landed = int(shots_landed)
         self.shots_missed = int(shots_missed)
@@ -224,6 +245,7 @@ class ArenaMapUnit(object):
         # If the arena master wanted this unit to go somewhere, this is
         # where it last asked.
         self.ai_last_destination = None
+        self.ai_idle_counter = 0
 
         self.last_seen = datetime.datetime.now()
 

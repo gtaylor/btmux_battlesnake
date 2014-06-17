@@ -4,7 +4,7 @@ from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF,
 from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
     ArenaMapUnitStore
 from battlesnake.plugins.contrib.arena_master.puppets.strategic_logic import \
-    move_idle_units
+    move_idle_units, handle_ai_target_change
 
 
 class ArenaMasterPuppet(object):
@@ -17,7 +17,8 @@ class ArenaMasterPuppet(object):
         self.dbref = dbref
         self.map_dbref = map_dbref
         # A cache for all units in the arena, plus their states.
-        self.unit_store = ArenaMapUnitStore(self)
+        self.unit_store = ArenaMapUnitStore(
+            arena_master_puppet=self, unit_change_callback=self.handle_unit_change)
         # This is the faction that the arena puppet has control of.
         self.attacking_faction_dbref = ATTACKER_FACTION_DBREF
         # And our protagonists.
@@ -27,6 +28,24 @@ class ArenaMasterPuppet(object):
 
     def __str__(self):
         return u"<ArenaMasterPuppet: %s for map %s>" % (self.dbref, self.map_dbref)
+
+    def handle_unit_change(self, old_unit, new_unit, changes):
+        """
+        This gets called by the unit store whenever a unit's state changes.
+        We can react strategically.
+
+        :param ArenaMapUnit old_unit: The old version of the unit in the
+            store. This doesn't have the new changes that were picked up.
+        :param ArenaMapUnit new_unit: The new unit instance generated from
+            polling the units on the map. The store will copy over the
+            changed attributes from this instance to ``old_unit`` after this
+            handler runs.
+        :param list changes: A list of attribute names that changed on
+            the ``new_unit`` compared to ``old_unit``.
+        """
+
+        if 'target_dbref' in changes and new_unit.is_ai:
+            handle_ai_target_change(self, old_unit, new_unit)
 
     def do_strategic_tic(self):
         """
@@ -41,6 +60,7 @@ class ArenaMasterPuppet(object):
 
         attacking_ai_units = [unit for unit in attacking_units if unit.is_ai]
         # Put any slackers to work roaming around.
+        # TODO: If they are stationary but have a lock, move them to lock.
         move_idle_units(self, attacking_ai_units)
 
     def get_defender_spawn_coords(self):

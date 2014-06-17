@@ -48,11 +48,11 @@ def start_unit_ai(
     ]
     # This activates the AI when the XCODE flag is set.
     yield think_fn_wrappers.set_flags(protocol, ai_dbref, flags)
-    yield mux_commands.parent(p, ai_dbref, settings['ai']['ai_parent_dbref'])
-    yield mux_commands.lock(p, ai_dbref, ai_dbref)
+    mux_commands.parent(p, ai_dbref, settings['ai']['ai_parent_dbref'])
+    mux_commands.lock(p, ai_dbref, ai_dbref)
     # This sequence will engage the AI and start the unit.
     force_cmd = "{addcommand startup;addcommand autogun on;engage;@wait 1=sendchannel a=Engaged and starting up!}"
-    yield mux_commands.force(p, ai_dbref, force_cmd)
+    mux_commands.force(p, ai_dbref, force_cmd)
 
     on_unit_ai_started.send(None, ai_dbref=ai_dbref, unit_dbref=unit_dbref)
     returnValue(ai_dbref)

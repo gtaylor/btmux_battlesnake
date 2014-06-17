@@ -31,12 +31,12 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     unit_name = "UnitBeingCreated"
     unit_dbref = yield think_fn_wrappers.create(protocol, unit_name, otype='t')
 
-    yield mux_commands.parent(p, unit_dbref, settings['unit_spawning']['unit_parent_dbref'])
-    yield mux_commands.lock(p, unit_dbref, unit_dbref)
-    yield mux_commands.lock(p, unit_dbref, 'ELOCK/1', whichlock='enter')
-    yield mux_commands.lock(p, unit_dbref, 'LLOCK/1', whichlock='leave')
-    yield mux_commands.lock(p, unit_dbref, 'ULOCK/1', whichlock='use')
-    yield mux_commands.link(protocol, unit_dbref, map_dbref)
+    mux_commands.parent(p, unit_dbref, settings['unit_spawning']['unit_parent_dbref'])
+    mux_commands.lock(p, unit_dbref, unit_dbref)
+    mux_commands.lock(p, unit_dbref, 'ELOCK/1', whichlock='enter')
+    mux_commands.lock(p, unit_dbref, 'LLOCK/1', whichlock='leave')
+    mux_commands.lock(p, unit_dbref, 'ULOCK/1', whichlock='use')
+    mux_commands.link(protocol, unit_dbref, map_dbref)
     unit_attrs = {
         'Mechtype': unit_ref,
         'Mechname': 'Loading...',

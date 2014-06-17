@@ -17,9 +17,7 @@ def set_attr(protocol, obj, attr, val):
 
     command_str = "@set {obj}={attr}:{val}".format(
         obj=obj, attr=attr, val=val)
-    u_attr = attr.upper()
-    ack_regex = r'{u_attr} - Set.\r$'.format(u_attr=u_attr)
-    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(command_str)
 
 
 def startup(protocol, obj, startup_val):
@@ -33,8 +31,7 @@ def startup(protocol, obj, startup_val):
 
     startup_str = "@startup {obj}={startup_val}".format(
         obj=obj, startup_val=startup_val)
-    ack_regex = r'Startup - Set.\r$'
-    return protocol.write_and_wait(startup_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(startup_str)
 
 
 def parent(protocol, obj, parent_obj):
@@ -48,8 +45,7 @@ def parent(protocol, obj, parent_obj):
 
     parent_str = "@parent {obj}={parent_obj}".format(
         obj=obj, parent_obj=parent_obj)
-    ack_regex = r'Parent set.\r$'
-    return protocol.write_and_wait(parent_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(parent_str)
 
 
 def say(protocol, message):
@@ -160,8 +156,7 @@ def lock(protocol, obj, lockval, whichlock=None):
         whichlock_switch = ''
     command_str = "@lock{whichlock_switch} {obj}={lockval}".format(
         whichlock_switch=whichlock_switch, obj=obj, lockval=lockval)
-    ack_regex = r'Locked.\r$'
-    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(command_str)
 
 
 def link(protocol, obj, target_obj):
@@ -175,8 +170,7 @@ def link(protocol, obj, target_obj):
 
     command_str = "@link {obj}={target_obj}".format(
         obj=obj, target_obj=target_obj)
-    ack_regex = r'Home set.\r$'
-    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(command_str)
 
 
 def newpassword(protocol, obj, new_password):
@@ -190,8 +184,7 @@ def newpassword(protocol, obj, new_password):
 
     command_str = "@newpassword {obj}={new_password}".format(
         obj=obj, new_password=new_password)
-    ack_regex = r'Password changed.\r$'
-    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(command_str)
 
 
 def force(protocol, obj, force_command):
@@ -219,8 +212,7 @@ def name(protocol, obj, new_name):
 
     command_str = "@name {obj}={new_name}".format(
         obj=obj, new_name=new_name)
-    ack_regex = r'Name set.\r$'
-    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(command_str)
 
 
 def drain(protocol, obj):
@@ -232,8 +224,7 @@ def drain(protocol, obj):
     """
 
     command_str = "@drain {obj}".format(obj=obj)
-    ack_regex = r'Drained.\r$'
-    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(command_str)
 
 
 def notify(protocol, obj):
@@ -245,8 +236,7 @@ def notify(protocol, obj):
     """
 
     command_str = "@notify {obj}".format(obj=obj)
-    ack_regex = r'Notified.\r$'
-    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(command_str)
 
 
 def trigger(protocol, obj, attr, params=None):
@@ -265,6 +255,4 @@ def trigger(protocol, obj, attr, params=None):
         param_str = "=" + ','.join(params)
     command_str = "@trigger {obj}/{attr}{param_str}".format(
         obj=obj, attr=attr, param_str=param_str)
-    u_attr = attr.upper()
-    ack_regex = r'{u_attr} - Triggered.\r$'.format(u_attr=u_attr)
-    return protocol.write_and_wait(command_str, ack_regex_str=ack_regex)
+    return protocol.write_and_wait(command_str)
