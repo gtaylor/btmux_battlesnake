@@ -8,6 +8,69 @@ from battlesnake.plugins.contrib.unit_library.unit_scanning.db_io import update_
 
 
 @inlineCallbacks
+def get_library_summary_list(filter_class=None, filter_type=None):
+    """
+    Returns a dict of unit library info. This can optionally be filtered.
+
+    :keyword str filter_class: One of light, mediu, heavy, or assault.
+    :keyword str filter_type: One of mech, tank, vtol, or battlesuit.
+    :rtype: dict
+    :returns: A dict with library summary details included.
+    """
+
+    query = 'SELECT reference, weight FROM unit_library_unit '
+    if filter_class:
+        filter_class = filter_class.lower()
+    if filter_type:
+        filter_type = filter_type.lower()
+    if filter_class or filter_type:
+        query += 'WHERE '
+        if filter_class == 'light':
+            query += 'weight < 40'
+        elif filter_class == 'medium':
+            query += 'weight >= 40 AND weight < 60'
+        elif filter_class == 'heavy':
+            query += 'weight >= 60 AND weight < 80'
+        elif filter_class == 'assault':
+            query += 'weight >= 80'
+        else:
+            query += 'true'
+
+        if filter_class and filter_type:
+            query += ' AND '
+
+        if filter_type == 'mech':
+            unit_type = 'Mech'
+        elif filter_type == 'tank':
+            unit_type = 'Vehicle'
+        elif filter_type == 'vtol':
+            unit_type = 'VTOL'
+        elif filter_type == 'battlesuit':
+            unit_type = 'Battlesuit'
+        else:
+            unit_type = None
+
+        if filter_type:
+            query += "unit_type = '%s'" % unit_type
+
+    query += ' ORDER BY reference'
+    conn = yield get_db_connection()
+    results = yield conn.runQuery(query)
+
+    retval = {
+        'refs': []
+    }
+    for row in results:
+        udict = {
+            'reference': row['reference'],
+            'weight': row['weight'],
+        }
+        retval['refs'].append(udict)
+
+    returnValue(retval)
+
+
+@inlineCallbacks
 def get_unit_by_ref(unit_ref):
     """
     :param str unit_ref: The unit reference to retrieve.

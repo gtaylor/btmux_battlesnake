@@ -40,7 +40,10 @@ def pemit(protocol, objects, message):
     :returns: A deferred that will fire with the new object's dbref.
     """
 
-    obj_dbrefs = ' '.join(objects)
+    if isinstance(objects, list):
+        obj_dbrefs = ' '.join(objects)
+    else:
+        obj_dbrefs = objects
     think_str = "[pemit({obj_dbrefs},{message})]".format(
         obj_dbrefs=obj_dbrefs, message=message,
     )
