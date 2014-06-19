@@ -42,6 +42,7 @@ class BTMuxArgumentParser(argparse.ArgumentParser):
         message = message.replace(')', '%)')
         # Preserves multiple adjacent spaces, which MUX strips.
         message = message.replace(' ', '%b')
+        message = '%r' + message
         mux_commands.pemit(self.protocol, self.invoker_dbref, message)
 
     def exit(self, status=0, message=None):

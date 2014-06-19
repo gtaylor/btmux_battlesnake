@@ -153,6 +153,7 @@ class ListrefsCommand(BaseCommand):
         pval += '[ljust(%ch%cyMedium, 20)]'
         pval += '[ljust(%ch%crHeavy, 20)]'
         pval += '%ch%cmAssault'
+        pval += '%r[space(22)]%cnFor more info, type %ch%cglistrefs -h'
         pval += self._get_footer_str()
         mux_commands.pemit(protocol, [invoker_dbref], pval)
 
