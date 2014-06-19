@@ -42,8 +42,7 @@ config file.
     If True, generate and send a HUDINFO key. This will allow you to start
     using HUDINFO commands.
 ``extra_services`` (default: [])
-    A list of Python paths to loader functions that return a Service. See
-    ``battlesnake.plugins.contrib.websocket_server.service`` for a convenient example.
+    A list of Python paths to loader functions that return a Service.
     If you only have one item to add to the list, make sure there is a
     trailing comma or you'll get a validation error. A comma causes our
     config system to convert the string to a list.
