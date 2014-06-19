@@ -36,9 +36,6 @@ def get_library_summary_list(filter_class=None, filter_type=None):
         else:
             query += 'true'
 
-        if filter_class and filter_type:
-            query += ' AND '
-
         if filter_type == 'mech':
             unit_type = 'Mech'
         elif filter_type == 'tank':
@@ -50,7 +47,10 @@ def get_library_summary_list(filter_class=None, filter_type=None):
         else:
             unit_type = None
 
-        if filter_type:
+        if filter_class and unit_type:
+            query += ' AND '
+
+        if unit_type:
             query += "unit_type = '%s'" % unit_type
 
     query += ' ORDER BY reference'
