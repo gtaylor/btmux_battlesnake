@@ -38,3 +38,4 @@ def setup_new_player(protocol, player_dbref, archetype, sendto_dbref,
     force_cmd = "@doing I'm new here!"
     yield mux_commands.force(p, player_dbref, force_cmd)
     yield think_fn_wrappers.teleport(protocol, player_dbref, sendto_dbref)
+    # TODO: @link and set home

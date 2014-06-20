@@ -124,7 +124,7 @@ class ArenaMapUnitStore(object):
         for unit in self:
             if unit.dbref == dbref:
                 return unit
-        raise ValueError('Invalid unit dbref')
+        raise ValueError('Invalid unit dbref: %s' % dbref)
 
     def list_units_by_faction(self):
         """
@@ -214,7 +214,7 @@ class ArenaMapUnit(object):
                  battle_value, target_dbref, shots_fired, shots_landed,
                  damage_inflicted, shots_missed, units_killed, maxspeed,
                  is_ai):
-        self.dbref = dbref
+        self.dbref = dbref.strip()
         self.contact_id = contact_id.strip().upper()
         self.unit_ref = unit_ref
         self.unit_type = unit_type
