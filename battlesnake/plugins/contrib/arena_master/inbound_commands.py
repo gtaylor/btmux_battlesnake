@@ -114,6 +114,7 @@ class SimpleSpawnCommand(BaseCommand):
 
     @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
         unit_ref = parsed_line.kwargs['unit_ref']
         arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
 
@@ -126,15 +127,18 @@ class SimpleSpawnCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
 
+        yield think_fn_wrappers.btsetcharvalue(p, invoker_dbref, 'bruise', 0, 0)
+        yield think_fn_wrappers.btsetcharvalue(p, invoker_dbref, 'lethal', 0, 0)
+
         map_dbref = puppet.map_dbref
         faction = get_faction(DEFENDER_FACTION_DBREF)
         unit_x, unit_y = puppet.get_defender_spawn_coords()
 
         unit_dbref = yield create_unit(
-            protocol, unit.reference, map_dbref, faction, unit_x, unit_y,
+            p, unit.reference, map_dbref, faction, unit_x, unit_y,
             pilot_dbref=invoker_dbref)
-        yield think_fn_wrappers.tel(protocol, invoker_dbref, unit_dbref)
-        yield mux_commands.force(protocol, invoker_dbref, 'startup')
+        yield think_fn_wrappers.tel(p, invoker_dbref, unit_dbref)
+        yield mux_commands.force(p, invoker_dbref, 'startup')
 
 
 class ArenaMasterCommandTable(InboundCommandTable):
