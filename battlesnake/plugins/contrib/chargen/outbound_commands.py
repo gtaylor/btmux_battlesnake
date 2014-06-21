@@ -1,5 +1,6 @@
 from twisted.internet.defer import inlineCallbacks
 
+from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 
@@ -37,5 +38,7 @@ def setup_new_player(protocol, player_dbref, archetype, sendto_dbref,
 
     force_cmd = "@doing I'm new here!"
     yield mux_commands.force(p, player_dbref, force_cmd)
-    yield think_fn_wrappers.teleport(protocol, player_dbref, sendto_dbref)
-    # TODO: @link and set home
+    yield think_fn_wrappers.teleport(p, player_dbref, sendto_dbref)
+    # Set the player's home for post-afterlife and such.
+    default_home = settings['mux']['default_home_dbref']
+    yield mux_commands.link(p, player_dbref, default_home)
