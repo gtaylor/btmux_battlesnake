@@ -29,7 +29,10 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     # The unit isn't far enough along to be given a spiffy name yet. Give it
     # a temporary BS name.
     unit_name = "UnitBeingCreated"
-    unit_dbref = yield think_fn_wrappers.create(protocol, unit_name, otype='t')
+    unit_dbref = yield think_fn_wrappers.create(p, unit_name, otype='t')
+    # Get the name of the ref from the unit's mechname XCODE value.
+    unit_name = yield think_fn_wrappers.btgetxcodevalue_ref(
+        p, unit_ref, 'mechname')
 
     mux_commands.parent(p, unit_dbref, settings['unit_spawning']['unit_parent_dbref'])
     mux_commands.lock(p, unit_dbref, unit_dbref)
@@ -39,7 +42,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     mux_commands.link(protocol, unit_dbref, map_dbref)
     unit_attrs = {
         'Mechtype': unit_ref,
-        'Mechname': 'Loading...',
+        'Mechname': unit_name,
         'FACTION': faction.dbref,
         'Xtype': 'MECH',
     }
@@ -55,8 +58,6 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     # The unit now has its ref loaded, but is still not on a map.
     yield think_fn_wrappers.btloadmech(p, unit_dbref, unit_ref)
     yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'team', faction.team_num)
-    # Get the name of the ref from the unit's mechname XCODE value.
-    unit_name = yield think_fn_wrappers.btgetxcodevalue(p, unit_dbref, 'mechname')
     # Mechname is what shows up on 'contacts', so update it to contain
     # the ref's mechname.
     yield think_fn_wrappers.set_attrs(p, unit_dbref, {'Mechname': unit_name})
@@ -91,6 +92,17 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         cmd = '@fo %s={setchanneltitle a=%s;setchannelmode a=deG}' % (
             unit_dbref, comtitle)
         mux_commands.force(p, unit_dbref, cmd)
+
+    contact_id = yield think_fn_wrappers.btgetxcodevalue(
+        p, unit_dbref, 'id')
+    mechdesc = (
+        '%ch%cb' + '-' * 78 + '%cn%r'
+        '%[{contact_id}%] {unit_name} appears to be of type {unit_ref}.%r'
+        '%ch%cb' + '-' * 78 + '%cn%r'
+    ).format(
+        contact_id=contact_id, unit_name=unit_name, unit_ref=unit_ref,
+    )
+    yield think_fn_wrappers.set_attrs(protocol, unit_dbref, {'Mechdesc': mechdesc})
 
     # The whole shebang completes with the deferred callback passing the
     # new unit's dbref.
