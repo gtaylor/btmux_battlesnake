@@ -72,6 +72,26 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         p, unit_dbref, map_dbref, unit_x, unit_y, unit_z=unit_z)
     # Let any listening stuff know.
     on_unit_spawned.send(None, unit_dbref=unit_dbref, map_dbref=map_dbref)
+
+    # Set default radio modes/comtitles.
+    if pilot_dbref:
+        pilot_alias = yield think_fn_wrappers.get(p, pilot_dbref, 'Alias')
+        pilot_alias = pilot_alias.strip()
+        if pilot_alias:
+            comtitle = '%s/%s' % (unit_ref, pilot_alias)
+        else:
+            pilot_name = yield think_fn_wrappers.name(p, pilot_dbref)
+            comtitle = '%s/%s' % (unit_ref, pilot_name)
+        cmd = '@fo %s={setchanneltitle a=%s;setchannelmode a=deG}' % (
+            unit_dbref, comtitle)
+        mux_commands.force(p, unit_dbref, cmd)
+    else:
+        # No pilot specified, stay more generic.
+        comtitle = unit_ref
+        cmd = '@fo %s={setchanneltitle a=%s;setchannelmode a=deG}' % (
+            unit_dbref, comtitle)
+        mux_commands.force(p, unit_dbref, cmd)
+
     # The whole shebang completes with the deferred callback passing the
     # new unit's dbref.
     returnValue(unit_dbref)

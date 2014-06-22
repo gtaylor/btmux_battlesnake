@@ -81,6 +81,32 @@ def set_attrs(protocol, obj, attr_dict, iter_delim='|'):
     return mux_commands.think(protocol, think_str, return_output=False)
 
 
+def get(protocol, obj, attr_name):
+    """
+    Retrieves an attribute from an object.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str attr_name: The name of the attribute to retrieve.
+    """
+
+    think_str = "[get({obj}/{attr_name})]".format(
+        obj=obj, attr_name=attr_name)
+    return mux_commands.think(protocol, think_str)
+
+
+def name(protocol, obj):
+    """
+    Retrieves an object's name.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    """
+
+    think_str = "[name({obj})]".format(obj=obj)
+    return mux_commands.think(protocol, think_str)
+
+
 def set_flags(protocol, obj, flags):
     """
     Uses set() to set (or unset) flags on an object.
