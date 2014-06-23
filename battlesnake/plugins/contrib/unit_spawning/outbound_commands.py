@@ -86,6 +86,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         cmd = '@fo %s={setchanneltitle a=%s;setchannelmode a=deG}' % (
             unit_dbref, comtitle)
         mux_commands.force(p, unit_dbref, cmd)
+        mux_commands.trigger(
+            p, unit_dbref, 'SETLOADPREFS_TICS.T', [pilot_dbref, unit_ref])
     else:
         # No pilot specified, stay more generic.
         comtitle = unit_ref
