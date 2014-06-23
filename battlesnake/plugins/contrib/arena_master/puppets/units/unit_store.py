@@ -1,6 +1,7 @@
 import datetime
 
 from battlesnake.conf import settings
+from battlesnake.core.utils import calc_xy_range
 from battlesnake.plugins.contrib.arena_master.puppets.units.signals import on_stale_unit_removed, \
     on_new_unit_detected, on_unit_destroyed, on_shot_landed, on_shot_missed, \
     on_unit_state_changed
@@ -248,6 +249,19 @@ class ArenaMapUnit(object):
         self.ai_idle_counter = 0
 
         self.last_seen = datetime.datetime.now()
+
+    def distance_to_unit(self, other_unit):
+        """
+        Calculates the distance to another unit.
+
+        :param ArenaMapUnit other_unit:
+        :rtype: float
+        :returns: Distance to other unit.
+        """
+
+        return calc_xy_range(
+            self.x_coord, self.y_coord,
+            other_unit.x_coord, other_unit.y_coord)
 
     def is_at_ai_destination(self):
         """

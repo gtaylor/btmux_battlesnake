@@ -56,12 +56,12 @@ class ArenaMasterPuppet(object):
 
         units_by_faction = self.unit_store.list_units_by_faction()
         attacking_units = units_by_faction.get(self.attacking_faction_dbref, [])
-        #defending_units = units_by_faction.get(self.defending_faction_dbref, [])
+        defending_units = units_by_faction.get(self.defending_faction_dbref, [])
 
         attacking_ai_units = [unit for unit in attacking_units if unit.is_ai]
         # Put any slackers to work roaming around.
         # TODO: If they are stationary but have a lock, move them to lock.
-        move_idle_units(self, attacking_ai_units)
+        move_idle_units(self, attacking_ai_units, defending_units)
 
     def get_defender_spawn_coords(self):
         """

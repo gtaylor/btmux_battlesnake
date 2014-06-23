@@ -7,8 +7,46 @@ another module.
 """
 
 import uuid
+import math
 
 from battlesnake.core.ansi import remove_ansi_codes
+
+
+def calc_range(x1, y1, z1, x2, y2, z2):
+    """
+    Finds the range between two sets of x/y coords.
+
+    :param float x1:
+    :param float y1:
+    :param float z1:
+    :param float x2:
+    :param float y2:
+    :param float z2:
+    :rtype: float
+    :returns: The range between the two coordinates.
+    """
+
+    dx = float(x1) - x2
+    dy = float(y1) - y2
+    dz = float(z1) - z2
+    return math.sqrt(dx * dx + dy * dy + dz * dz)
+
+
+def calc_xy_range(x1, y1, x2, y2):
+    """
+    Finds the range between two sets of x/y coords.
+
+    :param float x1:
+    :param float y1:
+    :param float x2:
+    :param float y2:
+    :rtype: float
+    :returns: The range between the two coordinates.
+    """
+
+    dx = float(x1) - x2
+    dy = float(y1) - y2
+    return math.sqrt(dx * dx + dy * dy)
 
 
 def generate_unique_token():

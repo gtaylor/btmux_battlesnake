@@ -34,12 +34,35 @@ def get_logical_roam_destination(puppet, edge_padding=8):
     return x, y
 
 
-def move_idle_units(puppet, friendly_ai_units):
+def find_nearest_enemy(ai_unit, enemy_units):
+    """
+    Given a unit and a list of its opponents, find the nearest one and return it.
+
+    :param ArenaMapUnit ai_unit: The unit whose enemies to find.
+    :param list enemy_units: List of enemy ArenaMapUnit instances.
+    :rtype: ArenaMapUnit or None
+    :returns: The enemy nearest to the given unit, or None if no enemies
+        are present.
+    """
+
+    nearest_unit = None
+    range_to_nearest = None
+    for enemy in enemy_units:
+        range_to = ai_unit.distance_to_unit(enemy)
+        if not nearest_unit or range_to < range_to_nearest:
+            range_to_nearest = range_to
+            nearest_unit = enemy
+            continue
+    return nearest_unit
+
+
+def move_idle_units(puppet, friendly_ai_units, enemy_units):
     """
     Given a list of ArenaMapUnit instances, put any idle slackers to work.
 
     :param ArenaMasterPuppet puppet:
-    :param list units:
+    :param list friendly_ai_units:
+    :param list enemy_ai_units:
     """
 
     protocol = puppet.protocol
@@ -83,8 +106,16 @@ def move_idle_units(puppet, friendly_ai_units):
 
         print "Unit needs new orders:", unit
         print "  - Last destination", unit.ai_last_destination
-        new_dest = get_logical_roam_destination(puppet)
-        print "  - New destination", new_dest
+        # At this point, we've determined that the unit is idle and needs
+        # something to do. Start by trying to find the nearest enemy unit.
+        # If none can be found, we resort to roaming the map.
+        nearest_enemy = find_nearest_enemy(unit, enemy_units)
+        if nearest_enemy:
+            new_dest = nearest_enemy.x_coord, nearest_enemy.y_coord
+            print "  - New destination (%s) %s" % (nearest_enemy, new_dest)
+        else:
+            new_dest = get_logical_roam_destination(puppet)
+            print "  - New destination (roam)", new_dest
 
         unit.ai_last_destination = new_dest
         move_orders = "{ai_id} goto {x} {y}".format(
