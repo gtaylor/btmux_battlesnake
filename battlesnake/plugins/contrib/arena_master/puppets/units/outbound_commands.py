@@ -130,6 +130,13 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             damage_inflicted=damage_inflicted, shots_missed=shots_missed,
             units_killed=units_killed, maxspeed=maxspeed, is_ai=is_ai,
         )
+        if not unit_obj.contact_id:
+            continue
+        if not unit_obj.mech_name:
+            continue
+        if unit_obj.is_invisible():
+            continue
+
         arena_unit_store.update_or_add_unit(unit_obj)
     arena_unit_store.purge_stale_units()
 
