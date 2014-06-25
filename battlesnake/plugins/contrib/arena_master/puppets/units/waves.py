@@ -8,7 +8,7 @@ from battlesnake.plugins.contrib.pg_db.api import get_db_connection
 # All of our max wave BV2 values are based off of this starter value. This
 # assumes one player on wave one with a 1.0 difficulty mod (normal difficulty).
 # From here, we multiply based on all of those previously mentioned variables.
-BASE_FIRST_WAVE_BV2 = 700
+BASE_FIRST_WAVE_BV2 = 650
 
 
 @inlineCallbacks
@@ -23,7 +23,7 @@ def pick_refs_for_wave(wave_num, num_players, difficulty_modifier):
     """
 
     if num_players > 1:
-        num_players_mod = num_players * 1.2
+        num_players_mod = num_players * 1.1
     else:
         num_players_mod = 1.0
     first_wave_bv2 = BASE_FIRST_WAVE_BV2 * num_players_mod * difficulty_modifier
