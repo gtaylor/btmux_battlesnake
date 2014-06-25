@@ -56,10 +56,14 @@ class ScanLibraryCommand(ScanUnitCommand):
     def run(self, protocol, parsed_line, invoker_dbref):
         mechs_dir_path = settings['unit_library']['mechs_dir_path']
         templater_dbref = settings['unit_library']['templater_dbref']
+        # TODO: Import these but make them hidden in the DB.
+        skipped_refs = [
+            'MechWarrior', 'RadioTower',
+        ]
 
         for template_file in os.listdir(mechs_dir_path):
             full_path = os.path.join(mechs_dir_path, template_file)
-            if template_file == 'Mechwarrior' or template_file.startswith('.'):
+            if template_file in skipped_refs or template_file.startswith('.'):
                 continue
             if not os.path.isfile(full_path):
                 continue
