@@ -1,6 +1,9 @@
 from twisted.internet.defer import inlineCallbacks
 
-from battlesnake.core.inbound_command_handling.base import BaseCommand
+from battlesnake.core.inbound_command_handling.base import BaseCommand, \
+    CommandError
+from battlesnake.core.inbound_command_handling.btargparse import \
+    BTMuxArgumentParser
 from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
@@ -8,6 +11,7 @@ from battlesnake.outbound_commands import mux_commands
 from battlesnake.plugins.contrib.chargen.archetypes import JACK_OF_ALL_TRADES
 from battlesnake.plugins.contrib.chargen.outbound_commands import \
     setup_new_player
+from battlesnake.plugins.contrib.player_profiles.api import create_new_player
 
 
 class SetupNewPlayerCommand(BaseCommand):
@@ -19,6 +23,32 @@ class SetupNewPlayerCommand(BaseCommand):
 
     @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
+        cmd_line = parsed_line.kwargs['cmd'].split()
+
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="register", description='Completes character creation.')
+
+        parser.add_argument(
+            'email', type=str,
+            help="Your email address.")
+
+        args = parser.parse_args(args=cmd_line)
+        try:
+            yield self.handle(protocol, invoker_dbref, args, parsed_line)
+        except AssertionError as exc:
+            raise CommandError(exc.message)
+
+    @inlineCallbacks
+    def handle(self, protocol, invoker_dbref, args, parsed_line):
+        email = args.email
+        invalid_email_msg = 'Please use a valid email address.'
+        if '@' not in email:
+            raise CommandError(invalid_email_msg)
+        if '.' not in email:
+            raise CommandError(invalid_email_msg)
+
+        yield create_new_player(parsed_line.kwargs['username'], email)
+
         yield mux_commands.pemit(protocol, parsed_line.invoker_dbref,
             "Starting new player setup...")
 
