@@ -107,9 +107,9 @@ def insert_unit_in_db(
         '   battle_value, battle_value2, offensive_battle_value2, '
         '   defensive_battle_value2, weapons_loadout, build_parts, sections,'
         '   cargo_space, cargo_max_tonnage, jumpjet_range, base_cost,'
-        '   special_tech_raw)'
+        '   special_tech_raw, is_hidden, is_player_spawnable, is_ai_spawnable)'
         '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,'
-        '   %s, %s, %s, %s, %s, %s, %s, %s)'
+        '   %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
     )
     value_tuple = (
         unit.reference,
@@ -135,6 +135,12 @@ def insert_unit_in_db(
         unit.jumpjet_range,
         base_cost,
         ' '.join(list(tech_list)),
+        # is_hidden
+        False,
+        # is_player_spawnable
+        True,
+        # is_ai_spawnable
+        True,
     )
 
     yield conn.runOperation(query_str, value_tuple)

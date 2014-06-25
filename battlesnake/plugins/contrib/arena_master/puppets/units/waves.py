@@ -32,7 +32,7 @@ def pick_refs_for_wave(wave_num, num_players, difficulty_modifier):
     conn = yield get_db_connection()
     results = yield conn.runQuery(
         'SELECT reference, battle_value2 FROM unit_library_unit '
-        '  WHERE battle_value2<=%s ORDER BY random()',
+        '  WHERE is_ai_spawnable=True AND battle_value2<=%s ORDER BY random()',
         (max_wave_bv2,)
     )
 

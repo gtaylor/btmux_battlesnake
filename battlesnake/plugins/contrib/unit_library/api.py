@@ -18,13 +18,14 @@ def get_library_summary_list(filter_class=None, filter_type=None):
     :returns: A dict with library summary details included.
     """
 
-    query = 'SELECT reference, weight FROM unit_library_unit '
+    query = (
+        'SELECT reference, weight FROM unit_library_unit WHERE '
+        '  is_hidden=False '
+    )
+
     if filter_class:
         filter_class = filter_class.lower()
-    if filter_type:
-        filter_type = filter_type.lower()
-    if filter_class or filter_type:
-        query += 'WHERE '
+        query += 'AND '
         if filter_class == 'light':
             query += 'weight < 40'
         elif filter_class == 'medium':
@@ -36,6 +37,8 @@ def get_library_summary_list(filter_class=None, filter_type=None):
         else:
             query += 'true'
 
+    if filter_type:
+        filter_type = filter_type.lower()
         if filter_type == 'mech':
             unit_type = 'Mech'
         elif filter_type == 'tank':
@@ -47,11 +50,8 @@ def get_library_summary_list(filter_class=None, filter_type=None):
         else:
             unit_type = None
 
-        if filter_class and unit_type:
-            query += ' AND '
-
         if unit_type:
-            query += "unit_type = '%s'" % unit_type
+            query += "AND unit_type = '%s'" % unit_type
 
     query += ' ORDER BY reference'
     conn = yield get_db_connection()
