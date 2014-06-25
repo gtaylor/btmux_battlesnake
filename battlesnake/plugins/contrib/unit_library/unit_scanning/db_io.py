@@ -142,5 +142,4 @@ def insert_unit_in_db(
         # is_ai_spawnable
         True,
     )
-
     yield conn.runOperation(query_str, value_tuple)

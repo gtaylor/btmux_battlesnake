@@ -289,7 +289,7 @@ def btfasabasecost_ref(protocol, unit_ref):
 
     think_str = "[btfasabasecost_ref({unit_ref})]".format(unit_ref=unit_ref)
     func_result = yield mux_commands.think(protocol, think_str)
-    returnValue(int(func_result))
+    returnValue(max(0, int(func_result)))
 
 
 @inlineCallbacks
