@@ -10,6 +10,8 @@ from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
+from battlesnake.plugins.contrib.arena_master.puppets.units.damages_setter import \
+    uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
 from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
@@ -141,10 +143,57 @@ class SimpleSpawnCommand(BaseCommand):
         yield mux_commands.force(p, invoker_dbref, 'startup')
 
 
+class FixUnitCommand(BaseCommand):
+    """
+    Fixes a unit.
+    """
+
+    command_name = "am_fixunit"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        cmd_line = parsed_line.kwargs['cmd'].split()
+        fixmodes = ['armor', 'ints', 'ammo']
+
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="fixunit", description='Fixes a unit.')
+
+        parser.add_argument(
+            'mech_dbref', type=str,
+            help="The dbref of the mech to fix.")
+        parser.add_argument(
+            'fix_percent', type=float,
+            help="Percentage of damage to fix (0...1)")
+        parser.add_argument(
+            "--fixmode", type=str, choices=fixmodes, dest='fix_mode',
+            default='armor',
+            help="Determines what to fix on the unit. Defaults to armor.")
+
+        args = parser.parse_args(args=cmd_line)
+        try:
+            yield self.handle(protocol, invoker_dbref, args)
+        except AssertionError as exc:
+            raise CommandError(exc.message)
+
+    @inlineCallbacks
+    def handle(self, protocol, invoker_dbref, args):
+        output = str(args)
+        p = protocol
+        mux_commands.pemit(protocol, invoker_dbref, output)
+
+        if args.fix_mode == 'armor':
+            yield uniformly_repair_armor(p, args.mech_dbref, args.fix_percent)
+        elif args.fix_mode == 'ints':
+            yield fix_all_internals(p, args.mech_dbref)
+        elif args.fix_mode == 'ammo':
+            yield reload_all_ammo(p, args.mech_dbref)
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
         PickWaveCommand,
         SpawnWaveCommand,
         SimpleSpawnCommand,
+        FixUnitCommand,
     ]

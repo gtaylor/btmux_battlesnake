@@ -101,3 +101,21 @@ def remove_all_percent_sequences(text):
     text = text.replace('%%', '%')
     text = remove_ansi_codes(text)
     return text
+
+
+def add_escaping_percent_sequences(text):
+    """
+    Given a string, add %-escapes to all characters needing them in order
+    to allow passing a literal value.
+    """
+
+    text = text.replace('%', '%%')
+    text = text.replace(' ', '%b')
+    text = text.replace('\t', '%t')
+    text = text.replace('\r', '%r')
+    text = text.replace('(', '%(')
+    text = text.replace(')', '%)')
+    text = text.replace('[', '%[')
+    text = text.replace(']', '%]')
+    text = remove_ansi_codes(text)
+    return text
