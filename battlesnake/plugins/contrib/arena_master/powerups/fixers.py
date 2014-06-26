@@ -8,7 +8,13 @@ from battlesnake.core.utils import add_escaping_percent_sequences
 
 from battlesnake.outbound_commands.mux_commands import remit
 from battlesnake.outbound_commands.think_fn_wrappers import btgetxcodevalue, \
-    btsetxcodevalue
+    btsetxcodevalue, get_map_dimensions
+from battlesnake.plugins.contrib.arena_master.puppets.units.waves import \
+    choose_unit_spawn_spot
+from battlesnake.plugins.contrib.factions.api import get_faction
+from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
+from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
+    create_unit
 
 
 @inlineCallbacks
@@ -125,3 +131,23 @@ def _assemble_modified_damages(modified_sections):
     escaped_damages = add_escaping_percent_sequences(modified_damages)
     escaped_damages = escaped_damages.replace(',', '%,')
     return escaped_damages
+
+
+@inlineCallbacks
+def spawn_fixer_unit(protocol, map_dbref, fixer_type, fix_percent):
+    p = protocol
+    if fixer_type == 'armor':
+        unit_ref = 'ArmorFixer'
+    elif fixer_type == 'ints':
+        unit_ref = 'InternalsFixer'
+    elif fixer_type == 'ammo':
+        unit_ref = 'AmmoReloader'
+    else:
+        raise ValueError('Invalid fixer type: %s' % fixer_type)
+
+    faction = get_faction(DEFENDER_FACTION_DBREF)
+    map_width, map_height = yield get_map_dimensions(p, map_dbref)
+    unit_x, unit_y = choose_unit_spawn_spot(map_width, map_height)
+    extra_flags = ['COMBAT_SAFE', 'AUTOCON_WHEN_SHUTDOWN']
+    yield create_unit(protocol, unit_ref, map_dbref, faction,
+        unit_x, unit_y, extra_flags=extra_flags)

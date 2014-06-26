@@ -1,6 +1,8 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from battlesnake.conf import settings
+from battlesnake.outbound_commands.unit_manipulation import \
+    add_unit_status_flags
 from battlesnake.plugins.contrib.unit_spawning.signals import on_unit_spawned
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
@@ -8,7 +10,8 @@ from battlesnake.outbound_commands import mux_commands
 
 @inlineCallbacks
 def create_unit(protocol, unit_ref, map_dbref, faction,
-                unit_x, unit_y, unit_z='', pilot_dbref=None):
+                unit_x, unit_y, unit_z='', pilot_dbref=None,
+                extra_flags=None):
     """
     Creates a new unit on the given map at the specified coordinates.
 
@@ -25,6 +28,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         the newly created unit.
     """
 
+    extra_flags = extra_flags or []
     p = protocol
     # The unit isn't far enough along to be given a spiffy name yet. Give it
     # a temporary BS name.
@@ -68,6 +72,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     if pilot_dbref:
         mux_commands.trigger(p, unit_dbref, 'SETLOADPREFS.T')
 
+    if extra_flags:
+        yield add_unit_status_flags(p, unit_dbref, extra_flags)
     # This tosses the unit on the map. At this point, they're 100% finished.
     yield think_fn_wrappers.btsetxy(
         p, unit_dbref, map_dbref, unit_x, unit_y, unit_z=unit_z)

@@ -8,14 +8,13 @@ from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
+from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
+    spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
-from battlesnake.plugins.contrib.arena_master.puppets.units.damages_setter import \
-    uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
 from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
-
 from battlesnake.plugins.contrib.arena_master.puppets.units.outbound_commands import \
     spawn_wave
 from battlesnake.plugins.contrib.arena_master.puppets.units.waves import \
@@ -102,7 +101,7 @@ class SpawnWaveCommand(BaseCommand):
         mux_commands.pemit(protocol, invoker_dbref, output)
         yield spawn_wave(
             protocol, args.wave_num, args.num_players, args.difficulty_mod,
-               args.map_dbref)
+            args.map_dbref)
         mux_commands.pemit(protocol, invoker_dbref,
             "Spawning wave.")
 
@@ -189,6 +188,48 @@ class FixUnitCommand(BaseCommand):
             yield reload_all_ammo(p, args.mech_dbref)
 
 
+class SpawnFixerCommand(BaseCommand):
+    """
+    Spawns a fixer unit.
+    """
+
+    command_name = "am_spawnfixer"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        cmd_line = parsed_line.kwargs['cmd'].split()
+        fixmodes = ['armor', 'ints', 'ammo']
+
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="spawnfixer", description='Spawns a fixer unit.')
+
+        parser.add_argument(
+            'map_dbref', type=str,
+            help="The dbref of the map to spawn the fixer on.")
+        parser.add_argument(
+            'fix_percent', type=float,
+            help="Percentage of damage to fix (0...1)")
+        parser.add_argument(
+            "--fixertype", type=str, choices=fixmodes, dest='fixer_type',
+            default='armor',
+            help="Determines what to fix on the unit. Defaults to armor.")
+
+        args = parser.parse_args(args=cmd_line)
+        try:
+            yield self.handle(protocol, invoker_dbref, args)
+        except AssertionError as exc:
+            raise CommandError(exc.message)
+
+    @inlineCallbacks
+    def handle(self, protocol, invoker_dbref, args):
+        output = str(args)
+        p = protocol
+        mux_commands.pemit(p, invoker_dbref, output)
+
+        yield spawn_fixer_unit(
+            p, args.map_dbref, args.fixer_type, args.fix_percent)
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
@@ -196,4 +237,5 @@ class ArenaMasterCommandTable(InboundCommandTable):
         SpawnWaveCommand,
         SimpleSpawnCommand,
         FixUnitCommand,
+        SpawnFixerCommand,
     ]
