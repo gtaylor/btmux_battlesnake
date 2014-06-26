@@ -11,7 +11,7 @@ from battlesnake.outbound_commands import mux_commands
 @inlineCallbacks
 def create_unit(protocol, unit_ref, map_dbref, faction,
                 unit_x, unit_y, unit_z='', pilot_dbref=None,
-                extra_flags=None):
+                extra_status_flags=None, extra_attrs=None):
     """
     Creates a new unit on the given map at the specified coordinates.
 
@@ -23,12 +23,16 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     :param int unit_y: The Y coord to place the unit on the map.
     :keyword int unit_z: The Z coord to place the unit on the map.
     :keyword str pilot_dbref: The dbref of the pilot for this unit.
+    :keyword list extra_status_flags: A list of the friendly names for
+        xcode status flags to add. See
+        :py:var:`battlesnake.core.outbound_commands.unit_manipulation.FLAG_MAP`.
+    :keyword dict extra_attrs: A dict of extra attrs to set on the unit.
     :rtype: defer.Deferred
     :returns: A Deferred whose callback value will be the dbref of
         the newly created unit.
     """
 
-    extra_flags = extra_flags or []
+    extra_status_flags = extra_status_flags or []
     p = protocol
     # The unit isn't far enough along to be given a spiffy name yet. Give it
     # a temporary BS name.
@@ -50,6 +54,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         'FACTION': faction.dbref,
         'Xtype': 'MECH',
     }
+    if extra_attrs:
+        unit_attrs.update(extra_attrs)
     if pilot_dbref:
         unit_attrs['Pilot'] = pilot_dbref
     yield think_fn_wrappers.set_attrs(protocol, unit_dbref, unit_attrs)
@@ -72,8 +78,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     if pilot_dbref:
         mux_commands.trigger(p, unit_dbref, 'SETLOADPREFS.T')
 
-    if extra_flags:
-        yield add_unit_status_flags(p, unit_dbref, extra_flags)
+    if extra_status_flags:
+        yield add_unit_status_flags(p, unit_dbref, extra_status_flags)
     # This tosses the unit on the map. At this point, they're 100% finished.
     yield think_fn_wrappers.btsetxy(
         p, unit_dbref, map_dbref, unit_x, unit_y, unit_z=unit_z)

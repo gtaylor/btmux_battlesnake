@@ -1,3 +1,5 @@
+from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
+    check_unit_for_fixer_use
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
     DEFENDER_FACTION_DBREF
 
@@ -43,6 +45,10 @@ class ArenaMasterPuppet(object):
         :param list changes: A list of attribute names that changed on
             the ``new_unit`` compared to ``old_unit``.
         """
+
+        if not new_unit.is_ai:
+            if 'x_coord' in changes or 'y_coord' in changes:
+                check_unit_for_fixer_use(self, new_unit)
 
         if 'target_dbref' in changes and new_unit.is_ai:
             handle_ai_target_change(self, old_unit, new_unit)

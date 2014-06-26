@@ -192,7 +192,10 @@ class ArenaMapUnitStore(object):
 
         unit1_dict = unit1.__dict__
         unit2_dict = unit2.__dict__
-        ignored_keys = ['last_seen', 'ai_last_destination', 'ai_idle_counter']
+        ignored_keys = [
+            'last_seen', 'ai_last_destination', 'ai_idle_counter',
+            'has_been_ran_over',
+        ]
         changes = []
         for key, val in unit1_dict.items():
             if key in ignored_keys:
@@ -202,6 +205,23 @@ class ArenaMapUnitStore(object):
             if unit1_val != unit2_val:
                 changes.append(key)
         return changes
+
+    def find_units_in_hex(self, x_coord, y_coord):
+        """
+        Given a coordinate pair, find all units in this hex.
+
+        :rtype: list
+        :returns: A list of units in the same hex.
+        """
+
+        units = []
+        for unit in self.__iter__():
+            if unit.x_coord != x_coord:
+                continue
+            if unit.y_coord != y_coord:
+                continue
+            units.append(unit)
+        return units
 
 
 class ArenaMapUnit(object):
@@ -247,6 +267,9 @@ class ArenaMapUnit(object):
         # where it last asked.
         self.ai_last_destination = None
         self.ai_idle_counter = 0
+        # This gets set to True if the unit has been 'ran over' by a player.
+        # For example, a powerup.
+        self.has_been_ran_over = False
 
         self.last_seen = datetime.datetime.now()
 
