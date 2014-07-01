@@ -50,6 +50,7 @@ def pemit(protocol, objects, message):
     return mux_commands.think(protocol, think_str)
 
 
+@inlineCallbacks
 def set_attrs(protocol, obj, attr_dict, iter_delim='|'):
     """
     Uses set() to set one or more attributes on an object.
@@ -70,7 +71,7 @@ def set_attrs(protocol, obj, attr_dict, iter_delim='|'):
         think_str = "[set({obj},{key}:{val})]".format(
             obj=obj, key=key, val=val,
         )
-        return mux_commands.think(protocol, think_str)
+        yield mux_commands.think(protocol, think_str)
 
     iter_vals = ""
     for key, val in attr_dict.items():
@@ -78,7 +79,7 @@ def set_attrs(protocol, obj, attr_dict, iter_delim='|'):
             key=key, val=val, iter_delim=iter_delim)
     think_str = "[iter({iter_vals},[set({obj},##)],{iter_delim})]".format(
         iter_vals=iter_vals, obj=obj, iter_delim=iter_delim)
-    return mux_commands.think(protocol, think_str, return_output=False)
+    yield mux_commands.think(protocol, think_str)
 
 
 def get(protocol, obj, attr_name):

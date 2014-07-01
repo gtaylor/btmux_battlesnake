@@ -215,6 +215,37 @@ def name(protocol, obj, new_name):
     return protocol.write_and_wait(command_str)
 
 
+def chzone(protocol, obj, zone_dbref):
+    """
+    Changes an object's zone.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :type zone_dbref: str or None
+    :param zone_dbref: The dbref to set the object's zone to. None or
+        an empty string removes the zone.
+    """
+
+    new_zone = zone_dbref or 'None'
+    command_str = "@chzone {obj}={new_zone}".format(
+        obj=obj, new_zone=new_zone)
+    return protocol.write_and_wait(command_str)
+
+
+def xtype(protocol, obj, new_xtype):
+    """
+    Changes an object's xtype.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str new_xtype: The xtype to set the object to.
+    """
+
+    command_str = "@xtype {obj}={new_xtype}".format(
+        obj=obj, new_xtype=new_xtype)
+    return protocol.write_and_wait(command_str)
+
+
 def drain(protocol, obj):
     """
     Runs @drain on an object.

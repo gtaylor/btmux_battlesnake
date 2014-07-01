@@ -8,6 +8,8 @@ from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
+from battlesnake.plugins.contrib.arena_master.arena_crud.creation import \
+    create_arena
 from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
@@ -230,6 +232,23 @@ class SpawnFixerCommand(BaseCommand):
             p, args.map_dbref, args.fixer_type, args.fix_percent)
 
 
+class CreateArenaCommand(BaseCommand):
+    """
+    Basic arena creation.
+    """
+
+    command_name = "am_createarena"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        invoker_name = parsed_line.kwargs['invoker_name']
+        arena_name = "%s's arena" % invoker_name
+        mux_commands.pemit(p, invoker_dbref, "Creating an arena...")
+        yield create_arena(p, arena_name, invoker_dbref)
+        mux_commands.pemit(p, invoker_dbref, "Arena ready!")
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
@@ -238,4 +257,6 @@ class ArenaMasterCommandTable(InboundCommandTable):
         SimpleSpawnCommand,
         FixUnitCommand,
         SpawnFixerCommand,
+
+        CreateArenaCommand,
     ]
