@@ -39,7 +39,7 @@ def populate_puppet_store(protocol):
             # puppet_dbref
             "##:"
             # map_dbref
-            "[setr(0,rloc(##,2))]:"
+            "[setr(0,get(##/MAP.D))]:"
             "[btgetxcodevalue(%q0,mapwidth)] [btgetxcodevalue(%q0,mapheight)]"
         "|)]".format(parent_dbref=puppet_parent_dbref)
     )

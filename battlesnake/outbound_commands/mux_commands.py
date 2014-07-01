@@ -270,6 +270,18 @@ def notify(protocol, obj):
     return protocol.write_and_wait(command_str)
 
 
+def destroy(protocol, obj):
+    """
+    Destroys an object.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    """
+
+    command_str = "@dest {obj}".format(obj=obj)
+    return protocol.write_and_wait(command_str)
+
+
 def trigger(protocol, obj, attr, params=None):
     """
     Runs @trigger on an object.
