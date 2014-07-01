@@ -15,23 +15,25 @@ def create_arena(protocol, arena_name, creator_dbref):
     arena_master_dbref = yield _create_arena_master_object(
         p, arena_name, creator_dbref)
     map_dbref = yield _create_map(p, arena_name, arena_master_dbref)
-
     puppet_ol_dbref = yield _create_puppet_ol(
         p, arena_name, arena_master_dbref, map_dbref)
+    staging_dbref = yield _create_staging_room(
+        p, arena_name, arena_master_dbref)
 
     arena_master_attrs = {
         'MAP.D': map_dbref,
         'PUPPET_OL.D': puppet_ol_dbref,
+        'STAGING_ROOM.D': staging_dbref,
     }
     yield think_fn_wrappers.set_attrs(p, arena_master_dbref, arena_master_attrs)
 
-    returnValue(arena_master_dbref)
+    returnValue((arena_master_dbref, staging_dbref))
 
 
 @inlineCallbacks
 def _create_arena_master_object(protocol, arena_name, creator_dbref):
     p = protocol
-    arena_master_name = "%ch%cyArenaMaster:%cn " + arena_name
+    arena_master_name = "%ch%cyArenaPuppet:%cn " + arena_name
     arena_master_dbref = yield think_fn_wrappers.create(
         p, arena_master_name, otype='t')
 
@@ -83,7 +85,21 @@ def _create_puppet_ol(protocol, arena_name, arena_master_dbref, map_dbref):
     mux_commands.parent(
         p, ol_dbref,
         settings['arena_master']['puppet_ol_parent_dbref'])
+    yield think_fn_wrappers.tel(p, arena_master_dbref, ol_dbref)
 
     returnValue(ol_dbref)
 
 
+@inlineCallbacks
+def _create_staging_room(protocol, arena_name, arena_master_dbref):
+    p = protocol
+    staging_name = "%ccStaging Room:%cn " + arena_name
+    staging_dbref = yield think_fn_wrappers.create(p, staging_name, otype='r')
+    mux_commands.chzone(p, staging_dbref, arena_master_dbref)
+    mux_commands.parent(
+        p, staging_dbref, settings['arena_master']['staging_room_parent_dbref'])
+
+    flags = ['INHERIT']
+    yield think_fn_wrappers.set_flags(p, staging_dbref, flags)
+
+    returnValue(staging_dbref)

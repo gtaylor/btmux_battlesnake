@@ -247,8 +247,11 @@ class CreateArenaCommand(BaseCommand):
         invoker_name = parsed_line.kwargs['invoker_name']
         arena_name = "%s's arena" % invoker_name
         mux_commands.pemit(p, invoker_dbref, "Creating an arena...")
-        arena_master_dbref = yield create_arena(p, arena_name, invoker_dbref)
+        arena_master_dbref, staging_dbref = yield create_arena(
+            p, arena_name, invoker_dbref)
         mux_commands.pemit(p, invoker_dbref, "Arena ready: %s" % arena_master_dbref)
+
+        think_fn_wrappers.tel(p, invoker_dbref, staging_dbref)
 
 
 class DestroyArenaCommand(BaseCommand):
