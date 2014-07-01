@@ -11,7 +11,8 @@ from battlesnake.outbound_commands import mux_commands
 @inlineCallbacks
 def create_unit(protocol, unit_ref, map_dbref, faction,
                 unit_x, unit_y, unit_z='', pilot_dbref=None,
-                extra_status_flags=None, extra_attrs=None):
+                extra_status_flags=None, extra_attrs=None,
+                zone_dbref=None):
     """
     Creates a new unit on the given map at the specified coordinates.
 
@@ -27,6 +28,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         xcode status flags to add. See
         :py:var:`battlesnake.core.outbound_commands.unit_manipulation.FLAG_MAP`.
     :keyword dict extra_attrs: A dict of extra attrs to set on the unit.
+    :keyword str zone_dbref: If this unit should have a zone set, provide
+        the dbref here.
     :rtype: defer.Deferred
     :returns: A Deferred whose callback value will be the dbref of
         the newly created unit.
@@ -43,6 +46,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         p, unit_ref, 'mechname')
 
     mux_commands.parent(p, unit_dbref, settings['unit_spawning']['unit_parent_dbref'])
+    if zone_dbref:
+        mux_commands.chzone(p, unit_dbref, zone_dbref)
     mux_commands.lock(p, unit_dbref, unit_dbref)
     mux_commands.lock(p, unit_dbref, 'ELOCK/1', whichlock='enter')
     mux_commands.lock(p, unit_dbref, 'LLOCK/1', whichlock='leave')
