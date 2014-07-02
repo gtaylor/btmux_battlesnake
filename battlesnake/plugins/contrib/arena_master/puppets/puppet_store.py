@@ -35,6 +35,15 @@ class ArenaMasterPuppetStore(object):
 
         return len(self._puppet_store)
 
+    def list_all_puppets(self):
+        """
+        :rtype: list
+        :returns: A list of all ArenaMasterPuppet instances that we currently
+            know about.
+        """
+
+        return self._puppet_store.values()
+
     @inlineCallbacks
     def add_puppet_from_arena_master_object(self, protocol, arena_master_dbref):
         """

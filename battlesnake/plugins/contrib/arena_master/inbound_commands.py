@@ -275,9 +275,37 @@ class DestroyArenaCommand(BaseCommand):
         mux_commands.pemit(p, invoker_dbref, "Arena destroyed!")
 
 
+class ArenaListCommand(BaseCommand):
+    """
+    Lists all active arenas.
+    """
+
+    command_name = "am_arenalist"
+
+    #@inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+
+        puppets = PUPPET_STORE.list_all_puppets()
+
+        retval = self._get_header_str('Active Arena Listing')
+        retval += self._get_footer_str('-')
+        retval += '%ch [rjust(ID,4)]%b [ljust(Arena Name, 50)] State%cn'
+        retval += self._get_footer_str('-')
+        for puppet in puppets:
+            retval += "%r [rjust({dbref}, 4)]%b [ljust({name},50)] {state} (Public)".format(
+                dbref=puppet.dbref[1:], name=puppet.arena_name,
+                state='Staging',
+            )
+        retval += self._get_footer_str()
+
+        mux_commands.pemit(p, invoker_dbref, retval)
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
+        ArenaListCommand,
         PickWaveCommand,
         SpawnWaveCommand,
         SimpleSpawnCommand,
