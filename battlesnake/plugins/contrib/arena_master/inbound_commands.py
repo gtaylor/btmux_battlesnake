@@ -266,6 +266,11 @@ class DestroyArenaCommand(BaseCommand):
         p = protocol
         arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
         mux_commands.pemit(p, invoker_dbref, "Destroying arena: %s" % arena_master_dbref)
+        try:
+            PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError("Invalid arena dbref.")
+
         yield destroy_arena(p, arena_master_dbref)
         mux_commands.pemit(p, invoker_dbref, "Arena destroyed!")
 

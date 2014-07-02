@@ -2,6 +2,8 @@ from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
+    PUPPET_STORE
 
 
 @inlineCallbacks
@@ -9,6 +11,7 @@ def destroy_arena(protocol, arena_master_dbref):
     p = protocol
     yield _clear_map(p, arena_master_dbref)
     _destroy_zone_and_members(protocol, arena_master_dbref)
+    yield PUPPET_STORE.remove_puppet_by_dbref(arena_master_dbref)
 
 
 @inlineCallbacks

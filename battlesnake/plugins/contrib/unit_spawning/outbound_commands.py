@@ -116,12 +116,12 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         p, unit_dbref, 'id')
     mechdesc = (
         '%ch%cb' + '-' * 78 + '%cn%r'
-        '%[{contact_id}%] {unit_name} appears to be of type {unit_ref}.%r'
+        '%%%[{contact_id}%%%] {unit_name} appears to be of type {unit_ref}.%r'
         '%ch%cb' + '-' * 78 + '%cn%r'
     ).format(
         contact_id=contact_id, unit_name=unit_name, unit_ref=unit_ref,
     )
-    yield think_fn_wrappers.set_attrs(protocol, unit_dbref, {'Mechdesc': mechdesc})
+    mux_commands.mechdesc(p, unit_dbref, mechdesc)
 
     # The whole shebang completes with the deferred callback passing the
     # new unit's dbref.

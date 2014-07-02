@@ -14,7 +14,8 @@ class ArenaMasterPuppet(object):
     Represents a single puppet.
     """
 
-    def __init__(self, protocol, dbref, map_dbref, map_height, map_width):
+    def __init__(self, protocol, dbref, map_dbref, map_height, map_width,
+                 arena_name):
         self.protocol = protocol
         self.dbref = dbref
         self.map_dbref = map_dbref
@@ -27,6 +28,7 @@ class ArenaMasterPuppet(object):
         self.defending_faction_dbref = DEFENDER_FACTION_DBREF
         self.map_width = int(map_width)
         self.map_height = int(map_height)
+        self.arena_name = arena_name
 
     def __str__(self):
         return u"<ArenaMasterPuppet: %s for map %s>" % (self.dbref, self.map_dbref)

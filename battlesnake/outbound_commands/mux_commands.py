@@ -215,6 +215,20 @@ def name(protocol, obj, new_name):
     return protocol.write_and_wait(command_str)
 
 
+def mechdesc(protocol, obj, desc):
+    """
+    Sets an object's mechdesc.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str desc: The object's new mechdesc.
+    """
+
+    command_str = "@fo me=@mechdesc {obj}={desc}".format(
+        obj=obj, desc=desc)
+    return protocol.write(command_str)
+
+
 def chzone(protocol, obj, zone_dbref):
     """
     Changes an object's zone.

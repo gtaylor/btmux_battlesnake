@@ -5,8 +5,6 @@ from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions
 from battlesnake.plugins.contrib.ai.outbound_commands import start_unit_ai
 
-from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
-    ArenaMasterPuppet
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
@@ -31,29 +29,24 @@ def populate_puppet_store(protocol):
         instances.
     """
 
+    p = protocol
     print "Loading Arena Master puppets..."
 
     puppet_parent_dbref = settings['arena_master']['arena_master_parent_dbref']
-    thought = (
-        "[iter(children({parent_dbref}), "
-            # puppet_dbref
-            "##:"
-            # map_dbref
-            "[setr(0,get(##/MAP.D))]:"
-            "[btgetxcodevalue(%q0,mapwidth)] [btgetxcodevalue(%q0,mapheight)]"
-        "|)]".format(parent_dbref=puppet_parent_dbref)
-    )
-    puppet_data = yield mux_commands.think(protocol, thought)
-    puppet_data = puppet_data.split('|')
-    for puppet_entry in puppet_data:
-        if not puppet_entry:
+    # Find all arena puppet master dbrefs.
+    thought = "[children({parent_dbref})]".format(
+        parent_dbref=puppet_parent_dbref)
+    puppet_master_dbrefs = yield mux_commands.think(protocol, thought)
+    # Returns a list of dbrefs which we can then call into the game for more
+    # details on.
+    puppet_master_split = puppet_master_dbrefs.split()
+    for puppet_master_dbref in puppet_master_split:
+        if not puppet_master_dbref:
             continue
-        puppet_split = puppet_entry.split(':')
-        puppet_dbref, map_dbref, map_dimensions = puppet_split
-        map_height, map_width = map_dimensions.split()
-        puppet_obj = ArenaMasterPuppet(
-            protocol, puppet_dbref, map_dbref, map_height, map_width)
-        PUPPET_STORE.update_or_add_puppet(puppet_obj)
+        # This calls into the game to get enough details to instantiate an
+        # ArenaMasterPuppet instace for our store.
+        yield PUPPET_STORE.add_puppet_from_arena_master_object(
+            p, puppet_master_dbref)
     print "  - ", PUPPET_STORE.puppet_count, "puppets loaded"
 
 
