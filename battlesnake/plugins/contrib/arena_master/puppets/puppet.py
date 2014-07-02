@@ -14,11 +14,13 @@ class ArenaMasterPuppet(object):
     Represents a single puppet.
     """
 
-    def __init__(self, protocol, dbref, map_dbref, map_height, map_width,
-                 arena_name):
+    def __init__(self, protocol, dbref, map_dbref, staging_dbref, creator_dbref,
+                 map_height, map_width, arena_name):
         self.protocol = protocol
         self.dbref = dbref
         self.map_dbref = map_dbref
+        self.staging_dbref = staging_dbref
+        self.creator_dbref = creator_dbref
         # A cache for all units in the arena, plus their states.
         self.unit_store = ArenaMapUnitStore(
             arena_master_puppet=self, unit_change_callback=self.handle_unit_change)

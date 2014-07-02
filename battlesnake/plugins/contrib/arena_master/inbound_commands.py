@@ -141,7 +141,7 @@ class SimpleSpawnCommand(BaseCommand):
 
         unit_dbref = yield create_unit(
             p, unit.reference, map_dbref, faction, unit_x, unit_y,
-            pilot_dbref=invoker_dbref)
+            pilot_dbref=invoker_dbref, zone_dbref=arena_master_dbref)
         yield think_fn_wrappers.tel(p, invoker_dbref, unit_dbref)
         yield mux_commands.force(p, invoker_dbref, 'startup')
 
@@ -245,6 +245,7 @@ class CreateArenaCommand(BaseCommand):
     def run(self, protocol, parsed_line, invoker_dbref):
         p = protocol
         invoker_name = parsed_line.kwargs['invoker_name']
+        self._check_for_dupe_arenas(invoker_dbref)
         arena_name = "%s's arena" % invoker_name
         mux_commands.pemit(p, invoker_dbref, "Creating an arena...")
         arena_master_dbref, staging_dbref = yield create_arena(
@@ -252,6 +253,12 @@ class CreateArenaCommand(BaseCommand):
         mux_commands.pemit(p, invoker_dbref, "Arena ready: %s" % arena_master_dbref)
 
         think_fn_wrappers.tel(p, invoker_dbref, staging_dbref)
+
+    def _check_for_dupe_arenas(self, invoker_dbref):
+        puppets = PUPPET_STORE.list_all_puppets()
+        for puppet in puppets:
+            if puppet.creator_dbref == invoker_dbref:
+                raise CommandError("You already have an active arena.")
 
 
 class DestroyArenaCommand(BaseCommand):
@@ -290,22 +297,52 @@ class ArenaListCommand(BaseCommand):
 
         retval = self._get_header_str('Active Arena Listing')
         retval += self._get_footer_str('-')
-        retval += '%ch [rjust(ID,4)]%b [ljust(Arena Name, 50)] State%cn'
+        retval += (
+            '%ch [rjust(ID,4)]%b [ljust(Arena Name, 40)] '
+            '[ljust(Players,10)] '
+            'State%cn'
+        )
         retval += self._get_footer_str('-')
         for puppet in puppets:
-            retval += "%r [rjust({dbref}, 4)]%b [ljust({name},50)] {state} (Public)".format(
+            retval += (
+                "%r [rjust({dbref}, 4)]%b [ljust({name},43)] "
+                "[ljust(words(zwho(#{dbref})),7)] "
+                "{state} (Public)".format(
                 dbref=puppet.dbref[1:], name=puppet.arena_name,
-                state='Staging',
-            )
+                state='Staging'))
+        if not puppets:
+            retval += "[center(There are no active arenas. Create one!,78)]"
         retval += self._get_footer_str()
 
         mux_commands.pemit(p, invoker_dbref, retval)
+
+
+class ArenaJoinCommand(BaseCommand):
+    """
+    Joins an arena.
+    """
+
+    command_name = "am_arenajoin"
+
+    #@inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+
+        arena_master_dbref = parsed_line.kwargs['arena_dbref']
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError(
+                "Invalid arena ID. See the %ch%cgarenas%cn command for a full list.")
+
+        think_fn_wrappers.tel(p, invoker_dbref, puppet.staging_dbref)
 
 
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
         ArenaListCommand,
+        ArenaJoinCommand,
         PickWaveCommand,
         SpawnWaveCommand,
         SimpleSpawnCommand,
