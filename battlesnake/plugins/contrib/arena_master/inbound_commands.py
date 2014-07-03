@@ -16,6 +16,8 @@ from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
+from battlesnake.plugins.contrib.arena_master.staging_room import \
+    pemit_staging_room_idesc
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
 from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
@@ -338,11 +340,36 @@ class ArenaJoinCommand(BaseCommand):
         think_fn_wrappers.tel(p, invoker_dbref, puppet.staging_dbref)
 
 
+class ArenaInternalDescriptionCommand(BaseCommand):
+    """
+    This gets emitted immediately following the staging room's name line,
+    giving it the appearance of being the room's description. It contains
+    a summary of the status of the arena.
+    """
+
+    command_name = "am_arenaidesc"
+
+    #@inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+
+        arena_master_dbref = parsed_line.kwargs['arena_dbref']
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError(
+                "Invalid arena ID. Please notify a staff member.")
+
+        pemit_staging_room_idesc(p, puppet, invoker_dbref)
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
         ArenaListCommand,
         ArenaJoinCommand,
+        ArenaInternalDescriptionCommand,
+
         PickWaveCommand,
         SpawnWaveCommand,
         SimpleSpawnCommand,

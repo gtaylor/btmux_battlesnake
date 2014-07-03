@@ -9,7 +9,8 @@ another module.
 import uuid
 import math
 
-from battlesnake.core.ansi import remove_ansi_codes
+from battlesnake.core.ansi import remove_ansi_codes, ANSI_HI_YELLOW, \
+    ANSI_HI_BLUE, ANSI_NORMAL, ANSI_HI_WHITE
 
 
 def calc_range(x1, y1, z1, x2, y2, z2):
@@ -119,3 +120,52 @@ def add_escaping_percent_sequences(text):
     text = text.replace(']', '%]')
     text = remove_ansi_codes(text)
     return text
+
+
+def get_header_str(header_text, header_text_color=ANSI_HI_YELLOW,
+                   pad_char='=', pad_color=ANSI_HI_BLUE, width=79):
+    """
+    Forms and returns a standardized header string.
+
+    :param header_text: The text to show in the header
+        block.
+    :param pad_char: The character to use to pad the header outside the
+        header text block.
+    :param pad_color: The ANSI sequence to apply to the padding.
+    :rtype: str
+    """
+
+    buf = pad_color + (pad_char * 3) + ANSI_HI_WHITE
+    buf += '%[{header_text_color}{header_text}{color_hi_white}%]{pad_color}'.format(
+        header_text_color=header_text_color, header_text=header_text,
+        color_hi_white=ANSI_HI_WHITE, pad_color=pad_color,
+    )
+    # Unfortunately, we have to account for the color escapes in this.
+    # If you add or remove %-escapes, adjust this number.
+    remaining = width - len(remove_all_percent_sequences(buf))
+    buf += pad_char * remaining
+    return '\n' + buf + ANSI_NORMAL
+
+
+def get_subheader_str(*args, **kwargs):
+    """
+    Forms and returns a standardized subheader string.
+    See :py:func:`get_header_str` for signature.
+
+    :rtype: str
+    """
+
+    kwargs['pad_char'] = '-'
+    return get_header_str(*args, **kwargs)
+
+
+def get_footer_str(pad_char='=', pad_color=ANSI_HI_BLUE, width=79):
+    """
+    Forms and returns a standardized footer string.
+
+    :param pad_char: The character to use to form the footer.
+    :param pad_color: The ANSI sequence to apply to the padding.
+    :rtype: str
+    """
+
+    return '\n' + pad_color + (pad_char * width) + ANSI_NORMAL

@@ -34,7 +34,7 @@ class ArenaMasterPuppet(object):
         self.arena_name = arena_name
         self.current_wave = int(current_wave)
         self.game_mode = game_mode
-        # One of: 'staging', 'active', 'in-between', 'finished'
+        # One of: 'Staging', 'Active', 'In-Between', 'Finished'
         self.game_state = game_state
 
     def __str__(self):
@@ -74,9 +74,17 @@ class ArenaMasterPuppet(object):
         defending_units = units_by_faction.get(self.defending_faction_dbref, [])
 
         attacking_ai_units = [unit for unit in attacking_units if unit.is_ai]
-        # Put any slackers to work roaming around.
-        # TODO: If they are stationary but have a lock, move them to lock.
+        # Put any idle/slacking units to work.
         move_idle_units(self, attacking_ai_units, defending_units)
+
+    def list_defending_units(self):
+        """
+        :rtype: list
+        :returns: A list of all remaining defending units still on the map.
+        """
+
+        units_by_faction = self.unit_store.list_units_by_faction()
+        return units_by_faction.get(self.defending_faction_dbref, [])
 
     def get_defender_spawn_coords(self):
         """

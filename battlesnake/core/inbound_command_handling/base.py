@@ -4,7 +4,8 @@ Contains base command classes for the other modules in this submodule to use.
 
 from battlesnake.core.ansi import ANSI_HI_YELLOW, ANSI_HI_BLUE, ANSI_HI_WHITE, \
     ANSI_NORMAL
-from battlesnake.core.utils import remove_all_percent_sequences
+from battlesnake.core.utils import remove_all_percent_sequences, get_header_str, \
+    get_subheader_str, get_footer_str
 
 
 class BaseCommand(object):
@@ -43,16 +44,8 @@ class BaseCommand(object):
         :rtype: str
         """
 
-        buf = pad_color + (pad_char * 3) + ANSI_HI_WHITE
-        buf += '%[{header_text_color}{header_text}{color_hi_white}%]{pad_color}'.format(
-            header_text_color=header_text_color, header_text=header_text,
-            color_hi_white=ANSI_HI_WHITE, pad_color=pad_color,
-        )
-        # Unfortunately, we have to account for the color escapes in this.
-        # If you add or remove %-escapes, adjust this number.
-        remaining = width - len(remove_all_percent_sequences(buf))
-        buf += pad_char * remaining
-        return '\n' + buf + ANSI_NORMAL
+        return get_header_str(
+            header_text, header_text_color, pad_char, pad_color, width)
 
     def _get_subheader_str(self, *args, **kwargs):
         """
@@ -62,8 +55,7 @@ class BaseCommand(object):
         :rtype: str
         """
 
-        kwargs['pad_char'] = '-'
-        return self._get_header_str(*args, **kwargs)
+        return get_subheader_str(*args, **kwargs)
 
     def _get_footer_str(self, pad_char='=', pad_color=ANSI_HI_BLUE, width=79):
         """
@@ -74,7 +66,7 @@ class BaseCommand(object):
         :rtype: str
         """
 
-        return '\n' + pad_color + (pad_char * width) + ANSI_NORMAL
+        return get_footer_str(pad_char, pad_color, width)
 
 
 class CommandError(Exception):
