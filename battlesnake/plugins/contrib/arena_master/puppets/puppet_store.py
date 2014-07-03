@@ -57,9 +57,9 @@ class ArenaMasterPuppetStore(object):
         """
 
         p = protocol
-        map_dbref = yield get(p, arena_master_dbref, 'MAP.D')
-        creator_dbref = yield get(p, arena_master_dbref, 'CREATOR.D')
-        staging_dbref = yield get(p, arena_master_dbref, 'STAGING_ROOM.D')
+        map_dbref = yield get(p, arena_master_dbref, 'MAP.DBREF')
+        creator_dbref = yield get(p, arena_master_dbref, 'CREATOR.DBREF')
+        staging_dbref = yield get(p, arena_master_dbref, 'STAGING_ROOM.DBREF')
         arena_name = yield get(p, arena_master_dbref, 'ARENA_NAME.D')
         current_wave = yield get(p, arena_master_dbref, 'CURRENT_WAVE.D')
         game_mode = yield get(p, arena_master_dbref, 'GAME_MODE.D')

@@ -17,7 +17,7 @@ def destroy_arena(protocol, arena_master_dbref):
 @inlineCallbacks
 def _clear_map(protocol, arena_master_dbref):
     p = protocol
-    map_dbref = yield think_fn_wrappers.get(protocol, arena_master_dbref, 'MAP.D')
+    map_dbref = yield think_fn_wrappers.get(protocol, arena_master_dbref, 'MAP.DBREF')
     mux_commands.trigger(p, map_dbref, 'DEST_ALL_MECHS.T')
     mux_commands.force(p, map_dbref, 'CLEARMAP')
 

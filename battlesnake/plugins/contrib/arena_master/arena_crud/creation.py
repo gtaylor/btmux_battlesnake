@@ -24,11 +24,10 @@ def create_arena(protocol, arena_name, creator_dbref):
 
     arena_master_attrs = {
         'ARENA_NAME.D': arena_name,
-        'MAP.D': map_dbref,
-        'CREATOR.D': creator_dbref,
-        'PUPPET_OL.D': puppet_ol_dbref,
-        'STAGING_ROOM.D': staging_dbref,
-
+        'MAP.DBREF': map_dbref,
+        'CREATOR.DBREF': creator_dbref,
+        'PUPPET_OL.DBREF': puppet_ol_dbref,
+        'STAGING_ROOM.DBREF': staging_dbref,
         'CURRENT_WAVE.D': '1',
         'GAME_MODE.D': 'wave',
         'GAME_STATE.D': 'Staging',
