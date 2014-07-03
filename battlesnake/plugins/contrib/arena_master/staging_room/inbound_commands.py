@@ -64,6 +64,16 @@ class SimpleSpawnCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
 
+        game_state = puppet.game_state.lower()
+        if game_state == 'staging':
+            raise CommandError(
+                "The match hasn't started yet. The arena creator still needs "
+                "to %ch%cgbegin%cn.")
+        elif game_state == 'finished':
+            raise CommandError("The match is already over!")
+        elif game_state != 'in-between':
+            raise CommandError("You can only spawn between waves.")
+
         yield think_fn_wrappers.btsetcharvalue(p, invoker_dbref, 'bruise', 0, 0)
         yield think_fn_wrappers.btsetcharvalue(p, invoker_dbref, 'lethal', 0, 0)
 
