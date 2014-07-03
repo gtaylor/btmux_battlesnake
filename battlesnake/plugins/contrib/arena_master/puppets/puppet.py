@@ -34,7 +34,7 @@ class ArenaMasterPuppet(object):
         self.arena_name = arena_name
         self.current_wave = int(current_wave)
         self.game_mode = game_mode
-        # One of: 'Staging', 'Active', 'In-Between', 'Finished'
+        # One of: 'Staging', 'In-Between', 'Active', 'Finished'
         self.game_state = game_state
 
     def __str__(self):

@@ -34,9 +34,58 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref):
         current_wave=arena_master_puppet.current_wave)
     )
     retval += get_footer_str('-')
-    retval += ' To continue, type %ch%cgspawn <ref>'
+    retval += _return_state_specific_help(p, arena_master_puppet, invoker_dbref)
     retval += get_footer_str()
     retval += "%r%r[u({staging_dbref}/EXITS_AND_CONTENTS.F)]".format(
         staging_dbref=staging_dbref)
 
     mux_commands.pemit(p, invoker_dbref, retval)
+
+
+def _return_state_specific_help(protocol, arena_master_puppet, invoker_dbref):
+    state = arena_master_puppet.game_state.lower()
+    if state == 'staging':
+        rfunc = _return_staging_state_help
+    elif state == 'in-between':
+        rfunc = _return_in_between_state_help
+    elif state == 'active':
+        rfunc = _return_active_state_help
+    elif state == 'finished':
+        rfunc = _return_finished_state_help
+    else:
+        raise ValueError("Invalid arena state: %s" % state)
+
+    return rfunc(protocol, arena_master_puppet, invoker_dbref)
+
+
+def _return_staging_state_help(protocol, arena_master_puppet, invoker_dbref):
+    creator_dbref = arena_master_puppet.creator_dbref
+    if creator_dbref == invoker_dbref:
+        retval = ' Once you are ready to get the match started, type %ch%cgbegin%cn.'
+    else:
+        retval = ' The match will begin once [name(%s)] presses the big red button.' % creator_dbref
+    return retval
+
+
+def _return_in_between_state_help(protocol, arena_master_puppet, invoker_dbref):
+    retval = (
+        " The arena is currently in between waves. If you'd like to join "
+        "the action, now is your chance!%r%r"
+        " Type %ch%cgspawn <ref>%cn to spawn a unit of your choice"
+    )
+    return retval
+
+
+def _return_active_state_help(protocol, arena_master_puppet, invoker_dbref):
+    retval = (
+        " Your fellow humans are currently fending off a wave of homicidal "
+        " AI foes. You'll be able to join the action once the wave is finished."
+    )
+    return retval
+
+
+def _return_finished_state_help(protocol, arena_master_puppet, invoker_dbref):
+    retval = (
+        " The match has concluded. Hit the showers!"
+    )
+    return retval
