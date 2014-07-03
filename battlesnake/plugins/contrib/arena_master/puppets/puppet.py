@@ -15,7 +15,8 @@ class ArenaMasterPuppet(object):
     """
 
     def __init__(self, protocol, dbref, map_dbref, staging_dbref, creator_dbref,
-                 map_height, map_width, arena_name):
+                 map_height, map_width, arena_name, current_wave, game_mode,
+                 game_state):
         self.protocol = protocol
         self.dbref = dbref
         self.map_dbref = map_dbref
@@ -31,6 +32,10 @@ class ArenaMasterPuppet(object):
         self.map_width = int(map_width)
         self.map_height = int(map_height)
         self.arena_name = arena_name
+        self.current_wave = int(current_wave)
+        self.game_mode = game_mode
+        # One of: 'staging', 'active', 'in-between', 'finished'
+        self.game_state = game_state
 
     def __str__(self):
         return u"<ArenaMasterPuppet: %s for map %s>" % (self.dbref, self.map_dbref)

@@ -28,6 +28,10 @@ def create_arena(protocol, arena_name, creator_dbref):
         'CREATOR.D': creator_dbref,
         'PUPPET_OL.D': puppet_ol_dbref,
         'STAGING_ROOM.D': staging_dbref,
+
+        'CURRENT_WAVE.D': '1',
+        'GAME_MODE.D': 'wave',
+        'GAME_STATE.D': 'staging',
     }
     yield think_fn_wrappers.set_attrs(p, arena_master_dbref, arena_master_attrs)
     yield PUPPET_STORE.add_puppet_from_arena_master_object(p, arena_master_dbref)
