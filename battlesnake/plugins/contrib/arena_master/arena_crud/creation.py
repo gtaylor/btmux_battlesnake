@@ -20,7 +20,7 @@ def create_arena(protocol, arena_name, creator_dbref):
     puppet_ol_dbref = yield _create_puppet_ol(
         p, arena_name, arena_master_dbref, map_dbref)
     staging_dbref = yield _create_staging_room(
-        p, arena_name, arena_master_dbref, map_dbref, creator_dbref)
+        p, arena_name, arena_master_dbref, map_dbref)
 
     arena_master_attrs = {
         'ARENA_NAME.D': arena_name,
@@ -58,6 +58,8 @@ def _create_arena_master_object(protocol, arena_name):
 @inlineCallbacks
 def _create_map(protocol, arena_name, arena_master_dbref):
     p = protocol
+    # TODO: Un-hardcode this
+    initial_mapfile = 'spaceport.map'
     map_name = "%ch%cgArenaMap:%cn " + arena_name
     map_dbref = yield think_fn_wrappers.create(p, map_name, otype='t')
     mux_commands.chzone(p, map_dbref, arena_master_dbref)
@@ -66,8 +68,9 @@ def _create_map(protocol, arena_name, arena_master_dbref):
     mux_commands.lock(p, map_dbref, 'ELOCK/1', whichlock='enter')
 
     yield think_fn_wrappers.set_attrs(p, map_dbref, {'Xtype': 'MAP'})
-    flags = ['INHERIT', 'IN_CHARACTER', 'XCODE']
+    flags = ['XCODE', 'INHERIT', 'IN_CHARACTER']
     yield think_fn_wrappers.set_flags(p, map_dbref, flags)
+    yield think_fn_wrappers.btloadmap(p, map_dbref, initial_mapfile)
 
     returnValue(map_dbref)
 
@@ -84,14 +87,15 @@ def _create_puppet_ol(protocol, arena_name, arena_master_dbref, map_dbref):
     mux_commands.name(p, ol_dbref, ol_name)
     mux_commands.parent(
         p, ol_dbref, settings['arena_master']['puppet_ol_parent_dbref'])
+    yield think_fn_wrappers.set_flags(p, ol_dbref, ['DARK'])
     yield think_fn_wrappers.tel(p, arena_master_dbref, ol_dbref)
+    mux_commands.force(p, ol_dbref, 'startup ov')
 
     returnValue(ol_dbref)
 
 
 @inlineCallbacks
-def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref,
-                         creator_dbref):
+def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref):
     p = protocol
     staging_name = "%ccStaging Room:%cn " + arena_name
     faction = get_faction(DEFENDER_FACTION_DBREF)
@@ -117,5 +121,6 @@ def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref,
     mux_commands.set_attr(
         p, exit_dbref, 'Fail',
         "You can't leave your own arena without destroying it.")
+    mux_commands.force(p, staging_dbref, 'startup ov')
 
     returnValue(staging_dbref)

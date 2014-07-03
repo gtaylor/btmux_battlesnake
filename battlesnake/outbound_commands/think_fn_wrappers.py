@@ -150,6 +150,18 @@ def btloadmech(protocol, obj, unit_ref):
     return mux_commands.think(protocol, think_str, return_output=False)
 
 
+def btloadmap(protocol, obj, map_filename):
+    """
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param str map_filename: The map filename to load.
+    :rtype: defer.Deferred
+    """
+
+    think_str = "[btloadmap({obj},{map_filename})]".format(
+        obj=obj, map_filename=map_filename)
+    return mux_commands.think(protocol, think_str, return_output=False)
+
+
 def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
     """
     :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
