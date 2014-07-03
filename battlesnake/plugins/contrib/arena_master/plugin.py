@@ -8,6 +8,8 @@ from battlesnake.plugins.contrib.arena_master.puppets.units.outbound_commands im
     populate_puppet_store
 from battlesnake.plugins.contrib.arena_master.puppets.units.timers import \
     ArenaPuppetMasterUnitStoreTimerTable
+from battlesnake.plugins.contrib.arena_master.staging_room.inbound_commands import \
+    ArenaStagingRoomCommandTable
 from battlesnake.plugins.contrib.arena_master.timers import \
     ArenaPuppetMasterTimerTable
 
@@ -19,6 +21,7 @@ class ArenaMasterPlugin(BattlesnakePlugin):
 
     command_tables = [
         ArenaMasterCommandTable,
+        ArenaStagingRoomCommandTable,
     ]
 
     timer_tables = [
