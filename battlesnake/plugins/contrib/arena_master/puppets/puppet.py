@@ -1,8 +1,12 @@
-from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
-    check_unit_for_fixer_use
+from twisted.internet.defer import inlineCallbacks
+
+from battlesnake.outbound_commands import think_fn_wrappers
+
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
     DEFENDER_FACTION_DBREF
 
+from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
+    check_unit_for_fixer_use
 from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
     ArenaMapUnitStore
 from battlesnake.plugins.contrib.arena_master.puppets.strategic_logic import \
@@ -39,6 +43,30 @@ class ArenaMasterPuppet(object):
 
     def __str__(self):
         return u"<ArenaMasterPuppet: %s for map %s>" % (self.dbref, self.map_dbref)
+
+    @inlineCallbacks
+    def change_game_state(self, protocol, new_state):
+        """
+        Changes the match's state.
+
+        :param str new_state: One of 'Staging', 'In-Between', 'Active', or
+            'Finished'.
+        """
+
+        self.game_state = new_state
+        attrs = {'GAME_STATE.D': new_state}
+        yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+
+    def pemit_throughout_zone(self, protocol, message):
+        """
+        Sends a message to the entire arena.
+
+        :param str message: The message to send.
+        """
+
+        announce_cmd = "@dol [zwho({dbref})]=@pemit ##={message}".format(
+            dbref=self.dbref, message=message)
+        protocol.write(announce_cmd)
 
     def handle_unit_change(self, old_unit, new_unit, changes):
         """

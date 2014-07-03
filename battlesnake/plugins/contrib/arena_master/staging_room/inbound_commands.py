@@ -78,9 +78,39 @@ class SimpleSpawnCommand(BaseCommand):
         yield mux_commands.force(p, invoker_dbref, 'startup')
 
 
+class BeginMatchCommand(BaseCommand):
+    """
+    Gets the party started. Allows spawning, sets to "In-Between" state,
+    and is one command away from releasing the kraken.
+    """
+
+    command_name = "am_beginmatch"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        creator_dbref = puppet.creator_dbref
+        if creator_dbref != invoker_dbref:
+            raise CommandError("Only the arena's original creator can do that.")
+
+        if puppet.game_state.lower() != 'staging':
+            raise CommandError("The match has already begun!")
+
+        yield puppet.change_game_state(p, 'In-Between')
+        puppet.pemit_throughout_zone(p, "The match has begun. You may now spawn.")
+
+
 class ArenaStagingRoomCommandTable(InboundCommandTable):
 
     commands = [
         ArenaInternalDescriptionCommand,
-        SimpleSpawnCommand
+        BeginMatchCommand,
+        SimpleSpawnCommand,
     ]
