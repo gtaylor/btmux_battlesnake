@@ -86,6 +86,12 @@ class SimpleSpawnCommand(BaseCommand):
             pilot_dbref=invoker_dbref, zone_dbref=arena_master_dbref)
         yield think_fn_wrappers.tel(p, invoker_dbref, unit_dbref)
         yield mux_commands.force(p, invoker_dbref, 'startup')
+        message = (
+            "[name({invoker_dbref})] has spawned a "
+            "%ch[ucstr({unit_ref})]%cn.".format(
+                invoker_dbref=invoker_dbref, unit_ref=unit_ref)
+        )
+        puppet.pemit_throughout_zone(p, message)
 
 
 class BeginMatchCommand(BaseCommand):
