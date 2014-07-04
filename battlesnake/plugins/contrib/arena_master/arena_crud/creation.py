@@ -16,11 +16,11 @@ from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
 def create_arena(protocol, arena_name, creator_dbref):
     p = protocol
     arena_master_dbref = yield _create_arena_master_object(p, arena_name)
-    map_dbref = yield _create_map(p, arena_name, arena_master_dbref)
+    map_dbref, map_dimensions = yield _create_map(p, arena_name, arena_master_dbref)
     puppet_ol_dbref = yield _create_puppet_ol(
-        p, arena_name, arena_master_dbref, map_dbref)
+        p, arena_name, arena_master_dbref, map_dbref, map_dimensions)
     staging_dbref = yield _create_staging_room(
-        p, arena_name, arena_master_dbref, map_dbref)
+        p, arena_name, arena_master_dbref, map_dbref, map_dimensions)
 
     arena_master_attrs = {
         'ARENA_NAME.D': arena_name,
@@ -75,17 +75,26 @@ def _create_map(protocol, arena_name, arena_master_dbref):
     # Disallow friendly fire.
     yield think_fn_wrappers.btsetxcodevalue(p, map_dbref, 'flags', 'i')
 
-    returnValue(map_dbref)
+    map_dimensions = yield think_fn_wrappers.get_map_dimensions(
+        p, map_dbref)
+
+    returnValue((map_dbref, map_dimensions))
 
 
 @inlineCallbacks
-def _create_puppet_ol(protocol, arena_name, arena_master_dbref, map_dbref):
+def _create_puppet_ol(protocol, arena_name, arena_master_dbref, map_dbref,
+                      map_dimensions):
     p = protocol
     ol_name = "%ch%crArenaPuppetOL:%cn " + arena_name
     faction = get_faction(ATTACKER_FACTION_DBREF)
-    extra_status_flags = ['COMBAT_SAFE', 'INVISIBLE', 'CLAIRVOYANT']
+    extra_status_flags = [
+        'COMBAT_SAFE', 'INVISIBLE', 'CLAIRVOYANT', 'OBSERVATORIC'
+    ]
+    ol_x, ol_y = map_dimensions
+    ol_x /= 2
+    ol_y /= 2
     ol_dbref = yield create_unit(
-        p, 'RadioTower', map_dbref, faction, unit_x=0, unit_y=0,
+        p, 'RadioTower', map_dbref, faction, unit_x=ol_x, unit_y=ol_y,
         extra_status_flags=extra_status_flags, zone_dbref=arena_master_dbref)
     mux_commands.name(p, ol_dbref, ol_name)
     mux_commands.parent(
@@ -98,13 +107,18 @@ def _create_puppet_ol(protocol, arena_name, arena_master_dbref, map_dbref):
 
 
 @inlineCallbacks
-def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref):
+def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref,
+                         map_dimensions):
     p = protocol
     staging_name = "%ccStaging Room:%cn " + arena_name
     faction = get_faction(DEFENDER_FACTION_DBREF)
-    extra_status_flags = ['COMBAT_SAFE', 'INVISIBLE', 'CLAIRVOYANT']
+    extra_status_flags = [
+        'COMBAT_SAFE', 'INVISIBLE', 'CLAIRVOYANT']
+    ol_x, ol_y = map_dimensions
+    ol_x /= 2
+    ol_y /= 2
     staging_dbref = yield create_unit(
-        p, 'RadioTower', map_dbref, faction, unit_x=0, unit_y=0,
+        p, 'RadioTower', map_dbref, faction, unit_x=ol_x, unit_y=ol_y,
         extra_status_flags=extra_status_flags, zone_dbref=arena_master_dbref)
     mux_commands.name(p, staging_dbref, staging_name)
     mux_commands.parent(

@@ -21,7 +21,7 @@ FLAG_MAP = {
     'WEAPONS_HOLD': ('status2', 'x'),
     'NO_GUN_XP': ('status2', 'y'),
 
-    'CLAIRVOYANT': ('critstatus', 'y'),
+    'CLAIRVOYANT': ('critstatus', 'z'),
     'INVISIBLE': ('critstatus', 'A'),
     'OBSERVATORIC': ('critstatus', 'C'),
 }
