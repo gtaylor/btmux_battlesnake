@@ -212,7 +212,7 @@ class CreateArenaCommand(BaseCommand):
         think_fn_wrappers.tel(p, invoker_dbref, staging_dbref)
 
     def _check_for_dupe_arenas(self, invoker_dbref):
-        puppets = PUPPET_STORE.list_all_puppets()
+        puppets = PUPPET_STORE.list_arena_master_puppets()
         for puppet in puppets:
             if puppet.creator_dbref == invoker_dbref:
                 raise CommandError("You already have an active arena.")
@@ -250,7 +250,7 @@ class ArenaListCommand(BaseCommand):
     def run(self, protocol, parsed_line, invoker_dbref):
         p = protocol
 
-        puppets = PUPPET_STORE.list_all_puppets()
+        puppets = PUPPET_STORE.list_arena_master_puppets()
 
         retval = self._get_header_str('Active Arena Listing')
         retval += self._get_footer_str('-')
@@ -266,7 +266,7 @@ class ArenaListCommand(BaseCommand):
                 "[ljust(words(zwho(#{dbref})),7)] "
                 "{state} (Public)".format(
                 dbref=puppet.dbref[1:], name=puppet.arena_name,
-                state='Staging'))
+                state=puppet.game_state))
         if not puppets:
             retval += "[center(There are no active arenas. Create one!,78)]"
         retval += self._get_footer_str()

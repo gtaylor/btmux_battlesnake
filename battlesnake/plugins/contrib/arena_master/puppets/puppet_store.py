@@ -35,14 +35,19 @@ class ArenaMasterPuppetStore(object):
 
         return len(self._puppet_store)
 
-    def list_all_puppets(self):
+    def list_arena_master_puppets(self, game_mode=None):
         """
+        :keyword str game_mode: Only return puppets of the given game mode.
         :rtype: list
         :returns: A list of all ArenaMasterPuppet instances that we currently
             know about.
         """
 
-        return self._puppet_store.values()
+        if game_mode:
+            return [puppet for puppet in self._puppet_store.values()
+                    if puppet.game_mode == game_mode]
+        else:
+            return self._puppet_store.values()
 
     @inlineCallbacks
     def add_puppet_from_arena_master_object(self, protocol, arena_master_dbref):
@@ -64,11 +69,12 @@ class ArenaMasterPuppetStore(object):
         current_wave = yield get(p, arena_master_dbref, 'CURRENT_WAVE.D')
         game_mode = yield get(p, arena_master_dbref, 'GAME_MODE.D')
         game_state = yield get(p, arena_master_dbref, 'GAME_STATE.D')
+        difficulty_mod = yield get(p, arena_master_dbref, 'DIFFICULTY_MOD.D')
         map_width, map_height = yield get_map_dimensions(p, map_dbref)
         puppet = ArenaMasterPuppet(
             protocol, arena_master_dbref, map_dbref, staging_dbref,
             creator_dbref, map_height, map_width, arena_name, current_wave,
-            game_mode, game_state)
+            game_mode, game_state, difficulty_mod)
         self.update_or_add_puppet(puppet)
 
         returnValue(puppet)

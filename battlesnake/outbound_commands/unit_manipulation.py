@@ -4,6 +4,7 @@ Contains some useful unit manipulation sequences.
 
 from twisted.internet.defer import inlineCallbacks
 
+from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands.think_fn_wrappers import btgetxcodevalue, \
     btsetxcodevalue
 
@@ -66,3 +67,21 @@ def repair_unit_damage(protocol, unit_dbref):
     """
 
     yield btsetxcodevalue(protocol, unit_dbref, 'mechdamage', '-')
+
+
+@inlineCallbacks
+def heal_unit_pilot(protocol, unit_dbref):
+    """
+    Unlike a Fixer, repair all damage of all kinds for the given unit.
+
+    :param str unit_dbref: A valid MECH xcode object's dbref.
+    """
+
+    yield btsetxcodevalue(protocol, unit_dbref, 'pilotdam', '0')
+    think_str = (
+        "[btsetcharvalue(get({unit_dbref}/Pilot),bruise,0,0)]"
+        "[btsetcharvalue(get({unit_dbref}/Pilot),lethal,0,0)]".format(
+            unit_dbref=unit_dbref
+        )
+    )
+    mux_commands.think(protocol, think_str, return_output=False)

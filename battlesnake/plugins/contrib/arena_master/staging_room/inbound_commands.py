@@ -116,7 +116,10 @@ class BeginMatchCommand(BaseCommand):
         if creator_dbref != invoker_dbref:
             raise CommandError("Only the arena's original creator can do that.")
 
-        if puppet.game_state.lower() != 'staging':
+        game_state = puppet.game_state.lower()
+        if game_state == 'finished':
+            raise CommandError("The match is already over!")
+        elif game_state != 'staging':
             raise CommandError("The match has already begun!")
 
         yield puppet.change_game_state(p, 'In-Between')
