@@ -1,5 +1,6 @@
 from twisted.internet.defer import inlineCallbacks
 
+from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 
 
@@ -17,3 +18,15 @@ def order_ai(protocol, arena_puppet, orders):
     yield mux_commands.force(
         protocol, arena_puppet.dbref,
         force_command=command)
+
+
+@inlineCallbacks
+def arena_debug_msg(protocol, message):
+    """
+    Emits an Arena debug message. Currently dumps to ArenaDebug channel
+    in-game.
+
+    :param str message: The message to emit.
+    """
+
+    yield think_fn_wrappers.cemit(protocol, 'ArenaDebug', message)

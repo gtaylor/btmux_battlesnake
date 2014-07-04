@@ -71,10 +71,9 @@ class ArenaMasterPuppet(object):
         message = "%ch%crWARNING: %cwAttacker wave %cc{wave_num}%cw has arrived!%cn".format(
             wave_num=self.current_wave)
         self.pemit_throughout_zone(p, message)
-        num_players = len(self.list_defending_units())
+        defenders_bv2 = self.calc_total_defending_units_bv2()
         yield spawn_wave(
-            p, self.current_wave, num_players, self.difficulty_mod,
-            self.map_dbref)
+            p, self.current_wave, defenders_bv2, self.difficulty_mod, self)
 
     @inlineCallbacks
     def change_state_to_in_between(self, protocol):
@@ -192,6 +191,17 @@ class ArenaMasterPuppet(object):
 
         units_by_faction = self.unit_store.list_units_by_faction()
         return units_by_faction.get(self.defending_faction_dbref, [])
+
+    def calc_total_defending_units_bv2(self):
+        """
+        :rtype: int
+        :returns: The total BV2 of all defending units left in the match.
+        """
+
+        bv2_total = 0
+        for unit in self.list_defending_units():
+            bv2_total += unit.battle_value
+        return bv2_total
 
     def list_attacking_units(self):
         """

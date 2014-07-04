@@ -50,6 +50,18 @@ def pemit(protocol, objects, message):
     return mux_commands.think(protocol, think_str)
 
 
+def cemit(protocol, channel, message):
+    """
+    :param str: A channel name to emit to.
+    :param str message: The message to cemit().
+    """
+
+    think_str = "[cemit({channel},{message})]".format(
+        channel=channel, message=message,
+    )
+    return mux_commands.think(protocol, think_str)
+
+
 @inlineCallbacks
 def set_attrs(protocol, obj, attr_dict, iter_delim='|'):
     """

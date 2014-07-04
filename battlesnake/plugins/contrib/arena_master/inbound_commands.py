@@ -77,14 +77,14 @@ class SpawnWaveCommand(BaseCommand):
             'wave_num', type=int,
             help="The wave number.")
         parser.add_argument(
-            'num_players', type=int,
-            help="Number of human defenders.")
+            'opposing_bv2', type=int,
+            help="Total BV2 of opposing force.")
         parser.add_argument(
             'difficulty_mod', type=float,
             help="1.0 being the base level difficulty.")
         parser.add_argument(
-            'map_dbref', type=str,
-            help="Map dbref to spawn to.")
+            'arena_master_dbref', type=str,
+            help="Arena master dbref to spawn through.")
 
         args = parser.parse_args(args=cmd_line)
         try:
@@ -96,9 +96,16 @@ class SpawnWaveCommand(BaseCommand):
     def handle(self, protocol, invoker_dbref, args):
         output = str(args)
         mux_commands.pemit(protocol, invoker_dbref, output)
+
+        arena_master_dbref = args.arena_master_dbref
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError("Invalid arena dbref.")
+
         yield spawn_wave(
-            protocol, args.wave_num, args.num_players, args.difficulty_mod,
-            args.map_dbref)
+            protocol, args.wave_num, args.opposing_bv2, args.difficulty_mod,
+            puppet)
         mux_commands.pemit(protocol, invoker_dbref,
             "Spawning wave.")
 
@@ -229,12 +236,12 @@ class DestroyArenaCommand(BaseCommand):
     def run(self, protocol, parsed_line, invoker_dbref):
         p = protocol
         arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
-        mux_commands.pemit(p, invoker_dbref, "Destroying arena: %s" % arena_master_dbref)
         try:
             PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
         except KeyError:
             raise CommandError("Invalid arena dbref.")
 
+        mux_commands.pemit(p, invoker_dbref, "Destroying arena: %s" % arena_master_dbref)
         yield destroy_arena(p, arena_master_dbref)
         mux_commands.pemit(p, invoker_dbref, "Arena destroyed!")
 

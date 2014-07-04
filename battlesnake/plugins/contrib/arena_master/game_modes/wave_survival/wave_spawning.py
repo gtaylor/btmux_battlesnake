@@ -15,26 +15,23 @@ from battlesnake.plugins.contrib.pg_db.api import get_db_connection
 from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
     create_unit
 
-BASE_FIRST_WAVE_BV2 = 650
-
 
 @inlineCallbacks
-def pick_refs_for_wave(wave_num, num_players, difficulty_modifier):
+def pick_refs_for_wave(wave_num, opposing_bv2, difficulty_modifier):
     """
     :param int wave_num: A wave number. Starting at 1.
-    :param int num_players: The number of players on the defending team.
+    :param int opposing_bv2: The total BV2 for the opposing force.
     :param float difficulty_modifier: A difficulty modifier that reduces
         the BV. Values 0...1
     :rtype: list
     :returns: A list of unit ref strings to spawn for this wave.
     """
 
-    if num_players > 1:
-        num_players_mod = num_players * 1.1
-    else:
-        num_players_mod = 1.0
-    first_wave_bv2 = BASE_FIRST_WAVE_BV2 * num_players_mod * difficulty_modifier
+    print "OPPOSING BV2", opposing_bv2
+    first_wave_bv2 = opposing_bv2 * difficulty_modifier
+    # Successive waves are slightly harder than the first wave.
     max_wave_bv2 = first_wave_bv2 + (first_wave_bv2 * math.log(wave_num))
+    print "MAX WAVE BV2", max_wave_bv2
 
     conn = yield get_db_connection()
     results = yield conn.runQuery(
@@ -89,25 +86,27 @@ def choose_unit_spawn_spot(map_width, map_height):
 
 
 @inlineCallbacks
-def spawn_wave(protocol, wave_num, num_players, difficulty_modifier,
-               map_dbref):
+def spawn_wave(protocol, wave_num, opposing_bv2, difficulty_modifier,
+               arena_master_puppet):
     """
     Spawns a wave of attackers.
 
     :param BattlesnakeTelnetProtocol protocol:
     :param int wave_num: The wave number to spawn. Higher waves are
         more difficult.
-    :param int num_players: The number of defending players.
+    :param int opposing_bv2: The total BV2 for the opposing force.
     :param float difficulty_modifier: 1.0 = moderate difficulty,
         anything less is easier, anything more is harder.
-    :param str map_dbref: The DBref of the map to spawn units to.
+    :param ArenaMasterPuppet arena_master_puppet: The arena master puppet
+        instance to spawn through.
     :rtype: list
     :returns: A list of tuples containing details on the spawned units.
         Tuples are in the form of (unit_ref, unit_dbref).
     """
 
+    map_dbref = arena_master_puppet.map_dbref
     map_width, map_height = yield get_map_dimensions(protocol, map_dbref)
-    refs = yield pick_refs_for_wave(wave_num, num_players, difficulty_modifier)
+    refs = yield pick_refs_for_wave(wave_num, opposing_bv2, difficulty_modifier)
     faction = get_faction(ATTACKER_FACTION_DBREF)
     spawned = []
     for unit_ref in refs:
