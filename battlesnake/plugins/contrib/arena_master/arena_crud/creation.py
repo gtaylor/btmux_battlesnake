@@ -71,6 +71,8 @@ def _create_map(protocol, arena_name, arena_master_dbref):
     flags = ['XCODE', 'INHERIT', 'IN_CHARACTER']
     yield think_fn_wrappers.set_flags(p, map_dbref, flags)
     yield think_fn_wrappers.btloadmap(p, map_dbref, initial_mapfile)
+    # Disallow friendly fire.
+    yield think_fn_wrappers.btsetxcodevalue(p, map_dbref, 'flags', 'i')
 
     returnValue(map_dbref)
 

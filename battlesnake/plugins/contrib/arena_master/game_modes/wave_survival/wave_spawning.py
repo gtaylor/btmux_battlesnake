@@ -2,12 +2,19 @@ import math
 import random
 
 from twisted.internet.defer import inlineCallbacks, returnValue
+from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions
+from battlesnake.plugins.contrib.ai.outbound_commands import start_unit_ai
+from battlesnake.plugins.contrib.factions.api import get_faction
+from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF
 
 from battlesnake.plugins.contrib.pg_db.api import get_db_connection
 
 # All of our max wave BV2 values are based off of this starter value. This
 # assumes one player on wave one with a 1.0 difficulty mod (normal difficulty).
 # From here, we multiply based on all of those previously mentioned variables.
+from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
+    create_unit
+
 BASE_FIRST_WAVE_BV2 = 650
 
 
@@ -79,3 +86,34 @@ def choose_unit_spawn_spot(map_width, map_height):
         x = random.randrange(0, map_width)
 
     return x, y
+
+
+@inlineCallbacks
+def spawn_wave(protocol, wave_num, num_players, difficulty_modifier,
+               map_dbref):
+    """
+    Spawns a wave of attackers.
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param int wave_num: The wave number to spawn. Higher waves are
+        more difficult.
+    :param int num_players: The number of defending players.
+    :param float difficulty_modifier: 1.0 = moderate difficulty,
+        anything less is easier, anything more is harder.
+    :param str map_dbref: The DBref of the map to spawn units to.
+    :rtype: list
+    :returns: A list of tuples containing details on the spawned units.
+        Tuples are in the form of (unit_ref, unit_dbref).
+    """
+
+    map_width, map_height = yield get_map_dimensions(protocol, map_dbref)
+    refs = yield pick_refs_for_wave(wave_num, num_players, difficulty_modifier)
+    faction = get_faction(ATTACKER_FACTION_DBREF)
+    spawned = []
+    for unit_ref in refs:
+        unit_x, unit_y = choose_unit_spawn_spot(map_width, map_height)
+        unit_dbref = yield create_unit(
+            protocol, unit_ref, map_dbref, faction, unit_x, unit_y)
+        start_unit_ai(protocol, unit_dbref)
+        spawned.append((unit_ref, unit_dbref))
+    returnValue(spawned)

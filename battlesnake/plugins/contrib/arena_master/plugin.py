@@ -4,7 +4,7 @@ from battlesnake.core.base_plugin import BattlesnakePlugin
 
 from battlesnake.plugins.contrib.arena_master.inbound_commands import \
     ArenaMasterCommandTable
-from battlesnake.plugins.contrib.arena_master.puppets.units.outbound_commands import \
+from battlesnake.plugins.contrib.arena_master.puppets.units.store_populater import \
     populate_puppet_store
 from battlesnake.plugins.contrib.arena_master.puppets.units.timers import \
     ArenaPuppetMasterUnitStoreTimerTable

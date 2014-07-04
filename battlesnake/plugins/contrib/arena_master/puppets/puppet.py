@@ -57,6 +57,21 @@ class ArenaMasterPuppet(object):
         attrs = {'GAME_STATE.D': new_state}
         yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
 
+    @inlineCallbacks
+    def change_state_to_active(self, protocol):
+        """
+        This always gets called from the In-Between state. Changes to Active
+        state, poops out a wave of units.
+        """
+
+        p = protocol
+        assert self.game_state == 'In-Between', "Can only go Active from In-Between."
+        yield self.change_game_state(p, 'Active')
+        yield self.unit_store.repair_all_units(protocol)
+        message = "%ch%crWARNING: %cwAttacker wave %cc{wave_num}%cw has arrived!%cn".format(
+            wave_num=self.current_wave)
+        self.pemit_throughout_zone(p, message)
+
     def pemit_throughout_zone(self, protocol, message):
         """
         Sends a message to the entire arena.

@@ -4,12 +4,12 @@ XCODE attribute.
 """
 
 from twisted.internet.defer import inlineCallbacks
-from battlesnake.core.utils import add_escaping_percent_sequences
 
+from battlesnake.core.utils import add_escaping_percent_sequences
 from battlesnake.outbound_commands.mux_commands import remit, trigger
 from battlesnake.outbound_commands.think_fn_wrappers import btgetxcodevalue, \
     btsetxcodevalue, get_map_dimensions, get
-from battlesnake.plugins.contrib.arena_master.puppets.units.waves import \
+from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     choose_unit_spawn_spot
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF

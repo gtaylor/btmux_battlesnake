@@ -16,17 +16,8 @@ from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
-from battlesnake.plugins.contrib.arena_master.staging_room.idesc import \
-    pemit_staging_room_idesc
-from battlesnake.plugins.contrib.factions.api import get_faction
-from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
-from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
-from battlesnake.plugins.contrib.arena_master.puppets.units.outbound_commands import \
-    spawn_wave
-from battlesnake.plugins.contrib.arena_master.puppets.units.waves import \
-    pick_refs_for_wave
-from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
-    create_unit
+from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
+    pick_refs_for_wave, spawn_wave
 
 
 class PickWaveCommand(BaseCommand):
@@ -304,11 +295,40 @@ class ArenaJoinCommand(BaseCommand):
         think_fn_wrappers.tel(p, invoker_dbref, puppet.staging_dbref)
 
 
+class ContinueMatchCommand(BaseCommand):
+    """
+    Moves the match from in-between to the next wave.
+    """
+
+    command_name = "am_continuematch"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        creator_dbref = puppet.creator_dbref
+        if creator_dbref != invoker_dbref:
+            raise CommandError("Only the arena's original creator can do that.")
+
+        if puppet.game_state.lower() != 'in-between':
+            raise CommandError("You may only %ch%cgcontinue%cn when between waves.")
+
+        yield puppet.change_state_to_active(p)
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
         ArenaListCommand,
         ArenaJoinCommand,
+
+        ContinueMatchCommand,
 
         PickWaveCommand,
         SpawnWaveCommand,

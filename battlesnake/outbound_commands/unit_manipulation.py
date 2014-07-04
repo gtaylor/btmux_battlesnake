@@ -55,3 +55,14 @@ def add_unit_status_flags(protocol, unit_dbref, status_flags):
         combined_set = current_set.union(new_set)
         new_val = ''.join(combined_set)
         yield btsetxcodevalue(p, unit_dbref, xcode_attr, new_val)
+
+
+@inlineCallbacks
+def repair_unit_damage(protocol, unit_dbref):
+    """
+    Unlike a Fixer, repair all damage of all kinds for the given unit.
+
+    :param str unit_dbref: A valid MECH xcode object's dbref.
+    """
+
+    yield btsetxcodevalue(protocol, unit_dbref, 'mechdamage', '-')

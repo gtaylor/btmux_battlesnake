@@ -1,7 +1,11 @@
 import datetime
 
+from twisted.internet.defer import inlineCallbacks
+
 from battlesnake.conf import settings
 from battlesnake.core.utils import calc_xy_range
+from battlesnake.outbound_commands import unit_manipulation
+
 from battlesnake.plugins.contrib.arena_master.puppets.units.signals import on_stale_unit_removed, \
     on_new_unit_detected, on_unit_destroyed, on_shot_landed, on_shot_missed, \
     on_unit_state_changed
@@ -222,6 +226,15 @@ class ArenaMapUnitStore(object):
                 continue
             units.append(unit)
         return units
+
+    @inlineCallbacks
+    def repair_all_units(self, protocol):
+        """
+        Repairs all units on the map.
+        """
+
+        for unit in self:
+            yield unit_manipulation.repair_unit_damage(protocol, unit.dbref)
 
 
 class ArenaMapUnit(object):
