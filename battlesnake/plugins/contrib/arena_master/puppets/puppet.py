@@ -66,6 +66,7 @@ class ArenaMasterPuppet(object):
 
         p = protocol
         assert self.game_state == 'In-Between', "Can only go Active from In-Between."
+        yield self.save_defender_tics(protocol)
         yield self.change_game_state(p, 'Active')
         yield self.repair_all_defending_units(protocol)
         message = "%ch%crWARNING: %cwAttacker wave %cc{wave_num}%cw has arrived!%cn".format(
@@ -237,3 +238,12 @@ class ArenaMasterPuppet(object):
         for unit in self.list_defending_units():
             yield unit_manipulation.repair_unit_damage(protocol, unit.dbref)
             yield unit_manipulation.heal_unit_pilot(protocol, unit.dbref)
+
+    @inlineCallbacks
+    def save_defender_tics(self, protocol):
+        """
+        Saves all defenders' tics.
+        """
+
+        for unit in self.list_defending_units():
+            yield unit_manipulation.save_unit_tics_to_pilot(protocol, unit.dbref)

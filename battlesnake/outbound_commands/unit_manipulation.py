@@ -85,3 +85,16 @@ def heal_unit_pilot(protocol, unit_dbref):
         )
     )
     mux_commands.think(protocol, think_str, return_output=False)
+
+
+@inlineCallbacks
+def save_unit_tics_to_pilot(protocol, unit_dbref):
+    """
+    Saves the unit's tics to the pilot.
+
+    :param str unit_dbref: A valid MECH xcode object's dbref.
+    """
+
+    think_str = "[u({unit_dbref}/STORETICS.F,get({unit_dbref}/Pilot))]".format(
+        unit_dbref=unit_dbref)
+    mux_commands.think(protocol, think_str, return_output=False)
