@@ -388,6 +388,61 @@ class TScanCommand(BaseCommand):
         mux_commands.pemit(p, invoker_dbref, retval)
 
 
+class EScanCommand(BaseCommand):
+    """
+    Enemy scan, shows other units.
+    """
+
+    command_name = "am_escan"
+
+    #@inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+        invoker_unit_dbref = parsed_line.kwargs['invoker_unit_dbref']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+        map_dbref = puppet.map_dbref
+        try:
+            invoker_unit = puppet.unit_store.get_unit_by_dbref(invoker_unit_dbref)
+        except ValueError:
+            raise CommandError('Unable to find your unit in the unit store.')
+
+        retval = self._get_header_str("Enemy Scan", width=57)
+        retval += "%r"
+        retval += (
+            " %[ID%] [ljust(Unit Type,15)] [ljust(X%,Y,7)] "
+            "[ljust(Speed,7)][ljust(Head,6)][ljust(Rng,7)]Cond"
+        )
+
+        teammates = puppet.list_attacking_units()
+        teammates.sort(
+            key=lambda t_unit: t_unit.distance_to_unit(invoker_unit), reverse=True)
+        retval += self._get_footer_str("-", width=57)
+        for unit in teammates:
+            retval += "%r"
+            retval += (
+                " %[{contact_id}%] [ljust({mech_name},13)] "
+                "[rjust({unit_x},3)],[ljust({unit_y},5)] "
+                "[ljust({speed},6)] "
+                "[ljust({heading},5)] "
+                "[ljust(round(btgetrange({map_dbref},{invoker_unit_dbref},{unit_dbref}),1),6)] "
+                "???%%".format(
+                    contact_id=unit.contact_id, mech_name=unit.mech_name[:14],
+                    unit_x=unit.x_coord, unit_y=unit.y_coord,
+                    pilot_dbref=unit.pilot_dbref, speed=unit.speed,
+                    heading=unit.heading, invoker_unit_dbref=invoker_unit_dbref,
+                    unit_dbref=unit.dbref, map_dbref=map_dbref,
+                )
+            )
+        retval += self._get_footer_str(width=57)
+
+        mux_commands.pemit(p, invoker_dbref, retval)
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
@@ -405,4 +460,5 @@ class ArenaMasterCommandTable(InboundCommandTable):
         DestroyArenaCommand,
 
         TScanCommand,
+        EScanCommand,
     ]
