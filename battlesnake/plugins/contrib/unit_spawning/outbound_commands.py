@@ -13,7 +13,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
                 unit_x, unit_y, unit_z='', pilot_dbref=None,
                 extra_status_flags=None, extra_attrs=None,
                 zone_dbref=None, tacrange=40, scanrange=30,
-                lrsrange=50):
+                lrsrange=50, radiorange=300):
     """
     Creates a new unit on the given map at the specified coordinates.
 
@@ -34,6 +34,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     :keyword int tacrange: The unit spawns with this tactical range.
     :keyword int scanrange: The unit spawns with this scan range.
     :keyword int lrsrange: The unit spawns with this LRS range.
+    :keyword int radiorange: The unit spawns with this radio range.
     :rtype: defer.Deferred
     :returns: A Deferred whose callback value will be the dbref of
         the newly created unit.
@@ -119,6 +120,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'scanrange', scanrange)
     yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'tacrange', tacrange)
     yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'lrsrange', lrsrange)
+    yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'radiorange', radiorange)
     contact_id = yield think_fn_wrappers.btgetxcodevalue(p, unit_dbref, 'id')
     mechdesc = (
         '%ch%cb' + '-' * 78 + '%cn%r'
