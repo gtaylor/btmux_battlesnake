@@ -12,7 +12,8 @@ from battlesnake.outbound_commands import mux_commands
 def create_unit(protocol, unit_ref, map_dbref, faction,
                 unit_x, unit_y, unit_z='', pilot_dbref=None,
                 extra_status_flags=None, extra_attrs=None,
-                zone_dbref=None):
+                zone_dbref=None, tacrange=40, scanrange=30,
+                lrsrange=50):
     """
     Creates a new unit on the given map at the specified coordinates.
 
@@ -30,6 +31,9 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
     :keyword dict extra_attrs: A dict of extra attrs to set on the unit.
     :keyword str zone_dbref: If this unit should have a zone set, provide
         the dbref here.
+    :keyword int tacrange: The unit spawns with this tactical range.
+    :keyword int scanrange: The unit spawns with this scan range.
+    :keyword int lrsrange: The unit spawns with this LRS range.
     :rtype: defer.Deferred
     :returns: A Deferred whose callback value will be the dbref of
         the newly created unit.
@@ -112,8 +116,10 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
             unit_dbref, comtitle)
         mux_commands.force(p, unit_dbref, cmd)
 
-    contact_id = yield think_fn_wrappers.btgetxcodevalue(
-        p, unit_dbref, 'id')
+    yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'scanrange', scanrange)
+    yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'tacrange', tacrange)
+    yield think_fn_wrappers.btsetxcodevalue(p, unit_dbref, 'lrsrange', lrsrange)
+    contact_id = yield think_fn_wrappers.btgetxcodevalue(p, unit_dbref, 'id')
     mechdesc = (
         '%ch%cb' + '-' * 78 + '%cn%r'
         '%%%[{contact_id}%%%] {unit_name} appears to be of type {unit_ref}.%r'
