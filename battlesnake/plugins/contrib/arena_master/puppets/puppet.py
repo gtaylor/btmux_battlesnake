@@ -183,13 +183,16 @@ class ArenaMasterPuppet(object):
         # Put any idle/slacking units to work.
         move_idle_units(self, attacking_ai_units, defending_units)
 
-    def list_defending_units(self):
+    def list_defending_units(self, piloted_only=True):
         """
         :rtype: list
+        :keyword bool piloted_only: If True, only return the units who
+            are piloted (by AI or humans).
         :returns: A list of all remaining defending units still on the map.
         """
 
-        units_by_faction = self.unit_store.list_units_by_faction()
+        units_by_faction = self.unit_store.list_units_by_faction(
+            piloted_only=piloted_only)
         return units_by_faction.get(self.defending_faction_dbref, [])
 
     def calc_total_defending_units_bv2(self):
@@ -200,16 +203,21 @@ class ArenaMasterPuppet(object):
 
         bv2_total = 0
         for unit in self.list_defending_units():
+            print "UNIT", unit, unit.battle_value
             bv2_total += unit.battle_value
+        print "TOTAL", bv2_total
         return bv2_total
 
-    def list_attacking_units(self):
+    def list_attacking_units(self, piloted_only=True):
         """
         :rtype: list
+        :keyword bool piloted_only: If True, only return the units who
+            are piloted (by AI or humans).
         :returns: A list of all remaining attacking units still on the map.
         """
 
-        units_by_faction = self.unit_store.list_units_by_faction()
+        units_by_faction = self.unit_store.list_units_by_faction(
+            piloted_only=piloted_only)
         return units_by_faction.get(self.attacking_faction_dbref, [])
 
     def get_defender_spawn_coords(self):

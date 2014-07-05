@@ -6,9 +6,11 @@ XCODE attribute.
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.core.utils import add_escaping_percent_sequences
+from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands.mux_commands import remit, trigger
 from battlesnake.outbound_commands.think_fn_wrappers import btgetxcodevalue, \
     btsetxcodevalue, get_map_dimensions, get
+
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     choose_unit_spawn_spot
 from battlesnake.plugins.contrib.factions.api import get_faction
@@ -205,6 +207,10 @@ def use_fixer_unit(puppet, unit, fixer_unit):
     trigger(p, fixer_unit.dbref, 'DESTMECH.T')
     fix_percent = yield get(p, fixer_unit.dbref, 'FIXER_FIX_PERCENT')
     fix_percent = float(fix_percent)
+
+    emit_cmd = "@losemit uses %[{fixer_id}%] {fixer_mechname}.".format(
+        fixer_id=fixer_unit.contact_id, fixer_mechname=fixer_unit.mech_name)
+    mux_commands.force(p, unit.dbref, emit_cmd)
 
     if fixer_unit.unit_ref == 'ArmorFixer':
         yield uniformly_repair_armor(p, unit.dbref, fix_percent)

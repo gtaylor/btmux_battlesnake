@@ -101,6 +101,8 @@ def _create_puppet_ol(protocol, arena_name, arena_master_dbref, map_dbref,
         p, ol_dbref, settings['arena_master']['puppet_ol_parent_dbref'])
     yield think_fn_wrappers.set_flags(p, ol_dbref, ['DARK'])
     yield think_fn_wrappers.tel(p, arena_master_dbref, ol_dbref)
+    yield think_fn_wrappers.btsetxcodevalue(p, ol_dbref, 'scanrange', '100')
+    yield think_fn_wrappers.btsetxcodevalue(p, ol_dbref, 'tacrange', '100')
     mux_commands.force(p, ol_dbref, 'startup ov')
 
     returnValue(ol_dbref)
@@ -138,6 +140,10 @@ def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref,
     mux_commands.set_attr(
         p, exit_dbref, 'Fail',
         "You can't leave your own arena without destroying it.")
+    yield think_fn_wrappers.btsetxcodevalue(p, staging_dbref, 'scanrange', '100')
+    yield think_fn_wrappers.btsetxcodevalue(p, staging_dbref, 'tacrange', '100')
+    setcomtitle_cmd = 'setchanneltitle a=%s' % 'Staging'
+    mux_commands.force(p, staging_dbref, setcomtitle_cmd)
     mux_commands.force(p, staging_dbref, 'startup ov')
 
     returnValue(staging_dbref)

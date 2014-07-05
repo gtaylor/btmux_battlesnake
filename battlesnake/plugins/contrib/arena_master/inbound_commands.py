@@ -262,7 +262,7 @@ class ArenaListCommand(BaseCommand):
         retval = self._get_header_str('Active Arena Listing')
         retval += self._get_footer_str('-')
         retval += (
-            '%ch [rjust(ID,4)]%b [ljust(Arena Name, 40)] '
+            '%r%ch [rjust(ID,4)]%b [ljust(Arena Name, 40)] '
             '[ljust(Players,10)] '
             'State%cn'
         )

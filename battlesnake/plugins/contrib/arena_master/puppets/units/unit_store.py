@@ -138,7 +138,7 @@ class ArenaMapUnitStore(object):
                 return unit
         raise ValueError('Invalid unit dbref: %s' % dbref)
 
-    def list_units_by_faction(self):
+    def list_units_by_faction(self, piloted_only=True):
         """
         Breaks the units up by faction into a dict of lists.
 
@@ -151,6 +151,8 @@ class ArenaMapUnitStore(object):
         for unit in self.__iter__():
             unit_faction = unit.faction_dbref
             if not unit_faction:
+                continue
+            if piloted_only and not unit.pilot_dbref:
                 continue
             if unit_faction not in units_by_faction:
                 units_by_faction[unit_faction] = []
@@ -245,7 +247,7 @@ class ArenaMapUnit(object):
                  heat, status, status2, critstatus, critstatus2, faction_dbref,
                  battle_value, target_dbref, shots_fired, shots_landed,
                  damage_inflicted, shots_missed, units_killed, maxspeed,
-                 is_ai):
+                 is_ai, pilot_dbref):
         self.dbref = dbref.strip()
         self.contact_id = contact_id.strip().upper()
         self.unit_ref = unit_ref
@@ -264,7 +266,7 @@ class ArenaMapUnit(object):
         self.critstatus = critstatus
         self.critstatus2 = critstatus2
         self.faction_dbref = faction_dbref
-        self.battle_value = int(battle_value)
+        self.battle_value = int(float(battle_value))
         self.target_dbref = '#%s' % target_dbref
         self.shots_fired = int(shots_fired)
         self.shots_landed = int(shots_landed)
@@ -273,6 +275,7 @@ class ArenaMapUnit(object):
         self.units_killed = int(units_killed)
         self.maxspeed = float(maxspeed)
         self.is_ai = is_ai == '1'
+        self.pilot_dbref = pilot_dbref
 
         # If the arena master wanted this unit to go somewhere, this is
         # where it last asked.

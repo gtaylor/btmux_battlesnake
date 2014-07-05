@@ -100,7 +100,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         else:
             pilot_name = yield think_fn_wrappers.name(p, pilot_dbref)
             comtitle = '%s/%s' % (unit_ref, pilot_name)
-        cmd = '@fo %s={setchanneltitle a=%s;setchannelmode a=deG}' % (
+        cmd = '@fo %s={setchanneltitle a=%s;setchannelmode a=G}' % (
             unit_dbref, comtitle)
         mux_commands.force(p, unit_dbref, cmd)
         mux_commands.trigger(

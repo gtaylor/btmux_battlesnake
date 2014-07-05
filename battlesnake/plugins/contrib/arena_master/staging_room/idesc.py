@@ -17,27 +17,31 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref):
     p = protocol
 
     remaining_friendlies = arena_master_puppet.list_defending_units()
+    remaining_enemies = arena_master_puppet.list_attacking_units()
     staging_dbref = arena_master_puppet.staging_dbref
 
     retval = get_footer_str('-')
     retval += (
-        " This arena is in %chwave%cn game mode. Survive increasingly more "
-        "challenging waves of enemy AI."
+        "%r This arena is in %chwave%cn game mode. Survive increasingly more "
+        "challenging waves%r of enemy AI."
     )
     retval += get_footer_str('-')
     retval += (
-        " [ljust(%chMap name:%cn [btgetxcodevalue({map_dbref},mapname)],45)]"
+        "%r [ljust(%chMap name:%cn [btgetxcodevalue({map_dbref},mapname)],45)]"
         " %chGame mode%cn: {game_mode}%r"
         " [ljust(%chCurrent state:%cn {game_state},45)]"
         " %chFriendlies remaining:%cn {remaining_friendlies}%r"
-        " %chCurrent wave:%cn {current_wave}".format(
+        " [ljust(%chCurrent wave:%cn {current_wave},45)]"
+        " %chEnemies remaining:%cn {remaining_enemies}".format(
             map_dbref=arena_master_puppet.map_dbref,
             game_mode='Wave',
             game_state=arena_master_puppet.game_state,
             remaining_friendlies=len(remaining_friendlies),
-            current_wave=arena_master_puppet.current_wave)
+            current_wave=arena_master_puppet.current_wave,
+            remaining_enemies=len(remaining_enemies))
     )
     retval += get_footer_str('-')
+    retval += '%r'
     retval += _return_state_specific_help(p, arena_master_puppet, invoker_dbref)
     retval += get_footer_str()
     retval += "%r%r[u({staging_dbref}/EXITS_AND_CONTENTS.F)]".format(
@@ -75,8 +79,8 @@ def _return_staging_state_help(protocol, arena_master_puppet, invoker_dbref):
 # noinspection PyUnusedLocal
 def _return_in_between_state_help(protocol, arena_master_puppet, invoker_dbref):
     retval = (
-        " The arena is currently in between waves. If you'd like to join "
-        "the action, now is your chance!%r%r"
+        " The arena is currently in between waves. If you'd like to join %r"
+        " the action, now is your chance!%r%r"
         " Type %ch%cgspawn <ref>%cn to spawn a unit of your choice"
     )
     return retval
@@ -85,8 +89,8 @@ def _return_in_between_state_help(protocol, arena_master_puppet, invoker_dbref):
 # noinspection PyUnusedLocal
 def _return_active_state_help(protocol, arena_master_puppet, invoker_dbref):
     retval = (
-        " Your fellow humans are currently fending off a wave of homicidal "
-        " AI foes. You'll be able to join the action once the wave is finished."
+        " Your fellow humans are currently fending off a wave of homicidal AI foes.%r"
+        " You'll be able to join the action once the wave is finished."
     )
     return retval
 
