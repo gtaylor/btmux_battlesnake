@@ -108,6 +108,21 @@ class ArenaMasterPuppetStore(object):
         assert is_valid_dbref(puppet_dbref), "Invalid puppet dbref."
         del self._puppet_store[puppet_dbref]
 
+    def find_puppet_for_unit_dbref(self, unit_dbref):
+        """
+        Find which puppet contains the given unit dbref.
+
+        :param str unit_dbref: The unit whose puppet to find.
+        :rtype: ArenaMasterPuppet or None
+        """
+
+        for puppet in self.list_arena_master_puppets():
+            try:
+                puppet.unit_store.get_unit_by_dbref(unit_dbref)
+                return puppet
+            except ValueError:
+                continue
+
 
 # Lame that we have to pollute the global namespace, but whatevs.
 PUPPET_STORE = ArenaMasterPuppetStore()

@@ -258,7 +258,7 @@ class ArenaMapUnit(object):
         self.y_coord = int(y_coord)
         self.z_coord = int(z_coord)
         self.speed = float(speed)
-        self.heading = float(heading)
+        self.heading = int(float(heading) / 32)
         self.tonnage = int(tonnage)
         self.heat = float(heat)
         self.status = status
