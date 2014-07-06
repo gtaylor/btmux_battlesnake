@@ -2,16 +2,20 @@
 Various components for the staging room.
 """
 
-from battlesnake.core.utils import get_footer_str
+from battlesnake.core.utils import get_footer_str, get_header_str
 from battlesnake.outbound_commands import mux_commands
 
 
-def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref):
+def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
+                             render_contents=True, render_header=False,
+                             render_lower_tip=True):
     """
     @pemit the staging room's "idesc", showing a run-down of the arena's state.
     :param BattlesnakeTelnetProtocol protocol:
     :param ArenaMasterPuppet arena_master_puppet:
     :param str invoker_dbref:
+    :keyword bool render_contents: Whether to render the contents of the
+        staging room.
     """
 
     p = protocol
@@ -20,7 +24,13 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref):
     remaining_enemies = arena_master_puppet.list_attacking_units()
     staging_dbref = arena_master_puppet.staging_dbref
 
-    retval = get_footer_str('-')
+    if render_header:
+        header_txt = 'Arena: {arena_name}'.format(
+            arena_name=arena_master_puppet.arena_name)
+        retval = get_header_str(header_txt)
+    else:
+        retval = get_footer_str('-')
+
     retval += (
         "%r This arena is in %chwave%cn game mode. Survive increasingly more "
         "challenging waves%r of enemy AI."
@@ -40,12 +50,14 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref):
             current_wave=arena_master_puppet.current_wave,
             remaining_enemies=len(remaining_enemies))
     )
-    retval += get_footer_str('-')
-    retval += '%r'
-    retval += _return_state_specific_help(p, arena_master_puppet, invoker_dbref)
+    if render_lower_tip:
+        retval += get_footer_str('-')
+        retval += '%r'
+        retval += _return_state_specific_help(p, arena_master_puppet, invoker_dbref)
     retval += get_footer_str()
-    retval += "%r%r[u({staging_dbref}/EXITS_AND_CONTENTS.F)]".format(
-        staging_dbref=staging_dbref)
+    if render_contents:
+        retval += "%r%r[u({staging_dbref}/EXITS_AND_CONTENTS.F)]".format(
+            staging_dbref=staging_dbref)
 
     mux_commands.pemit(p, invoker_dbref, retval)
 

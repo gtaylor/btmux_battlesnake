@@ -18,6 +18,8 @@ from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     pick_refs_for_wave, spawn_wave
+from battlesnake.plugins.contrib.arena_master.staging_room.idesc import \
+    pemit_staging_room_idesc
 
 
 class PickWaveCommand(BaseCommand):
@@ -277,8 +279,61 @@ class ArenaListCommand(BaseCommand):
         if not puppets:
             retval += "[center(There are no active arenas. Create one!,78)]"
         retval += self._get_footer_str()
+        retval += '%r[center(To get more details on an arena%, type %ch%cgarena <id>%cn,78)]'
+        retval += self._get_footer_str()
 
         mux_commands.pemit(p, invoker_dbref, retval)
+
+
+class ArenaDetailsCommand(BaseCommand):
+    """
+    Command to show the details of an arena.
+    """
+
+    command_name = "am_arenadetails"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        cmd_line = parsed_line.kwargs['cmd'].split()
+
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="arena", description='Shows info on an arena.')
+
+        parser.add_argument(
+            'arena_id', type=int, nargs='?', default=None,
+            help="The ID of the arena to see the details for..")
+
+        args = parser.parse_args(args=cmd_line)
+        try:
+            yield self.handle(protocol, invoker_dbref, parsed_line, args)
+        except AssertionError as exc:
+            raise CommandError(exc.message)
+
+    #@inlineCallbacks
+    def handle(self, protocol, invoker_dbref, parsed_line, args):
+        p = protocol
+        invoker_zone = parsed_line.kwargs['invoker_zone']
+
+        if args.arena_id:
+            zone_dbref = '#%s' % args.arena_id
+        else:
+            zone_dbref = invoker_zone
+
+        is_in_arena = invoker_zone == zone_dbref
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(zone_dbref)
+        except KeyError:
+            raise CommandError(
+                "Invalid arena ID. See the %ch%cgarenas%cn command for a full list.")
+
+        self.render_arena_detail(p, invoker_dbref, puppet, is_in_arena)
+
+    def render_arena_detail(self, protocol, invoker_dbref, puppet, is_in_arena):
+        render_lower_tip = is_in_arena
+        pemit_staging_room_idesc(
+            protocol, puppet, invoker_dbref, render_contents=False,
+            render_header=True, render_lower_tip=render_lower_tip)
 
 
 class ArenaJoinCommand(BaseCommand):
@@ -448,6 +503,7 @@ class ArenaMasterCommandTable(InboundCommandTable):
     commands = [
         ArenaListCommand,
         ArenaJoinCommand,
+        ArenaDetailsCommand,
 
         ContinueMatchCommand,
 
