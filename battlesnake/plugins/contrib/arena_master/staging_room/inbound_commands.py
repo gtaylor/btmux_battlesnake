@@ -162,6 +162,36 @@ class EndMatchCommand(BaseCommand):
         yield destroy_arena(p, arena_master_dbref)
 
 
+class TransferLeaderStatusCommand(BaseCommand):
+    """
+    Transfers the arena leader status to someone else.
+    """
+
+    command_name = "am_transferleader"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+        new_leader_dbref = parsed_line.kwargs['new_leader_dbref']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        leader_dbref = puppet.leader_dbref
+        if leader_dbref != invoker_dbref:
+            raise CommandError("Only the arena leader can do that.")
+
+        message = (
+            "%ch%cy[name({invoker_dbref})]%cw has transferred arena leadership "
+            "to %cc[name({new_leader_dbref})]%cw.%cn".format(
+                invoker_dbref=invoker_dbref, new_leader_dbref=new_leader_dbref))
+        puppet.pemit_throughout_zone(p, message)
+        yield puppet.set_arena_leader(p, new_leader_dbref)
+
+
 class ArenaStagingRoomCommandTable(InboundCommandTable):
 
     commands = [
@@ -169,4 +199,5 @@ class ArenaStagingRoomCommandTable(InboundCommandTable):
         BeginMatchCommand,
         SimpleSpawnCommand,
         EndMatchCommand,
+        TransferLeaderStatusCommand,
     ]

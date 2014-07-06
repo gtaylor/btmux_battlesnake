@@ -124,6 +124,18 @@ class ArenaMasterPuppet(object):
         yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
 
     @inlineCallbacks
+    def set_arena_leader(self, protocol, new_leader):
+        """
+        Changes an arena's leader.
+
+        :param str new_leader: A valid player dbref.
+        """
+
+        self.leader_dbref = new_leader
+        attrs = {'LEADER.DBREF': new_leader}
+        yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+
+    @inlineCallbacks
     def set_current_wave(self, protocol, wave_num):
         """
         Sets the current wave to a new value.

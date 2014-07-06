@@ -54,6 +54,8 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
         retval += get_footer_str('-')
         retval += '%r'
         retval += _return_state_specific_help(p, arena_master_puppet, invoker_dbref)
+        if arena_master_puppet.leader_dbref == invoker_dbref:
+            retval += "%r To transfer arena leadership to another player, type %ch%cgtransfer <player>%cn."
     retval += get_footer_str()
     if render_contents:
         retval += "%r%r[u({staging_dbref}/EXITS_AND_CONTENTS.F,{invoker_dbref})]".format(
