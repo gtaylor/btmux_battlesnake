@@ -134,12 +134,12 @@ def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref,
     mux_commands.chzone(p, exit_dbref, arena_master_dbref)
     mux_commands.link(p, exit_dbref, nexus_dbref)
     mux_commands.set_attr(
-        p, exit_dbref, 'ISOWNER', '[strmatch(%#,get(zone(me)/CREATOR.D))]')
+        p, exit_dbref, 'ISOWNER', '[strmatch(%#,get(zone(me)/CREATOR.DBREF))]')
     # Make sure the owner can't leave.
     mux_commands.lock(p, exit_dbref, 'ISOWNER/0')
     mux_commands.set_attr(
         p, exit_dbref, 'Fail',
-        "You can't leave your own arena without destroying it.")
+        "You can't leave your own arena without %ch%cgend%cning it.")
     yield think_fn_wrappers.btsetxcodevalue(p, staging_dbref, 'scanrange', '100')
     yield think_fn_wrappers.btsetxcodevalue(p, staging_dbref, 'tacrange', '100')
     setcomtitle_cmd = 'setchanneltitle a=%s' % 'Staging'

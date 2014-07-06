@@ -82,7 +82,10 @@ def _return_state_specific_help(protocol, arena_master_puppet, invoker_dbref):
 def _return_staging_state_help(protocol, arena_master_puppet, invoker_dbref):
     creator_dbref = arena_master_puppet.creator_dbref
     if creator_dbref == invoker_dbref:
-        retval = ' Once you are ready to get the match started, type %ch%cgbegin%cn.'
+        retval = (
+            ' Once you are ready to get the match started, type %ch%cgbegin%cn.%r'
+            ' To cancel the match and delete the arena, type %ch%cgend%cn.'
+        )
     else:
         retval = ' The match will begin once [name(%s)] presses the big red button.' % creator_dbref
     return retval
@@ -95,6 +98,9 @@ def _return_in_between_state_help(protocol, arena_master_puppet, invoker_dbref):
         " the action, now is your chance!%r%r"
         " Type %ch%cgspawn <ref>%cn to spawn a unit of your choice"
     )
+    creator_dbref = arena_master_puppet.creator_dbref
+    if creator_dbref == invoker_dbref:
+        retval += "%r To end the match, type %ch%cgend%cn."
     return retval
 
 
@@ -109,7 +115,9 @@ def _return_active_state_help(protocol, arena_master_puppet, invoker_dbref):
 
 # noinspection PyUnusedLocal
 def _return_finished_state_help(protocol, arena_master_puppet, invoker_dbref):
-    retval = (
-        " The match has concluded. Hit the showers!"
-    )
+    creator_dbref = arena_master_puppet.creator_dbref
+    if creator_dbref == invoker_dbref:
+        retval = "%rThe match has ended. Type %ch%cgend%cn."
+    else:
+        retval = " The match has concluded. Hit the showers!"
     return retval

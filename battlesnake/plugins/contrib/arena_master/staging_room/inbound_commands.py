@@ -6,6 +6,8 @@ from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
+    destroy_arena
 
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
@@ -126,10 +128,44 @@ class BeginMatchCommand(BaseCommand):
         puppet.pemit_throughout_zone(p, "The match has begun. You may now spawn.")
 
 
+class EndMatchCommand(BaseCommand):
+    """
+    Lets the arena leader end the match and clean the arena up.
+    """
+
+    command_name = "am_endmatch"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        creator_dbref = puppet.creator_dbref
+        if creator_dbref != invoker_dbref:
+            raise CommandError("Only the arena's original creator can do that.")
+
+        game_state = puppet.game_state.lower()
+        if game_state == 'active':
+            raise CommandError("You can't end a match while a wave is underway.")
+
+        if game_state != 'finished':
+            yield puppet.change_game_state(p, 'Finished')
+        puppet.pemit_throughout_zone(
+            p, "[name({invoker_dbref})] has ended the match.".format(
+                invoker_dbref=invoker_dbref))
+        yield destroy_arena(p, arena_master_dbref)
+
+
 class ArenaStagingRoomCommandTable(InboundCommandTable):
 
     commands = [
         ArenaInternalDescriptionCommand,
         BeginMatchCommand,
         SimpleSpawnCommand,
+        EndMatchCommand,
     ]
