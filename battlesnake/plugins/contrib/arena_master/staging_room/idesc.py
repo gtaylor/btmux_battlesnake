@@ -37,13 +37,13 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
     )
     retval += get_footer_str('-')
     retval += (
-        "%r [ljust(%chMap name:%cn [btgetxcodevalue({map_dbref},mapname)],45)]"
+        "%r [ljust(%chArena leader:%cn [name({arena_leader_dbref})],45)]"
         " %chGame mode%cn: {game_mode}%r"
         " [ljust(%chCurrent state:%cn {game_state},45)]"
         " %chFriendlies remaining:%cn {remaining_friendlies}%r"
         " [ljust(%chCurrent wave:%cn {current_wave},45)]"
         " %chEnemies remaining:%cn {remaining_enemies}".format(
-            map_dbref=arena_master_puppet.map_dbref,
+            arena_leader_dbref=arena_master_puppet.leader_dbref,
             game_mode='Wave',
             game_state=arena_master_puppet.game_state,
             remaining_friendlies=len(remaining_friendlies),
