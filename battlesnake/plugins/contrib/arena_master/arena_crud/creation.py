@@ -13,7 +13,7 @@ from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
 
 
 @inlineCallbacks
-def create_arena(protocol, arena_name, creator_dbref):
+def create_arena(protocol, arena_name, leader_dbref):
     p = protocol
     arena_master_dbref = yield _create_arena_master_object(p, arena_name)
     map_dbref, map_dimensions = yield _create_map(p, arena_name, arena_master_dbref)
@@ -25,7 +25,7 @@ def create_arena(protocol, arena_name, creator_dbref):
     arena_master_attrs = {
         'ARENA_NAME.D': arena_name,
         'MAP.DBREF': map_dbref,
-        'CREATOR.DBREF': creator_dbref,
+        'LEADER.DBREF': leader_dbref,
         'PUPPET_OL.DBREF': puppet_ol_dbref,
         'STAGING_ROOM.DBREF': staging_dbref,
         'CURRENT_WAVE.D': '1',
@@ -134,7 +134,7 @@ def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref,
     mux_commands.chzone(p, exit_dbref, arena_master_dbref)
     mux_commands.link(p, exit_dbref, nexus_dbref)
     mux_commands.set_attr(
-        p, exit_dbref, 'ISOWNER', '[strmatch(%#,get(zone(me)/CREATOR.DBREF))]')
+        p, exit_dbref, 'ISOWNER', '[strmatch(%#,get(zone(me)/LEADER.DBREF))]')
     # Make sure the owner can't leave.
     mux_commands.lock(p, exit_dbref, 'ISOWNER/0')
     mux_commands.set_attr(

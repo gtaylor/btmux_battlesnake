@@ -69,7 +69,7 @@ class SimpleSpawnCommand(BaseCommand):
         game_state = puppet.game_state.lower()
         if game_state == 'staging':
             raise CommandError(
-                "The match hasn't started yet. The arena creator still needs "
+                "The match hasn't started yet. The arena leader still needs "
                 "to %ch%cgbegin%cn.")
         elif game_state == 'finished':
             raise CommandError("The match is already over!")
@@ -114,9 +114,9 @@ class BeginMatchCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
 
-        creator_dbref = puppet.creator_dbref
-        if creator_dbref != invoker_dbref:
-            raise CommandError("Only the arena's original creator can do that.")
+        leader_dbref = puppet.leader_dbref
+        if leader_dbref != invoker_dbref:
+            raise CommandError("Only the arena leader can do that.")
 
         game_state = puppet.game_state.lower()
         if game_state == 'finished':
@@ -125,7 +125,8 @@ class BeginMatchCommand(BaseCommand):
             raise CommandError("The match has already begun!")
 
         yield puppet.change_game_state(p, 'In-Between')
-        puppet.pemit_throughout_zone(p, "The match has begun. You may now spawn.")
+        puppet.pemit_throughout_zone(
+            p, "The match has begun. You may now %ch%cgspawn%cn.")
 
 
 class EndMatchCommand(BaseCommand):
@@ -145,9 +146,9 @@ class EndMatchCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
 
-        creator_dbref = puppet.creator_dbref
-        if creator_dbref != invoker_dbref:
-            raise CommandError("Only the arena's original creator can do that.")
+        leader_dbref = puppet.leader_dbref
+        if leader_dbref != invoker_dbref:
+            raise CommandError("Only the arena leader can do that.")
 
         game_state = puppet.game_state.lower()
         if game_state == 'active':

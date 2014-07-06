@@ -23,14 +23,14 @@ class ArenaMasterPuppet(object):
     Represents a single puppet.
     """
 
-    def __init__(self, protocol, dbref, map_dbref, staging_dbref, creator_dbref,
+    def __init__(self, protocol, dbref, map_dbref, staging_dbref, leader_dbref,
                  map_height, map_width, arena_name, current_wave, game_mode,
                  game_state, difficulty_mod):
         self.protocol = protocol
         self.dbref = dbref
         self.map_dbref = map_dbref
         self.staging_dbref = staging_dbref
-        self.creator_dbref = creator_dbref
+        self.leader_dbref = leader_dbref
         # A cache for all units in the arena, plus their states.
         self.unit_store = ArenaMapUnitStore(
             arena_master_puppet=self, unit_change_callback=self.handle_unit_change)
@@ -88,7 +88,7 @@ class ArenaMasterPuppet(object):
         yield self.change_game_state(p, 'In-Between')
         message = (
             "%chWave %cc{wave_num}%cw complete! Re-opening spawning/de-spawning. "
-            "The next wave will arrive when the arena creator types %cgcontinue%cw.%cn".format(
+            "The next wave will arrive when the arena leader types %cgcontinue%cw.%cn".format(
             wave_num=self.current_wave))
         self.pemit_throughout_zone(p, message)
         next_wave = self.current_wave + 1

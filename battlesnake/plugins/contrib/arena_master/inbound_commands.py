@@ -223,7 +223,7 @@ class CreateArenaCommand(BaseCommand):
     def _check_for_dupe_arenas(self, invoker_dbref):
         puppets = PUPPET_STORE.list_arena_master_puppets()
         for puppet in puppets:
-            if puppet.creator_dbref == invoker_dbref:
+            if puppet.leader_dbref == invoker_dbref:
                 raise CommandError("You already have an active arena.")
 
 
@@ -374,9 +374,9 @@ class ContinueMatchCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
 
-        creator_dbref = puppet.creator_dbref
-        if creator_dbref != invoker_dbref:
-            raise CommandError("Only the arena's original creator can do that.")
+        leader_dbref = puppet.leader_dbref
+        if leader_dbref != invoker_dbref:
+            raise CommandError("Only the arena leader can do that.")
 
         if puppet.game_state.lower() != 'in-between':
             raise CommandError("You may only %ch%cgcontinue%cn when between waves.")

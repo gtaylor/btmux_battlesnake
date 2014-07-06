@@ -56,8 +56,8 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
         retval += _return_state_specific_help(p, arena_master_puppet, invoker_dbref)
     retval += get_footer_str()
     if render_contents:
-        retval += "%r%r[u({staging_dbref}/EXITS_AND_CONTENTS.F)]".format(
-            staging_dbref=staging_dbref)
+        retval += "%r%r[u({staging_dbref}/EXITS_AND_CONTENTS.F,{invoker_dbref})]".format(
+            staging_dbref=staging_dbref, invoker_dbref=invoker_dbref)
 
     mux_commands.pemit(p, invoker_dbref, retval)
 
@@ -80,14 +80,14 @@ def _return_state_specific_help(protocol, arena_master_puppet, invoker_dbref):
 
 # noinspection PyUnusedLocal
 def _return_staging_state_help(protocol, arena_master_puppet, invoker_dbref):
-    creator_dbref = arena_master_puppet.creator_dbref
-    if creator_dbref == invoker_dbref:
+    leader_dbref = arena_master_puppet.leader_dbref
+    if leader_dbref == invoker_dbref:
         retval = (
             ' Once you are ready to get the match started, type %ch%cgbegin%cn.%r'
             ' To cancel the match and delete the arena, type %ch%cgend%cn.'
         )
     else:
-        retval = ' The match will begin once [name(%s)] presses the big red button.' % creator_dbref
+        retval = ' The match will begin once [name(%s)] presses the big red button.' % leader_dbref
     return retval
 
 
@@ -98,8 +98,8 @@ def _return_in_between_state_help(protocol, arena_master_puppet, invoker_dbref):
         " the action, now is your chance!%r%r"
         " Type %ch%cgspawn <ref>%cn to spawn a unit of your choice"
     )
-    creator_dbref = arena_master_puppet.creator_dbref
-    if creator_dbref == invoker_dbref:
+    leader_dbref = arena_master_puppet.leader_dbref
+    if leader_dbref == invoker_dbref:
         retval += "%r To end the match, type %ch%cgend%cn."
     return retval
 
@@ -115,8 +115,8 @@ def _return_active_state_help(protocol, arena_master_puppet, invoker_dbref):
 
 # noinspection PyUnusedLocal
 def _return_finished_state_help(protocol, arena_master_puppet, invoker_dbref):
-    creator_dbref = arena_master_puppet.creator_dbref
-    if creator_dbref == invoker_dbref:
+    leader_dbref = arena_master_puppet.leader_dbref
+    if leader_dbref == invoker_dbref:
         retval = "%rThe match has ended. Type %ch%cgend%cn."
     else:
         retval = " The match has concluded. Hit the showers!"
