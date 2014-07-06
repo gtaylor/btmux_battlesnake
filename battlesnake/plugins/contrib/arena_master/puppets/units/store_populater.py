@@ -85,7 +85,8 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             "[btgetxcodevalue(##,units_killed)]:"
             "[btgetxcodevalue(##,maxspeed)]:"
             "[default(##/IS_AI_CONTROLLED,0)]:"
-            "[get(##/Pilot)]"
+            "[get(##/Pilot)]:"
+            "[default(##/IS_POWERUP,0)]"
         "|)]"
     ).format(
         puppet_parent_dbref=puppet_parent_dbref, map_dbref=map_dbref
@@ -102,7 +103,7 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             status, status2, critstatus, critstatus2, faction_dbref, \
             battle_value, target_dbref, shots_fired, shots_landed,\
             damage_inflicted, shots_missed, units_killed, maxspeed,\
-            is_ai, pilot_dbref = unit_split
+            is_ai, pilot_dbref, is_powerup = unit_split
         unit_obj = ArenaMapUnit(
             dbref=dbref, contact_id=contact_id, unit_ref=unit_ref,
             unit_type=unit_type, unit_move_type=unit_move_type,
@@ -114,7 +115,7 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             shots_fired=shots_fired, shots_landed=shots_landed,
             damage_inflicted=damage_inflicted, shots_missed=shots_missed,
             units_killed=units_killed, maxspeed=maxspeed, is_ai=is_ai,
-            pilot_dbref=pilot_dbref,
+            pilot_dbref=pilot_dbref, is_powerup=is_powerup,
         )
         if not unit_obj.contact_id:
             continue

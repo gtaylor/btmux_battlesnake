@@ -138,6 +138,14 @@ class ArenaMapUnitStore(object):
                 return unit
         raise ValueError('Invalid unit dbref: %s' % dbref)
 
+    def list_powerup_units(self):
+        """
+        :rtype: list
+        :returns: A list of powerup units.
+        """
+
+        return [unit for unit in self.__iter__() if unit.is_powerup]
+
     def list_units_by_faction(self, piloted_only=True):
         """
         Breaks the units up by faction into a dict of lists.
@@ -247,7 +255,7 @@ class ArenaMapUnit(object):
                  heat, status, status2, critstatus, critstatus2, faction_dbref,
                  battle_value, target_dbref, shots_fired, shots_landed,
                  damage_inflicted, shots_missed, units_killed, maxspeed,
-                 is_ai, pilot_dbref):
+                 is_ai, pilot_dbref, is_powerup):
         self.dbref = dbref.strip()
         self.contact_id = contact_id.strip().upper()
         self.unit_ref = unit_ref
@@ -276,6 +284,7 @@ class ArenaMapUnit(object):
         self.maxspeed = float(maxspeed)
         self.is_ai = is_ai == '1'
         self.pilot_dbref = pilot_dbref
+        self.is_powerup = is_powerup == '1'
 
         # If the arena master wanted this unit to go somewhere, this is
         # where it last asked.

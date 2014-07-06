@@ -168,7 +168,10 @@ def spawn_fixer_unit(protocol, map_dbref, fixer_type, fix_percent):
     # This currently spawns in the same patterns as the attacker AI.
     unit_x, unit_y = choose_unit_spawn_spot(map_width, map_height)
     extra_status_flags = ['COMBAT_SAFE', 'AUTOCON_WHEN_SHUTDOWN']
-    extra_attrs = {'FIXER_FIX_PERCENT': fix_percent}
+    extra_attrs = {
+        'FIXER_FIX_PERCENT.D': fix_percent,
+        'IS_POWERUP': 1,
+    }
     yield create_unit(protocol, unit_ref, map_dbref, faction,
         unit_x, unit_y, extra_status_flags=extra_status_flags,
         extra_attrs=extra_attrs)
@@ -205,7 +208,7 @@ def use_fixer_unit(puppet, unit, fixer_unit):
     fixer_unit.has_been_ran_over = True
     # Start destroying it immediately.
     trigger(p, fixer_unit.dbref, 'DESTMECH.T')
-    fix_percent = yield get(p, fixer_unit.dbref, 'FIXER_FIX_PERCENT')
+    fix_percent = yield get(p, fixer_unit.dbref, 'FIXER_FIX_PERCENT.D')
     fix_percent = float(fix_percent)
 
     emit_cmd = "@losemit uses %[{fixer_id}%] {fixer_mechname}.".format(
