@@ -87,7 +87,6 @@ def heal_unit_pilot(protocol, unit_dbref):
     mux_commands.think(protocol, think_str, return_output=False)
 
 
-@inlineCallbacks
 def save_unit_tics_to_pilot(protocol, unit_dbref):
     """
     Saves the unit's tics to the pilot.

@@ -14,6 +14,8 @@ from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
     destroy_arena
 from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
+from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
+    handle_kill
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
@@ -384,6 +386,30 @@ class ContinueMatchCommand(BaseCommand):
         yield puppet.change_state_to_active(p)
 
 
+class ReportDestructionCommand(BaseCommand):
+    """
+    Called when a unit is destroyed.
+    """
+
+    command_name = "am_reportdestruction"
+
+    #@inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        print parsed_line.kwargs
+        victim_unit_dbref = parsed_line.kwargs['victim_unit_dbref']
+        killer_unit_dbref = parsed_line.kwargs['killer_unit_dbref']
+        cause_of_death = parsed_line.kwargs['cause_of_death']
+        handle_kill(p, puppet, victim_unit_dbref, killer_unit_dbref, cause_of_death)
+
+
 class TScanCommand(BaseCommand):
     """
     Team scan, shows other units.
@@ -572,4 +598,6 @@ class ArenaMasterCommandTable(InboundCommandTable):
         TScanCommand,
         EScanCommand,
         PScanCommand,
+
+        ReportDestructionCommand,
     ]
