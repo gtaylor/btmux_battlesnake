@@ -222,6 +222,15 @@ class CreateArenaCommand(BaseCommand):
 
         think_fn_wrappers.tel(p, invoker_dbref, staging_dbref)
 
+        message = (
+            "[name({leader_dbref})] has created a new arena"
+            " %(ID: %ch{arena_id}%cn%)."
+        ).format(
+            leader_dbref=invoker_dbref,
+            arena_id=arena_master_dbref[1:]
+        )
+        think_fn_wrappers.cemit(p, 'Public', message)
+
     def _check_for_dupe_arenas(self, invoker_dbref):
         puppets = PUPPET_STORE.list_arena_master_puppets()
         for puppet in puppets:

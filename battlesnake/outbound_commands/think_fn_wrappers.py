@@ -52,7 +52,7 @@ def pemit(protocol, objects, message):
 
 def cemit(protocol, channel, message):
     """
-    :param str: A channel name to emit to.
+    :param str channel: A channel name to emit to.
     :param str message: The message to cemit().
     """
 

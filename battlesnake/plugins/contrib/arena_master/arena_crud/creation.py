@@ -35,7 +35,6 @@ def create_arena(protocol, arena_name, leader_dbref):
     }
     yield think_fn_wrappers.set_attrs(p, arena_master_dbref, arena_master_attrs)
     yield PUPPET_STORE.add_puppet_from_arena_master_object(p, arena_master_dbref)
-
     returnValue((arena_master_dbref, staging_dbref))
 
 
