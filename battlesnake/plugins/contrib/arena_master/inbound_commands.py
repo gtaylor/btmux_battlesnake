@@ -403,7 +403,6 @@ class ReportDestructionCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
 
-        print parsed_line.kwargs
         victim_unit_dbref = parsed_line.kwargs['victim_unit_dbref']
         killer_unit_dbref = parsed_line.kwargs['killer_unit_dbref']
         cause_of_death = parsed_line.kwargs['cause_of_death']

@@ -31,8 +31,6 @@ def handle_kill(protocol, puppet, victim_unit_dbref, killer_unit_dbref,
         killer_unit = None
         print "ERROR: Killer %s not found on @Amechdest!" % killer_unit_dbref
 
-    print "VICTIM", victim_unit
-    print "KILLER", killer_unit
     if victim_unit and killer_unit:
         record_kill(p, puppet, victim_unit, killer_unit, cause_of_death)
 
@@ -48,7 +46,6 @@ def record_kill(protocol, puppet, victim_unit, killer_unit, cause_of_death):
     :param str cause_of_death: What caused the victim to die.
     """
 
-    print "VICTIM", victim_unit.faction_dbref
     if victim_unit.faction_dbref == ATTACKER_FACTION_DBREF:
         announce_attacker_killed(protocol, puppet, victim_unit, killer_unit)
     else:
@@ -86,7 +83,6 @@ def announce_defender_killed(protocol, puppet, victim_unit, killer_unit):
     :param ArenaMapUnit killer_unit: The killing unit.
     """
 
-    print "DEFENDER EMIT"
     defenders = puppet.list_defending_units()
     defenders = [dunit for dunit in defenders if dunit != victim_unit]
     message = (
