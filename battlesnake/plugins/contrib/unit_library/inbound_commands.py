@@ -1,4 +1,5 @@
 import os
+import itertools
 
 from twisted.internet.defer import inlineCallbacks
 
@@ -19,6 +20,7 @@ from battlesnake.plugins.contrib.unit_library.outbound_commands import \
     load_ref_in_templater
 from battlesnake.plugins.contrib.unit_library.unit_scanning.api import \
     scan_unit_from_templater
+from btmux_template_io.special_techs import TECH_TABLE
 
 
 class ScanUnitCommand(BaseCommand):
@@ -94,6 +96,83 @@ class LoadUnitCommand(BaseCommand):
             "Finished loading %s" % reference)
 
 
+class UnitSpecsCommand(BaseCommand):
+    """
+    Powers viewref/specs.
+    """
+
+    command_name = "ul_unitspecs"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        unit_ref = parsed_line.kwargs['unit_ref']
+        unit = yield get_unit_by_ref(unit_ref)
+
+        header_txt = "%cy{unit_ref} %cr{unit_name}%cn".format(
+            unit_ref=unit.reference, unit_name=unit.name,
+        )
+        retval = self._get_header_str(header_txt)
+        retval += (
+            " [rjust(Type,{col1rjust})]: [ljust({unit_type},{col1ljust})]"
+            " [rjust(Tonnage,{col2rjust})]: [ljust({weight},{col2ljust})]"
+            " Class: {weight_class}%r"
+            ""
+            " [rjust(Speed,{col1rjust})]: [ljust({walk_mp}/{run_mp}/{jj_total},{col1ljust})]"
+            " [rjust(Armor/Int,{col2rjust})]: [ljust(???/TBI,{col2ljust})]"
+            " HSinks: {heatsink_total}%r"
+            ""
+            " [rjust(BV2,{col1rjust})]: [ljust(round(BTGETBV2_REF({unit_ref}),0),{col1ljust})]"
+            " [rjust(Off-BV2,{col2rjust})]: [ljust(round(BTGETOBV_REF({unit_ref}),0),{col2ljust})]"
+            " Def-BV2: [round(BTGETDBV_REF({unit_ref}),0)]".format(
+                unit_type=unit.unit_type, weight=unit.weight,
+                weight_class=unit.weight_class, walk_mp=unit.walk_mp,
+                run_mp=unit.run_mp, jj_total=unit.jumpjet_total,
+                heatsink_total=unit.heatsink_total,
+                unit_ref=unit.reference,
+                col1rjust=9, col1ljust=19,
+                col2rjust=9, col2ljust=19
+            ))
+        retval += self._get_subheader_str('Weapons and Ammo')
+        retval += self._section_ammo_and_weaps(unit)
+        retval += self._get_subheader_str('Special Technology')
+        retval += self._section_specials(unit)
+        retval += self._get_footer_str()
+
+        mux_commands.pemit(p, invoker_dbref, retval)
+
+    def _section_ammo_and_weaps(self, unit):
+        weapons_payload, ammo_payload = unit.payload
+        payload_iter = itertools.izip_longest(
+            weapons_payload.items(), ammo_payload.items())
+        retval = ""
+        for weapon, ammo in payload_iter:
+            if weapon:
+                weap_name, weap_count = weapon
+                weap_string = "{weap_count}x {weap_name}".format(
+                    weap_count=weap_count, weap_name=weap_name)
+            else:
+                weap_string = ''
+
+            if ammo:
+                ammo_name, ammo_data = ammo
+                ammo_string = "{ammo_tons} tons of {ammo_name} %({shots:,} shots%)".format(
+                    ammo_tons=ammo_data['tons'], ammo_name=ammo_name,
+                    shots=ammo_data['shots'])
+            else:
+                ammo_string = ''
+
+            retval += "%r [ljust({weap_string},30)]{ammo_string}".format(
+                weap_string=weap_string, ammo_string=ammo_string)
+        return retval
+
+    def _section_specials(self, unit):
+        retval = ""
+        for short_name in unit.specials:
+            retval += "%r " + TECH_TABLE[short_name]['name']
+        return retval
+
+
 class ListrefsCommand(BaseCommand):
     """
     Lists unit refs.
@@ -164,5 +243,7 @@ class UnitLibraryCommandTable(InboundCommandTable):
         ScanUnitCommand,
         ScanLibraryCommand,
         LoadUnitCommand,
+
         ListrefsCommand,
+        UnitSpecsCommand,
     ]

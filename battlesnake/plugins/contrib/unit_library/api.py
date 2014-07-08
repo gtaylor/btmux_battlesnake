@@ -95,6 +95,8 @@ def get_unit_by_ref(unit_ref):
         unit.cargo_space = row['cargo_space']
         unit.cargo_max_ton = row['cargo_max_tonnage']
         unit.base_cost = row['base_cost']
+        unit.sections = row['sections']
+        unit.specials = set(row['special_tech_raw'].split())
         returnValue(unit)
 
 
