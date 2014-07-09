@@ -5,6 +5,7 @@ Functions wrappers using the 'think' command.
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from battlesnake.outbound_commands import mux_commands
+from btmux_template_io.item_table import WEAPON_TYPE_IDS
 
 
 def create(protocol, name, otype='r'):
@@ -361,6 +362,50 @@ def btpayload_ref(protocol, unit_ref):
         retval[weapon] = quantity
     returnValue(retval)
 
+
+@inlineCallbacks
+def btweapstat(protocol, weapon):
+    """
+    Given a weapon, return a dict of weapon stats.
+
+    :param str weapon: The weapon name to get the stats for.
+    :rtype: dict
+    :returns: A dict of weapon stats.
+    """
+
+    weapstat_str = "[btweapstat({weapon},{field})]"
+    fields = [
+        'VRT', 'TYPE', 'HEAT', 'DAMAGE', 'MIN', 'SR', 'MR', 'LR', 'CRIT',
+        'AMMO', 'WEIGHT', 'BV'
+    ]
+    think_list = []
+    for field in fields:
+        think_list.append(weapstat_str.format(field=field, weapon=weapon))
+    think_str = '^'.join(think_list)
+    func_result = yield mux_commands.think(protocol, think_str)
+    vrt, weap_type, heat, damage, min_range, short_range, medium_range, \
+        long_range, crits, ammo_pt, weight, bv = func_result.split('^')
+
+    weap_type = WEAPON_TYPE_IDS[weap_type]
+    if weap_type not in ['Missile', 'Ballistic', 'Artillery']:
+        ammo_pt = None
+    else:
+        ammo_pt = int(ammo_pt)
+    retval = {
+        'vrt': int(vrt),
+        'weapon_type': weap_type,
+        'heat': int(heat),
+        'damage': int(damage),
+        'min_range': int(min_range),
+        'short_range': int(short_range),
+        'medium_range': int(medium_range),
+        'long_range': int(long_range),
+        'crits': int(crits),
+        'ammo_count': ammo_pt,
+        'weight': float(weight) / 100.0,
+        'bv': int(bv),
+    }
+    returnValue(retval)
 
 @inlineCallbacks
 def btunitpartslist_ref(protocol, unit_ref):
