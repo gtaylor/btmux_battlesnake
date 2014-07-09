@@ -1,3 +1,4 @@
+import math
 import numpy
 
 from btmux_template_io.item_table import WEAPON_TABLE
@@ -17,14 +18,18 @@ def get_estimated_optimal_weapons_range(unit):
     range_list = []
     weapons_payload = unit.weapons_payload.items()
 
-    for name, dat in weapons_payload:
+    for name, num_weaps in weapons_payload:
         weapon_dat = WEAPON_TABLE[name]
         if not weapon_dat.get('is_offensive', True):
             # Probably AMS or someshit.
             continue
-        range_list.append(weapon_dat['medium_range'])
+        # If the weapon appears multiple times, the range gets added to
+        # the range list multiple times.
+        range_list += [weapon_dat['medium_range']] * num_weaps
 
     if range_list:
-        return max(2, int(numpy.average(range_list)))
+        range_avg = math.floor(numpy.average(range_list))
+        return max(2, int(range_avg))
     else:
+        # Has no weapons. Assume (probably wrongly) physical/melee only.
         return 0
