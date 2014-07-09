@@ -1,7 +1,10 @@
 import os
 import itertools
+from pprint import pformat
 
 from twisted.internet.defer import inlineCallbacks
+from btmux_template_io.item_table import WEAPON_TABLE
+from btmux_template_io.special_techs import TECH_TABLE
 
 from battlesnake.conf import settings
 from battlesnake.core.ansi import ANSI_NORMAL, \
@@ -13,6 +16,7 @@ from battlesnake.core.inbound_command_handling.btargparse import \
 from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.outbound_commands import think_fn_wrappers
 
 from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref, \
     get_library_summary_list
@@ -20,7 +24,6 @@ from battlesnake.plugins.contrib.unit_library.outbound_commands import \
     load_ref_in_templater
 from battlesnake.plugins.contrib.unit_library.unit_scanning.api import \
     scan_unit_from_templater
-from btmux_template_io.special_techs import TECH_TABLE
 
 
 class ScanUnitCommand(BaseCommand):
@@ -71,6 +74,28 @@ class ScanLibraryCommand(ScanUnitCommand):
             yield self._scan_unit(protocol, invoker_dbref, template_file)
 
 
+class PrintWeaponTableCommand(ScanUnitCommand):
+    """
+    Pulls the weapon table from btmux_template_io, populates it with
+    the latest range/vrt values and spits it out to to a text file..
+    """
+
+    command_name = "ul_printweaponstable"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        mux_commands.pemit(p, invoker_dbref, "Beginning weapons table dump.")
+        for weap_name, val in WEAPON_TABLE.items():
+            new_val = yield think_fn_wrappers.btweapstat(protocol, weap_name)
+            val.update(new_val)
+            WEAPON_TABLE[weap_name] = val
+        fobj = open('weapons_table.txt', 'w')
+        fobj.write(pformat(WEAPON_TABLE))
+        fobj.close()
+        mux_commands.pemit(p, invoker_dbref, "Table dumped to weapons_table.txt.")
+
+
 class LoadUnitCommand(BaseCommand):
     """
     Loads a unit into the templater.
@@ -119,7 +144,7 @@ class UnitSpecsCommand(BaseCommand):
             " Class: {weight_class}%r"
             ""
             " [rjust(Speed,{col1rjust})]: [ljust({walk_mp}/{run_mp}/{jj_total},{col1ljust})]"
-            " [rjust(Armor/Int,{col2rjust})]: [ljust(???/TBI,{col2ljust})]"
+            " [rjust(Armor/Int,{col2rjust})]: [ljust({armor_total}/{internals_total},{col2ljust})]"
             " HSinks: {heatsink_total}%r"
             ""
             " [rjust(BV2,{col1rjust})]: [ljust(round(BTGETBV2_REF({unit_ref}),0),{col1ljust})]"
@@ -128,6 +153,7 @@ class UnitSpecsCommand(BaseCommand):
                 unit_type=unit.unit_type, weight=unit.weight,
                 weight_class=unit.weight_class, walk_mp=unit.walk_mp,
                 run_mp=unit.run_mp, jj_total=unit.jumpjet_total,
+                armor_total=unit.armor_total, internals_total=unit.internals_total,
                 heatsink_total=unit.heatsink_total,
                 unit_ref=unit.reference,
                 col1rjust=9, col1ljust=19,
@@ -142,7 +168,8 @@ class UnitSpecsCommand(BaseCommand):
         mux_commands.pemit(p, invoker_dbref, retval)
 
     def _section_ammo_and_weaps(self, unit):
-        weapons_payload, ammo_payload = unit.payload
+        weapons_payload = unit.weapons_payload
+        ammo_payload = unit.ammo_payload
         payload_iter = itertools.izip_longest(
             weapons_payload.items(), ammo_payload.items())
         retval = ""
@@ -243,6 +270,7 @@ class UnitLibraryCommandTable(InboundCommandTable):
         ScanUnitCommand,
         ScanLibraryCommand,
         LoadUnitCommand,
+        PrintWeaponTableCommand,
 
         ListrefsCommand,
         UnitSpecsCommand,
