@@ -428,18 +428,16 @@ class TScanCommand(BaseCommand):
     #@inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
         p = protocol
-        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
         invoker_unit_dbref = parsed_line.kwargs['invoker_unit_dbref']
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
 
         try:
             puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
         map_dbref = puppet.map_dbref
-        try:
-            invoker_unit = puppet.unit_store.get_unit_by_dbref(invoker_unit_dbref)
-        except ValueError:
-            raise CommandError('Unable to find your unit in the unit store.')
+
+        teammates = self._get_teammate_list(parsed_line, puppet)
 
         retval = self._get_header_str("Team Scan")
         retval += "%r"
@@ -448,9 +446,6 @@ class TScanCommand(BaseCommand):
             "[ljust(Speed,7)][ljust(Head,6)][ljust(Rng,7)]Cond"
         )
 
-        teammates = puppet.list_defending_units()
-        teammates.sort(
-            key=lambda t_unit: t_unit.distance_to_unit(invoker_unit), reverse=True)
         retval += self._get_footer_str("-")
         for unit in teammates:
             unit_has_target = unit.target_dbref != '#-1'
@@ -478,6 +473,24 @@ class TScanCommand(BaseCommand):
 
         mux_commands.pemit(p, invoker_dbref, retval)
 
+    def _get_teammate_list(self, parsed_line, puppet):
+        invoker_unit_dbref = parsed_line.kwargs['invoker_unit_dbref']
+        is_ol = parsed_line.kwargs.get('is_ol', False) == 'yes'
+
+        teammates = puppet.list_defending_units()
+
+        if is_ol:
+            # OLs aren't in the puppet currently. No unit sorting.
+            return teammates
+
+        try:
+            invoker_unit = puppet.unit_store.get_unit_by_dbref(invoker_unit_dbref)
+        except ValueError:
+            raise CommandError('Unable to find your unit in the unit store.')
+        teammates.sort(
+            key=lambda t_unit: t_unit.distance_to_unit(invoker_unit), reverse=True)
+        return teammates
+
 
 class EScanCommand(BaseCommand):
     """
@@ -497,10 +510,6 @@ class EScanCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
         map_dbref = puppet.map_dbref
-        try:
-            invoker_unit = puppet.unit_store.get_unit_by_dbref(invoker_unit_dbref)
-        except ValueError:
-            raise CommandError('Unable to find your unit in the unit store.')
 
         retval = self._get_header_str("Enemy Scan", width=57)
         retval += "%r"
@@ -509,11 +518,9 @@ class EScanCommand(BaseCommand):
             "[ljust(Speed,7)][ljust(Head,6)][ljust(Rng,7)]Cond"
         )
 
-        teammates = puppet.list_attacking_units()
-        teammates.sort(
-            key=lambda t_unit: t_unit.distance_to_unit(invoker_unit), reverse=True)
+        enemies = self._get_enemy_list(parsed_line, puppet)
         retval += self._get_footer_str("-", width=57)
-        for unit in teammates:
+        for unit in enemies:
             armor_condition = int(unit.calc_armor_condition() * 100)
             retval += "%r"
             retval += (
@@ -535,6 +542,24 @@ class EScanCommand(BaseCommand):
 
         mux_commands.pemit(p, invoker_dbref, retval)
 
+    def _get_enemy_list(self, parsed_line, puppet):
+        invoker_unit_dbref = parsed_line.kwargs['invoker_unit_dbref']
+        is_ol = parsed_line.kwargs.get('is_ol', False) == 'yes'
+
+        enemies = puppet.list_attacking_units()
+
+        if is_ol:
+            # OLs aren't in the puppet currently. No unit sorting.
+            return enemies
+
+        try:
+            invoker_unit = puppet.unit_store.get_unit_by_dbref(invoker_unit_dbref)
+        except ValueError:
+            raise CommandError('Unable to find your unit in the unit store.')
+        enemies.sort(
+            key=lambda t_unit: t_unit.distance_to_unit(invoker_unit), reverse=True)
+        return enemies
+
 
 class PScanCommand(BaseCommand):
     """
@@ -554,10 +579,6 @@ class PScanCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
         map_dbref = puppet.map_dbref
-        try:
-            invoker_unit = puppet.unit_store.get_unit_by_dbref(invoker_unit_dbref)
-        except ValueError:
-            raise CommandError('Unable to find your unit in the unit store.')
 
         retval = self._get_header_str("Powerup Scan", width=57)
         retval += "%r"
@@ -566,11 +587,9 @@ class PScanCommand(BaseCommand):
             "[ljust(Speed,7)][ljust(Head,6)][ljust(Rng,7)]"
         )
 
-        teammates = puppet.unit_store.list_powerup_units()
-        teammates.sort(
-            key=lambda t_unit: t_unit.distance_to_unit(invoker_unit), reverse=True)
+        powerups = self._get_powerup_list(parsed_line, puppet)
         retval += self._get_footer_str("-", width=57)
-        for unit in teammates:
+        for unit in powerups:
             retval += "%r"
             retval += (
                 " %[{contact_id}%] [ljust({mech_name},13)] "
@@ -588,6 +607,24 @@ class PScanCommand(BaseCommand):
         retval += self._get_footer_str(width=57)
 
         mux_commands.pemit(p, invoker_dbref, retval)
+
+    def _get_powerup_list(self, parsed_line, puppet):
+        invoker_unit_dbref = parsed_line.kwargs['invoker_unit_dbref']
+        is_ol = parsed_line.kwargs.get('is_ol', False) == 'yes'
+
+        powerups = puppet.unit_store.list_powerup_units()
+
+        if is_ol:
+            # OLs aren't in the puppet currently. No unit sorting.
+            return powerups
+
+        try:
+            invoker_unit = puppet.unit_store.get_unit_by_dbref(invoker_unit_dbref)
+        except ValueError:
+            raise CommandError('Unable to find your unit in the unit store.')
+        powerups.sort(
+            key=lambda t_unit: t_unit.distance_to_unit(invoker_unit), reverse=True)
+        return powerups
 
 
 class ArenaMasterCommandTable(InboundCommandTable):
