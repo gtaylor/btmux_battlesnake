@@ -158,7 +158,7 @@ def handle_ai_target_change(puppet, old_unit, new_unit):
     ai_commands.order_ai(protocol, puppet, chase_orders)
 
     follow_bearing = 180
-    follow_range = 3
+    follow_range = new_unit.ai_optimal_weap_range
     position_orders = "{aggressor_id} position {follow_bearing} {follow_range}".format(
         aggressor_id=aggressor_id, follow_bearing=follow_bearing,
         follow_range=follow_range)

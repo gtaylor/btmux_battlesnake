@@ -7,6 +7,8 @@ from psycopg2.extras import Json
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.plugins.contrib.pg_db.api import get_db_connection
+from battlesnake.plugins.contrib.unit_library.unit_scanning.optimal_range import \
+    get_estimated_optimal_weapons_range
 
 
 @inlineCallbacks
@@ -50,7 +52,8 @@ def update_unit_in_db(
         '  cargo_max_tonnage=%s,'
         '  jumpjet_range=%s,'
         '  base_cost=%s,'
-        '  special_tech_raw=%s'
+        '  special_tech_raw=%s,'
+        '  optimal_weapons_range=%s'
         ' WHERE reference=%s'
     )
     value_tuple = (
@@ -76,6 +79,7 @@ def update_unit_in_db(
         unit.jumpjet_range,
         base_cost,
         ' '.join(list(tech_list)),
+        get_estimated_optimal_weapons_range(unit),
         unit.reference,
     )
 
@@ -107,9 +111,10 @@ def insert_unit_in_db(
         '   battle_value, battle_value2, offensive_battle_value2, '
         '   defensive_battle_value2, weapons_loadout, build_parts, sections,'
         '   cargo_space, cargo_max_tonnage, jumpjet_range, base_cost,'
-        '   special_tech_raw, is_hidden, is_player_spawnable, is_ai_spawnable)'
+        '   special_tech_raw, is_hidden, is_player_spawnable,'
+        '   is_ai_spawnable, optimal_weapons_range)'
         '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,'
-        '   %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        '   %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
     )
     value_tuple = (
         unit.reference,
@@ -141,5 +146,6 @@ def insert_unit_in_db(
         True,
         # is_ai_spawnable
         True,
+        get_estimated_optimal_weapons_range(unit),
     )
     yield conn.runOperation(query_str, value_tuple)

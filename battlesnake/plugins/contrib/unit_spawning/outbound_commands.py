@@ -3,6 +3,9 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from battlesnake.conf import settings
 from battlesnake.outbound_commands.unit_manipulation import \
     add_unit_status_flags
+from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
+from battlesnake.plugins.contrib.unit_library.unit_scanning.optimal_range import \
+    get_estimated_optimal_weapons_range
 from battlesnake.plugins.contrib.unit_spawning.signals import on_unit_spawned
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
@@ -43,6 +46,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
 
     extra_status_flags = extra_status_flags or []
     p = protocol
+    unit_from_db = yield get_unit_by_ref(unit_ref)
     # The unit isn't far enough along to be given a spiffy name yet. Give it
     # a temporary BS name.
     unit_name = "UnitBeingCreated"
@@ -64,6 +68,7 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         'Mechname': unit_name,
         'FACTION': faction.dbref,
         'Xtype': 'MECH',
+        'OPTIMAL_WEAP_RANGE.D': get_estimated_optimal_weapons_range(unit_from_db)
     }
     if extra_attrs:
         unit_attrs.update(extra_attrs)

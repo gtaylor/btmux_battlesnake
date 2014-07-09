@@ -215,7 +215,7 @@ class ArenaMapUnitStore(object):
         unit2_dict = unit2.__dict__
         ignored_keys = [
             'last_seen', 'ai_last_destination', 'ai_idle_counter',
-            'has_been_ran_over',
+            'has_been_ran_over', 'ai_optimal_weap_range',
         ]
         changes = []
         for key, val in unit1_dict.items():
@@ -255,7 +255,7 @@ class ArenaMapUnit(object):
                  heat, status, status2, critstatus, critstatus2, faction_dbref,
                  battle_value, target_dbref, shots_fired, shots_landed,
                  damage_inflicted, shots_missed, units_killed, maxspeed,
-                 is_ai, pilot_dbref, is_powerup):
+                 is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range):
         self.dbref = dbref.strip()
         self.contact_id = contact_id.strip().upper()
         self.unit_ref = unit_ref
@@ -290,6 +290,7 @@ class ArenaMapUnit(object):
         # where it last asked.
         self.ai_last_destination = None
         self.ai_idle_counter = 0
+        self.ai_optimal_weap_range = int(ai_optimal_weap_range)
         # This gets set to True if the unit has been 'ran over' by a player.
         # For example, a powerup.
         self.has_been_ran_over = False
