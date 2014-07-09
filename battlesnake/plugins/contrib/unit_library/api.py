@@ -84,11 +84,11 @@ def get_unit_by_ref(unit_ref):
         (unit_ref,)
     )
     for row in results:
-        # TODO: Un-marshal crit sections.
         unit = BTMuxUnit()
         unit.reference = row['reference']
         unit.name = row['name']
         unit.unit_type = row['unit_type']
+        unit.heatsink_total = row['heatsink_total']
         unit.weight = row['weight']
         unit.max_speed = row['max_speed']
         unit.unit_tro = row['tro_id']
