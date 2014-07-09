@@ -87,13 +87,14 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             "[default(##/IS_AI_CONTROLLED,0)]:"
             "[get(##/Pilot)]:"
             "[default(##/IS_POWERUP,0)]:"
-            "[default(##/OPTIMAL_WEAP_RANGE.D,3)]"
-        "|)]"
+            "[default(##/OPTIMAL_WEAP_RANGE.D,3)]:"
+            "[btarmorstatus(##,all)]"
+        "^)]"
     ).format(
         puppet_parent_dbref=puppet_parent_dbref, map_dbref=map_dbref
     )
     unit_data = yield mux_commands.think(protocol, thought)
-    unit_data = unit_data.split('|')
+    unit_data = unit_data.split('^')
     for unit_entry in unit_data:
         if not unit_entry:
             continue
@@ -104,7 +105,8 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             status, status2, critstatus, critstatus2, faction_dbref, \
             battle_value, target_dbref, shots_fired, shots_landed,\
             damage_inflicted, shots_missed, units_killed, maxspeed,\
-            is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range = unit_split
+            is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range,\
+            armor_int_total = unit_split
         unit_obj = ArenaMapUnit(
             dbref=dbref, contact_id=contact_id, unit_ref=unit_ref,
             unit_type=unit_type, unit_move_type=unit_move_type,
@@ -118,6 +120,7 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             units_killed=units_killed, maxspeed=maxspeed, is_ai=is_ai,
             pilot_dbref=pilot_dbref, is_powerup=is_powerup,
             ai_optimal_weap_range=ai_optimal_weap_range,
+            armor_int_total=armor_int_total,
         )
         if not unit_obj.contact_id:
             continue

@@ -255,7 +255,8 @@ class ArenaMapUnit(object):
                  heat, status, status2, critstatus, critstatus2, faction_dbref,
                  battle_value, target_dbref, shots_fired, shots_landed,
                  damage_inflicted, shots_missed, units_killed, maxspeed,
-                 is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range):
+                 is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range,
+                 armor_int_total):
         self.dbref = dbref.strip()
         self.contact_id = contact_id.strip().upper()
         self.unit_ref = unit_ref
@@ -285,6 +286,7 @@ class ArenaMapUnit(object):
         self.is_ai = is_ai == '1'
         self.pilot_dbref = pilot_dbref
         self.is_powerup = is_powerup == '1'
+        self.armor_int_total = armor_int_total
 
         # If the arena master wanted this unit to go somewhere, this is
         # where it last asked.
@@ -296,6 +298,20 @@ class ArenaMapUnit(object):
         self.has_been_ran_over = False
 
         self.last_seen = datetime.datetime.now()
+
+    def __repr__(self):
+        return "[%s] %s" % (self.contact_id, self.mech_name)
+
+    def calc_armor_condition(self):
+        """
+        :rtype: float
+        :returns: A 0...1 percentage of the remaining armor on the unit.
+        """
+
+        armor_totals = self.armor_int_total.split('|')[0]
+        current_armor, max_armor = armor_totals.split('/')
+        armor_perc = float(current_armor) / float(max_armor)
+        return float('%.2f' % armor_perc)
 
     def distance_to_unit(self, other_unit):
         """
@@ -415,6 +431,3 @@ class ArenaMapUnit(object):
 
     def is_invisible(self):
         return 'A' in self.critstatus
-
-    def __repr__(self):
-        return "[%s] %s" % (self.contact_id, self.mech_name)

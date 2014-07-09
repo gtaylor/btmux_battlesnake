@@ -455,6 +455,7 @@ class TScanCommand(BaseCommand):
         for unit in teammates:
             unit_has_target = unit.target_dbref != '#-1'
             target_marker = '%ch%cr*%cn' if unit_has_target else '%b'
+            armor_condition = int(unit.calc_armor_condition() * 100)
             retval += "%r"
             retval += (
                 "{target_marker}%[{contact_id}%] [ljust({mech_name},15)] "
@@ -463,13 +464,14 @@ class TScanCommand(BaseCommand):
                 "[ljust({speed},6)] "
                 "[ljust({heading},5)] "
                 "[ljust(round(btgetrange({map_dbref},{invoker_unit_dbref},{unit_dbref}),1),6)] "
-                "???%%".format(
+                "{armor_condition}%%".format(
                     target_marker=target_marker,
                     contact_id=unit.contact_id, mech_name=unit.mech_name[:14],
                     unit_x=unit.x_coord, unit_y=unit.y_coord,
                     pilot_dbref=unit.pilot_dbref, speed=unit.speed,
                     heading=unit.heading, invoker_unit_dbref=invoker_unit_dbref,
                     unit_dbref=unit.dbref, map_dbref=map_dbref,
+                    armor_condition=armor_condition,
                 )
             )
         retval += self._get_footer_str()
@@ -512,6 +514,7 @@ class EScanCommand(BaseCommand):
             key=lambda t_unit: t_unit.distance_to_unit(invoker_unit), reverse=True)
         retval += self._get_footer_str("-", width=57)
         for unit in teammates:
+            armor_condition = int(unit.calc_armor_condition() * 100)
             retval += "%r"
             retval += (
                 " %[{contact_id}%] [ljust({mech_name},13)] "
@@ -519,12 +522,13 @@ class EScanCommand(BaseCommand):
                 "[ljust({speed},6)] "
                 "[ljust({heading},5)] "
                 "[ljust(round(btgetrange({map_dbref},{invoker_unit_dbref},{unit_dbref}),1),6)] "
-                "???%%".format(
+                "{armor_condition}%%".format(
                     contact_id=unit.contact_id, mech_name=unit.mech_name[:14],
                     unit_x=unit.x_coord, unit_y=unit.y_coord,
                     pilot_dbref=unit.pilot_dbref, speed=unit.speed,
                     heading=unit.heading, invoker_unit_dbref=invoker_unit_dbref,
                     unit_dbref=unit.dbref, map_dbref=map_dbref,
+                    armor_condition=armor_condition,
                 )
             )
         retval += self._get_footer_str(width=57)
