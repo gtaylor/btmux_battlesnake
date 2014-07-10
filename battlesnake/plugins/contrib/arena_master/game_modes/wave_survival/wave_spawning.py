@@ -112,7 +112,8 @@ def spawn_wave(protocol, wave_num, opposing_bv2, difficulty_modifier,
     for unit_ref in refs:
         unit_x, unit_y = choose_unit_spawn_spot(map_width, map_height)
         unit_dbref = yield create_unit(
-            protocol, unit_ref, map_dbref, faction, unit_x, unit_y)
+            protocol, unit_ref, map_dbref, faction, unit_x, unit_y,
+            zone_dbref=arena_master_puppet.dbref)
         start_unit_ai(protocol, unit_dbref)
         spawned.append((unit_ref, unit_dbref))
     returnValue(spawned)
