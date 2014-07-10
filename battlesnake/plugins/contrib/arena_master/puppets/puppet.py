@@ -22,8 +22,8 @@ from battlesnake.plugins.contrib.arena_master.puppets.strategic_logic import \
 ARENA_DIFFICULTY_LEVELS = {
     'easy': {'modifier': 0.5},
     'normal': {'modifier': 0.8},
-    'hard': {'modifier': 1.0},
-    'overkill': {'modifier': 1.3},
+    'hard': {'modifier': 1.1},
+    'overkill': {'modifier': 1.4},
 }
 
 
@@ -65,6 +65,30 @@ class ArenaMasterPuppet(object):
 
     def __str__(self):
         return u"<ArenaMasterPuppet: %s for map %s>" % (self.dbref, self.map_dbref)
+
+    @property
+    def id(self):
+        """
+        :returns: The arena ID, which is just the dbref without the # sign.
+        """
+
+        return self.dbref[1:]
+
+    @property
+    def difficulty_name(self):
+        """
+        Looks up the puppet's difficulty modifier and figures out which difficulty
+        level name it falls under.
+
+        :rtype: str
+        :returns: The name that matches the difficulty mod.
+        """
+
+        for key, val in ARENA_DIFFICULTY_LEVELS.items():
+            if self.difficulty_mod == val['modifier']:
+                return key
+        raise ValueError(
+            "Invalid difficulty modifier during name looking: %f" % self.difficulty_mod)
 
     @inlineCallbacks
     def change_state_to_active(self, protocol):

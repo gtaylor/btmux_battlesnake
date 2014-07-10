@@ -4,6 +4,8 @@ Various components for the staging room.
 
 from battlesnake.core.utils import get_footer_str, get_header_str
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
+    ARENA_DIFFICULTY_LEVELS
 
 
 def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
@@ -25,8 +27,8 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
     staging_dbref = arena_master_puppet.staging_dbref
 
     if render_header:
-        header_txt = 'Arena: {arena_name}'.format(
-            arena_name=arena_master_puppet.arena_name)
+        header_txt = 'Arena {arena_id}'.format(
+            arena_id=arena_master_puppet.id)
         retval = get_header_str(header_txt)
     else:
         retval = get_footer_str('-')
@@ -38,13 +40,13 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
     retval += get_footer_str('-')
     retval += (
         "%r [ljust(%chArena leader:%cn [name({arena_leader_dbref})],45)]"
-        " %chGame mode%cn: {game_mode}%r"
+        " %chDifficulty%cn: {difficulty}%r"
         " [ljust(%chCurrent state:%cn {game_state},45)]"
         " %chFriendlies remaining:%cn {remaining_friendlies}%r"
         " [ljust(%chCurrent wave:%cn {current_wave},45)]"
         " %chEnemies remaining:%cn {remaining_enemies}".format(
             arena_leader_dbref=arena_master_puppet.leader_dbref,
-            game_mode='Wave',
+            difficulty=arena_master_puppet.difficulty_name.capitalize(),
             game_state=arena_master_puppet.game_state,
             remaining_friendlies=len(remaining_friendlies),
             current_wave=arena_master_puppet.current_wave,
@@ -84,10 +86,12 @@ def _return_state_specific_help(protocol, arena_master_puppet, invoker_dbref):
 def _return_staging_state_help(protocol, arena_master_puppet, invoker_dbref):
     leader_dbref = arena_master_puppet.leader_dbref
     if leader_dbref == invoker_dbref:
+        difficulty_vals = '|'.join(ARENA_DIFFICULTY_LEVELS.keys())
         retval = (
+            ' To set the difficulty level, type %ch%cgdifficulty <{difficulty_vals}>%cn.%r'
             ' Once you are ready to get the match started, type %ch%cgbegin%cn.%r'
-            ' To cancel the match and delete the arena, type %ch%cgend%cn.'
-        )
+            ' To cancel the match and delete the arena, type %ch%cgend%cn.'.format(
+                difficulty_vals=difficulty_vals))
     else:
         retval = ' The match will begin once [name(%s)] presses the big red button.' % leader_dbref
     return retval

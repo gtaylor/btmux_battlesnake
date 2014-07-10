@@ -279,17 +279,22 @@ class ArenaListCommand(BaseCommand):
         retval = self._get_header_str('Active Arena Listing')
         retval += self._get_footer_str('-')
         retval += (
-            '%r%ch [rjust(ID,4)]%b [ljust(Arena Name, 40)] '
-            '[ljust(Players,10)] '
-            'State%cn'
+            "%r%ch "
+            "[rjust(ID,4)]%b "
+            "[ljust(Arena Leader, 25)] "
+            "[ljust(Difficulty, 14)]"
+            "[ljust(Players,10)] "
+            "State%cn"
         )
         retval += self._get_footer_str('-')
         for puppet in puppets:
             retval += (
-                "%r [rjust({dbref}, 4)]%b [ljust({name},43)] "
+                "%r [rjust({dbref}, 4)]%b [ljust(name({leader_dbref}),25)] "
+                "[ljust({difficulty},16)] "
                 "[ljust(words(zwho(#{dbref})),7)] "
                 "{state} (Public)".format(
-                dbref=puppet.dbref[1:], name=puppet.arena_name,
+                dbref=puppet.dbref[1:], leader_dbref=puppet.leader_dbref,
+                difficulty=puppet.difficulty_name.capitalize(),
                 state=puppet.game_state))
         if not puppets:
             retval += "[center(There are no active arenas. Create one!,78)]"
