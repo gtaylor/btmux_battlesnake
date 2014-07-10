@@ -3,6 +3,9 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
+
+from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
+    ARENA_DIFFICULTY_LEVELS
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.factions.api import get_faction
@@ -31,7 +34,7 @@ def create_arena(protocol, arena_name, leader_dbref):
         'CURRENT_WAVE.D': '1',
         'GAME_MODE.D': 'wave',
         'GAME_STATE.D': 'Staging',
-        'DIFFICULTY_MOD.D': '0.7',
+        'DIFFICULTY_MOD.D': ARENA_DIFFICULTY_LEVELS['normal']['modifier'],
     }
     yield think_fn_wrappers.set_attrs(p, arena_master_dbref, arena_master_attrs)
     yield PUPPET_STORE.add_puppet_from_arena_master_object(p, arena_master_dbref)
@@ -127,7 +130,7 @@ def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref,
     yield think_fn_wrappers.tel(p, staging_dbref, map_dbref)
     yield think_fn_wrappers.set_flags(p, staging_dbref, ['DARK'])
 
-    exit_dbref = yield think_fn_wrappers.create(p, 'Out to Nexus;o', otype='e')
+    exit_dbref = yield think_fn_wrappers.create(p, 'Out to Arena Nexus;o', otype='e')
     yield think_fn_wrappers.tel(p, exit_dbref, staging_dbref)
     nexus_dbref = settings['arena_master']['nexus_dbref']
     mux_commands.chzone(p, exit_dbref, arena_master_dbref)

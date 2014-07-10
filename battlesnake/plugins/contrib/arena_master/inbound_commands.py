@@ -14,6 +14,8 @@ from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
     destroy_arena
 from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
+from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
+    cemit_arena_state_change
 from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
     handle_kill
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
@@ -215,21 +217,23 @@ class CreateArenaCommand(BaseCommand):
         invoker_name = parsed_line.kwargs['invoker_name']
         self._check_for_dupe_arenas(invoker_dbref)
         arena_name = "%s's arena" % invoker_name
-        mux_commands.pemit(p, invoker_dbref, "Creating an arena...")
+        mux_commands.pemit(
+            p, invoker_dbref, "Please wait while we create an arena for you...")
         arena_master_dbref, staging_dbref = yield create_arena(
             p, arena_name, invoker_dbref)
-        mux_commands.pemit(p, invoker_dbref, "Arena ready: %s" % arena_master_dbref)
+        mux_commands.pemit(p, invoker_dbref, "Your arena is ready. Good luck!")
 
         think_fn_wrappers.tel(p, invoker_dbref, staging_dbref)
 
         message = (
             "[name({leader_dbref})] has created a new arena"
-            " %(ID: %ch{arena_id}%cn%)."
+            " %(ID: %ch{arena_id}%cw%). If you'd like to join, go to the "
+            "Arena Nexus and: %cgajoin {arena_id}%cw"
         ).format(
             leader_dbref=invoker_dbref,
             arena_id=arena_master_dbref[1:]
         )
-        think_fn_wrappers.cemit(p, 'Public', message)
+        cemit_arena_state_change(p, message)
 
     def _check_for_dupe_arenas(self, invoker_dbref):
         puppets = PUPPET_STORE.list_arena_master_puppets()

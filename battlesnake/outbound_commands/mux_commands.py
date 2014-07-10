@@ -97,6 +97,24 @@ def pemit(protocol, targets, message, switches=None, replace_returns=True):
     protocol.write("@pemit%s %s=%s" % (switch_str, target_str, message))
 
 
+def cemit(protocol, channel, message, no_header=False, force_cemit=False):
+    """
+    Wrapper for @cemit
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str channel: The channel name to @cemit to.
+    :param str message: The message to send.
+    :keyword bool no_header: If True, no channel header is emitted.
+    :keyword bool force_cemit: If True, @fo the @cemit. This forces evaluation.
+        Be CAREFUL with this!
+    """
+
+    switch_str = '/noheader' if no_header else ''
+    force_str = '@fo me=' if force_cemit else ''
+
+    protocol.write("%s@cemit%s %s=%s" % (force_str, switch_str, channel, message))
+
+
 def idle(protocol):
     """
     Used to run the IDLE command, which is a way to avoid timeouts due to

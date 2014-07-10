@@ -6,6 +6,8 @@ from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import unit_manipulation
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     spawn_wave
+from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
+    cemit_arena_state_change
 
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
     DEFENDER_FACTION_DBREF
@@ -16,6 +18,13 @@ from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
     ArenaMapUnitStore
 from battlesnake.plugins.contrib.arena_master.puppets.strategic_logic import \
     move_idle_units, handle_ai_target_change
+
+ARENA_DIFFICULTY_LEVELS = {
+    'easy': {'modifier': 0.5},
+    'normal': {'modifier': 0.8},
+    'hard': {'modifier': 1.0},
+    'overkill': {'modifier': 1.3},
+}
 
 
 class ArenaMasterPuppet(object):
@@ -76,6 +85,14 @@ class ArenaMasterPuppet(object):
         yield spawn_wave(
             p, self.current_wave, defenders_bv2, self.difficulty_mod, self)
 
+        message = (
+            "{arena_name} %(ID: %cc{arena_id}%cw%) has started wave {wave_num}."
+        ).format(
+            arena_name=self.arena_name, arena_id=self.dbref[1:],
+            wave_num=self.current_wave,
+        )
+        cemit_arena_state_change(p, message)
+
     @inlineCallbacks
     def change_state_to_in_between(self, protocol):
         """
@@ -91,6 +108,16 @@ class ArenaMasterPuppet(object):
             "The next wave will arrive when the arena leader types %cgcontinue%cw.%cn".format(
             wave_num=self.current_wave))
         self.pemit_throughout_zone(p, message)
+
+        message = (
+            "{arena_name} %(ID: %cc{arena_id}%cw%) has completed wave {wave_num}. "
+            "If you'd like to join in, go to the Arena Nexus and: %cgajoin {arena_id}%cw"
+        ).format(
+            arena_name=self.arena_name, arena_id=self.dbref[1:],
+            wave_num=self.current_wave,
+        )
+        cemit_arena_state_change(p, message)
+
         next_wave = self.current_wave + 1
         yield self.set_current_wave(protocol, next_wave)
 
@@ -109,6 +136,38 @@ class ArenaMasterPuppet(object):
         # TODO: Send match summary?
         mux_commands.trigger(p, self.map_dbref, 'DEST_ALL_MECHS.T')
 
+        message = (
+            "{arena_name} %(ID: %cc{arena_id}%cw%) has ended after "
+            "surviving {wave_num} full waves."
+        ).format(
+            arena_name=self.arena_name, arena_id=self.dbref[1:],
+            wave_num=self.current_wave - 1,
+        )
+        cemit_arena_state_change(p, message)
+
+    @inlineCallbacks
+    def reset_arena(self, protocol):
+        """
+        Completely resets the arena back to its wave 1 initial state.
+        """
+
+        p = protocol
+        yield self.change_game_state(p, 'Staging')
+        message = (
+            "%chThe arena has been restarted. The match will start when "
+            "[name({leader_dbref})] types %cgbegin%cw.%cn".format(
+            wave_num=self.current_wave - 1, leader_dbref=self.leader_dbref))
+        self.pemit_throughout_zone(p, message)
+
+        message = (
+            "{arena_name} %(ID: %cc{arena_id}%cw%) has restarted at wave 1 in "
+            "preparation for another match. If you'd like to join, go to the "
+            "Arena Nexus and: %cgajoin {arena_id}%cw"
+        ).format(
+            arena_name=self.arena_name, arena_id=self.dbref[1:],
+        )
+        cemit_arena_state_change(p, message)
+
     @inlineCallbacks
     def change_game_state(self, protocol, new_state):
         """
@@ -122,6 +181,23 @@ class ArenaMasterPuppet(object):
         self.game_state = new_state
         attrs = {'GAME_STATE.D': new_state}
         yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+
+    @inlineCallbacks
+    def set_difficulty(self, protocol, new_difficulty):
+        """
+        Sets the difficulty level for an arena.
+
+        :param float new_difficulty: See ARENA_DIFFICULTY_LEVEL's keys.
+        """
+
+        self.difficulty_mod = ARENA_DIFFICULTY_LEVELS[new_difficulty]['modifier']
+        attrs = {'DIFFICULTY_MOD.D': self.difficulty_mod}
+        yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+        message = (
+            "%ch[name({leader_dbref})] has set the difficulty "
+            "level to: %cy{difficulty}%cn".format(
+                leader_dbref=self.leader_dbref, difficulty=new_difficulty))
+        self.pemit_throughout_zone(protocol, message)
 
     @inlineCallbacks
     def set_arena_leader(self, protocol, new_leader):

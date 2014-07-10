@@ -8,6 +8,8 @@ from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
     destroy_arena
+from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
+    ARENA_DIFFICULTY_LEVELS
 
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
@@ -160,6 +162,34 @@ class EndMatchCommand(BaseCommand):
             p, "[name({invoker_dbref})] has ended the match.".format(
                 invoker_dbref=invoker_dbref))
         yield destroy_arena(p, arena_master_dbref)
+        
+
+class RestartMatchCommand(BaseCommand):
+    """
+    Lets the arena leader reset the arena to wave 1 and go again.
+    """
+
+    command_name = "am_restartmatch"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        leader_dbref = puppet.leader_dbref
+        if leader_dbref != invoker_dbref:
+            raise CommandError("Only the arena leader can do that.")
+
+        game_state = puppet.game_state.lower()
+        if game_state != 'finished':
+            raise CommandError("You can only restart a finished match.")
+
+        yield puppet.reset_arena(p)
 
 
 class TransferLeaderStatusCommand(BaseCommand):
@@ -192,12 +222,51 @@ class TransferLeaderStatusCommand(BaseCommand):
         yield puppet.set_arena_leader(p, new_leader_dbref)
 
 
+class SetDifficultyCommand(BaseCommand):
+    """
+    Used to adjust an arena's difficulty modifier.
+    """
+
+    command_name = "am_setdifficulty"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+        difficulty_level = parsed_line.kwargs['difficulty_level']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        leader_dbref = puppet.leader_dbref
+        if leader_dbref != invoker_dbref:
+            raise CommandError("Only the arena leader can do that.")
+
+        game_state = puppet.game_state.lower()
+        if game_state != 'staging':
+            raise CommandError(
+                "Difficulty can only be adjusted during pre-match staging.")
+
+        difficulty_level = difficulty_level.lower()
+        if difficulty_level not in ARENA_DIFFICULTY_LEVELS.keys():
+            raise CommandError(
+                "Invalid difficulty level. Must be one of: %s" % (
+                    ', '.join(ARENA_DIFFICULTY_LEVELS.keys()),)
+            )
+
+        yield puppet.set_difficulty(p, difficulty_level)
+
+
 class ArenaStagingRoomCommandTable(InboundCommandTable):
 
     commands = [
         ArenaInternalDescriptionCommand,
+        SetDifficultyCommand,
         BeginMatchCommand,
         SimpleSpawnCommand,
         EndMatchCommand,
+        RestartMatchCommand,
         TransferLeaderStatusCommand,
     ]
