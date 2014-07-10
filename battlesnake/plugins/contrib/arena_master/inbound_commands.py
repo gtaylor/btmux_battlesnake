@@ -406,16 +406,25 @@ class ReportDestructionCommand(BaseCommand):
     def run(self, protocol, parsed_line, invoker_dbref):
         p = protocol
         arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+        victim_unit_dbref = parsed_line.kwargs['victim_unit_dbref']
+        killer_unit_dbref = parsed_line.kwargs['killer_unit_dbref']
+
+        print "Unit destruction reported", parsed_line.kwargs
 
         try:
             puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
         except KeyError:
+            # This *has* to happen.
+            self._clear_corpse(p, victim_unit_dbref)
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
 
-        victim_unit_dbref = parsed_line.kwargs['victim_unit_dbref']
-        killer_unit_dbref = parsed_line.kwargs['killer_unit_dbref']
         cause_of_death = parsed_line.kwargs['cause_of_death']
         handle_kill(p, puppet, victim_unit_dbref, killer_unit_dbref, cause_of_death)
+        # This *has* to happen.
+        self._clear_corpse(p, victim_unit_dbref)
+
+    def _clear_corpse(self, p, victim_unit_dbref):
+        mux_commands.trigger(p, victim_unit_dbref, 'DESTMECH.T')
 
 
 class TScanCommand(BaseCommand):

@@ -34,9 +34,6 @@ def handle_kill(protocol, puppet, victim_unit_dbref, killer_unit_dbref,
     if victim_unit and killer_unit:
         record_kill(p, puppet, victim_unit, killer_unit, cause_of_death)
 
-    # This *has* to happen.
-    mux_commands.trigger(p, victim_unit_dbref, 'DESTMECH.T')
-
 
 def record_kill(protocol, puppet, victim_unit, killer_unit, cause_of_death):
     """
