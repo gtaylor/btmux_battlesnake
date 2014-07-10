@@ -16,9 +16,10 @@ from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
 
 
 @inlineCallbacks
-def create_arena(protocol, arena_name, leader_dbref):
+def create_arena(protocol, leader_dbref):
     p = protocol
-    arena_master_dbref = yield _create_arena_master_object(p, arena_name)
+    arena_master_dbref = yield _create_arena_master_object(p)
+    arena_name = 'Arena ' + arena_master_dbref[1:]
     map_dbref, map_dimensions = yield _create_map(p, arena_name, arena_master_dbref)
     puppet_ol_dbref = yield _create_puppet_ol(
         p, arena_name, arena_master_dbref, map_dbref, map_dimensions)
@@ -26,7 +27,6 @@ def create_arena(protocol, arena_name, leader_dbref):
         p, arena_name, arena_master_dbref, map_dbref, map_dimensions)
 
     arena_master_attrs = {
-        'ARENA_NAME.D': arena_name,
         'MAP.DBREF': map_dbref,
         'LEADER.DBREF': leader_dbref,
         'PUPPET_OL.DBREF': puppet_ol_dbref,
@@ -42,11 +42,13 @@ def create_arena(protocol, arena_name, leader_dbref):
 
 
 @inlineCallbacks
-def _create_arena_master_object(protocol, arena_name):
+def _create_arena_master_object(protocol):
     p = protocol
-    arena_master_name = "%cyArenaPuppet:%cn " + arena_name
+    arena_master_name = "%cyArenaPuppet:%cn Name Pending"
     arena_master_dbref = yield think_fn_wrappers.create(
         p, arena_master_name, otype='t')
+    arena_master_name = "%cyArenaPuppet:%cn Arena {id}".format(id=arena_master_dbref[1:])
+    mux_commands.name(p, arena_master_dbref, arena_master_name)
 
     mux_commands.parent(
         p, arena_master_dbref,

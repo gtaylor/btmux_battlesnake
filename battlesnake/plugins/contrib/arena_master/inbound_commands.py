@@ -214,13 +214,10 @@ class CreateArenaCommand(BaseCommand):
     @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
         p = protocol
-        invoker_name = parsed_line.kwargs['invoker_name']
         self._check_for_dupe_arenas(invoker_dbref)
-        arena_name = "%s's arena" % invoker_name
         mux_commands.pemit(
             p, invoker_dbref, "Please wait while we create an arena for you...")
-        arena_master_dbref, staging_dbref = yield create_arena(
-            p, arena_name, invoker_dbref)
+        arena_master_dbref, staging_dbref = yield create_arena(p, invoker_dbref)
         mux_commands.pemit(p, invoker_dbref, "Your arena is ready. Good luck!")
 
         think_fn_wrappers.tel(p, invoker_dbref, staging_dbref)
@@ -292,7 +289,7 @@ class ArenaListCommand(BaseCommand):
                 "%r [rjust({dbref}, 4)]%b [ljust(name({leader_dbref}),25)] "
                 "[ljust({difficulty},16)] "
                 "[ljust(words(zwho(#{dbref})),7)] "
-                "{state} (Public)".format(
+                "{state}".format(
                 dbref=puppet.dbref[1:], leader_dbref=puppet.leader_dbref,
                 difficulty=puppet.difficulty_name.capitalize(),
                 state=puppet.game_state))
