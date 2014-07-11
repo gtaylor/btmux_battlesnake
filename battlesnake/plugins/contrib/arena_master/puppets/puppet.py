@@ -110,9 +110,9 @@ class ArenaMasterPuppet(object):
             p, self.current_wave, defenders_bv2, self.difficulty_mod, self)
 
         message = (
-            "{arena_name} %(ID: %cc{arena_id}%cw%) has started wave {wave_num}."
+            "Arena %cc{arena_id}%cw has started wave {wave_num}."
         ).format(
-            arena_name=self.arena_name, arena_id=self.dbref[1:],
+            arena_id=self.dbref[1:],
             wave_num=self.current_wave,
         )
         yield announce_arena_state_change(p, message)
@@ -134,10 +134,10 @@ class ArenaMasterPuppet(object):
         self.pemit_throughout_zone(p, message)
 
         message = (
-            "{arena_name} %(ID: %cc{arena_id}%cw%) has completed wave {wave_num}. "
+            "Arena %cc{arena_id}%cw has completed wave {wave_num}. "
             "If you'd like to join in, go to the Arena Nexus and: %cgajoin {arena_id}%cw"
         ).format(
-            arena_name=self.arena_name, arena_id=self.dbref[1:],
+            arena_id=self.dbref[1:],
             wave_num=self.current_wave,
         )
         yield announce_arena_state_change(p, message)
@@ -161,10 +161,10 @@ class ArenaMasterPuppet(object):
         mux_commands.trigger(p, self.map_dbref, 'DEST_ALL_MECHS.T')
 
         message = (
-            "{arena_name} %(ID: %cc{arena_id}%cw%) has ended after "
+            "Arena %cc{arena_id}%cw has ended after "
             "surviving {wave_num} full waves."
         ).format(
-            arena_name=self.arena_name, arena_id=self.dbref[1:],
+            arena_id=self.dbref[1:],
             wave_num=self.current_wave - 1,
         )
         yield announce_arena_state_change(p, message)
@@ -184,11 +184,11 @@ class ArenaMasterPuppet(object):
         self.pemit_throughout_zone(p, message)
 
         message = (
-            "{arena_name} %(ID: %cc{arena_id}%cw%) has restarted at wave 1 in "
+            "Arena %cc{arena_id}%cw has restarted at wave 1 in "
             "preparation for another match. If you'd like to join, go to the "
             "Arena Nexus and: %cgajoin {arena_id}%cw"
         ).format(
-            arena_name=self.arena_name, arena_id=self.dbref[1:],
+            arena_id=self.dbref[1:],
         )
         yield announce_arena_state_change(p, message)
 
