@@ -7,7 +7,7 @@ from battlesnake.outbound_commands import unit_manipulation
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     spawn_wave
 from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
-    cemit_arena_state_change
+    announce_arena_state_change
 
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
     DEFENDER_FACTION_DBREF
@@ -115,7 +115,7 @@ class ArenaMasterPuppet(object):
             arena_name=self.arena_name, arena_id=self.dbref[1:],
             wave_num=self.current_wave,
         )
-        cemit_arena_state_change(p, message)
+        yield announce_arena_state_change(p, message)
 
     @inlineCallbacks
     def change_state_to_in_between(self, protocol):
@@ -140,7 +140,7 @@ class ArenaMasterPuppet(object):
             arena_name=self.arena_name, arena_id=self.dbref[1:],
             wave_num=self.current_wave,
         )
-        cemit_arena_state_change(p, message)
+        yield announce_arena_state_change(p, message)
 
         next_wave = self.current_wave + 1
         yield self.set_current_wave(protocol, next_wave)
@@ -167,7 +167,7 @@ class ArenaMasterPuppet(object):
             arena_name=self.arena_name, arena_id=self.dbref[1:],
             wave_num=self.current_wave - 1,
         )
-        cemit_arena_state_change(p, message)
+        yield announce_arena_state_change(p, message)
 
     @inlineCallbacks
     def reset_arena(self, protocol):
@@ -190,7 +190,7 @@ class ArenaMasterPuppet(object):
         ).format(
             arena_name=self.arena_name, arena_id=self.dbref[1:],
         )
-        cemit_arena_state_change(p, message)
+        yield announce_arena_state_change(p, message)
 
     @inlineCallbacks
     def change_game_state(self, protocol, new_state):

@@ -103,7 +103,7 @@ def _create_puppet_ol(protocol, arena_name, arena_master_dbref, map_dbref,
     mux_commands.name(p, ol_dbref, ol_name)
     mux_commands.parent(
         p, ol_dbref, settings['arena_master']['puppet_ol_parent_dbref'])
-    yield think_fn_wrappers.set_flags(p, ol_dbref, ['DARK'])
+    yield think_fn_wrappers.set_flags(p, ol_dbref, ['DARK', '!IN_CHARACTER'])
     yield think_fn_wrappers.tel(p, arena_master_dbref, ol_dbref)
     yield think_fn_wrappers.btsetxcodevalue(p, ol_dbref, 'scanrange', '100')
     yield think_fn_wrappers.btsetxcodevalue(p, ol_dbref, 'tacrange', '100')
@@ -130,7 +130,7 @@ def _create_staging_room(protocol, arena_name, arena_master_dbref, map_dbref,
     mux_commands.parent(
         p, staging_dbref, settings['arena_master']['staging_room_parent_dbref'])
     yield think_fn_wrappers.tel(p, staging_dbref, map_dbref)
-    yield think_fn_wrappers.set_flags(p, staging_dbref, ['DARK'])
+    yield think_fn_wrappers.set_flags(p, staging_dbref, ['DARK', '!IN_CHARACTER'])
 
     exit_dbref = yield think_fn_wrappers.create(p, 'Out to Arena Nexus;o', otype='e')
     yield think_fn_wrappers.tel(p, exit_dbref, staging_dbref)

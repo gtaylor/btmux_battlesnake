@@ -15,7 +15,7 @@ from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
 from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
-    cemit_arena_state_change
+    announce_arena_state_change
 from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
     handle_kill
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
@@ -230,7 +230,7 @@ class CreateArenaCommand(BaseCommand):
             leader_dbref=invoker_dbref,
             arena_id=arena_master_dbref[1:]
         )
-        cemit_arena_state_change(p, message)
+        yield announce_arena_state_change(p, message)
 
     def _check_for_dupe_arenas(self, invoker_dbref):
         puppets = PUPPET_STORE.list_arena_master_puppets()
