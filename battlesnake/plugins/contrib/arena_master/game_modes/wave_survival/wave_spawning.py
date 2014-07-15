@@ -17,6 +17,24 @@ from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
 
 
 @inlineCallbacks
+def find_lowest_bv2_ai_unit():
+    """
+    Finds the lowest possible BV2 unit that the AI can use.
+
+    :rtype: int
+    :returns: The lowest BV2 value unit.
+    """
+
+    conn = yield get_db_connection()
+    results = yield conn.runQuery(
+        'SELECT battle_value2 FROM unit_library_unit '
+        '  WHERE is_ai_spawnable=True ORDER BY battle_value2 ASC LIMIT 1',
+    )
+    for row in results:
+        returnValue(row['battle_value2'])
+
+
+@inlineCallbacks
 def pick_refs_for_wave(wave_num, opposing_bv2, difficulty_modifier):
     """
     :param int wave_num: A wave number. Starting at 1.
@@ -27,11 +45,13 @@ def pick_refs_for_wave(wave_num, opposing_bv2, difficulty_modifier):
     :returns: A list of unit ref strings to spawn for this wave.
     """
 
-    print "OPPOSING BV2", opposing_bv2
-    first_wave_bv2 = opposing_bv2 * difficulty_modifier
+    print "Total Defender BV2", opposing_bv2
+    min_wave_bv2 = yield find_lowest_bv2_ai_unit()
+    # Cap the lowest possible BV2 to make sure the wave is always spawnable.
+    first_wave_bv2 = max(min_wave_bv2, opposing_bv2 * difficulty_modifier)
     # Successive waves are slightly harder than the first wave.
     max_wave_bv2 = first_wave_bv2 + (first_wave_bv2 * math.log(wave_num))
-    print "MAX WAVE BV2", max_wave_bv2
+    print "Max Attacker BV2", max_wave_bv2
 
     conn = yield get_db_connection()
     results = yield conn.runQuery(
