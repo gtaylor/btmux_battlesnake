@@ -26,6 +26,9 @@ def start_unit_ai(
     p = protocol
     ai_name = "UNIT-AUTOPILOT-{unit_dbref}".format(unit_dbref=unit_dbref)
     ai_dbref = yield think_fn_wrappers.create(protocol, ai_name, otype='t')
+    # Dead mech/AI compactor dbref.
+    compactor_dbref = settings['unit_spawning']['dead_mech_compactor_dbref']
+    mux_commands.link(protocol, ai_dbref, compactor_dbref)
     yield think_fn_wrappers.teleport(protocol, ai_dbref, unit_dbref)
     # AI pilot is in place, set some attribs on him
     yield think_fn_wrappers.set_attrs(protocol, ai_dbref, {
