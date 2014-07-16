@@ -34,7 +34,7 @@ def create_arena(protocol, leader_dbref):
         'CURRENT_WAVE.D': '1',
         'GAME_MODE.D': 'wave',
         'GAME_STATE.D': 'Staging',
-        'DIFFICULTY_MOD.D': ARENA_DIFFICULTY_LEVELS['normal']['modifier'],
+        'DIFFICULTY_LEVEL.D': 'normal',
     }
     yield think_fn_wrappers.set_attrs(p, arena_master_dbref, arena_master_attrs)
     yield PUPPET_STORE.add_puppet_from_arena_master_object(p, arena_master_dbref)

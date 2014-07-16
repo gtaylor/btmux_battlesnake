@@ -69,12 +69,12 @@ class ArenaMasterPuppetStore(object):
         current_wave = yield get(p, arena_master_dbref, 'CURRENT_WAVE.D')
         game_mode = yield get(p, arena_master_dbref, 'GAME_MODE.D')
         game_state = yield get(p, arena_master_dbref, 'GAME_STATE.D')
-        difficulty_mod = yield get(p, arena_master_dbref, 'DIFFICULTY_MOD.D')
+        difficulty_level = yield get(p, arena_master_dbref, 'DIFFICULTY_LEVEL.D')
         map_width, map_height = yield get_map_dimensions(p, map_dbref)
         puppet = ArenaMasterPuppet(
             protocol, arena_master_dbref, map_dbref, staging_dbref,
             leader_dbref, map_height, map_width, arena_name, current_wave,
-            game_mode, game_state, difficulty_mod)
+            game_mode, game_state, difficulty_level)
         self.update_or_add_puppet(puppet)
 
         returnValue(puppet)

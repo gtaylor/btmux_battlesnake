@@ -19,12 +19,12 @@ from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
 from battlesnake.plugins.contrib.arena_master.puppets.strategic_logic import \
     move_idle_units, handle_ai_target_change
 
-ARENA_DIFFICULTY_LEVELS = {
-    'easy': {'modifier': 0.5},
-    'normal': {'modifier': 0.8},
-    'hard': {'modifier': 1.1},
-    'overkill': {'modifier': 1.4},
-}
+ARENA_DIFFICULTY_LEVELS = [
+    'easy',
+    'normal',
+    'hard',
+    'overkill',
+]
 
 
 class ArenaMasterPuppet(object):
@@ -34,7 +34,7 @@ class ArenaMasterPuppet(object):
 
     def __init__(self, protocol, dbref, map_dbref, staging_dbref, leader_dbref,
                  map_height, map_width, arena_name, current_wave, game_mode,
-                 game_state, difficulty_mod):
+                 game_state, difficulty_level):
         self.protocol = protocol
         self.dbref = dbref
         self.map_dbref = map_dbref
@@ -50,7 +50,7 @@ class ArenaMasterPuppet(object):
         self.game_mode = game_mode
         # One of: 'Staging', 'In-Between', 'Active', 'Finished'
         self.game_state = game_state
-        self.difficulty_mod = float(difficulty_mod)
+        self.difficulty_level = difficulty_level.lower()
 
         ## Wave survival stuff.
         # This is the faction that the arena puppet has control of.
@@ -74,22 +74,6 @@ class ArenaMasterPuppet(object):
 
         return self.dbref[1:]
 
-    @property
-    def difficulty_name(self):
-        """
-        Looks up the puppet's difficulty modifier and figures out which difficulty
-        level name it falls under.
-
-        :rtype: str
-        :returns: The name that matches the difficulty mod.
-        """
-
-        for key, val in ARENA_DIFFICULTY_LEVELS.items():
-            if self.difficulty_mod == val['modifier']:
-                return key
-        raise ValueError(
-            "Invalid difficulty modifier during name looking: %f" % self.difficulty_mod)
-
     @inlineCallbacks
     def change_state_to_active(self, protocol):
         """
@@ -107,7 +91,7 @@ class ArenaMasterPuppet(object):
         self.pemit_throughout_zone(p, message)
         defenders_bv2 = self.calc_total_defending_units_bv2()
         yield spawn_wave(
-            p, self.current_wave, defenders_bv2, self.difficulty_mod, self)
+            p, self.current_wave, defenders_bv2, self.difficulty_level, self)
 
         message = (
             "Arena %cc{arena_id}%cw has started wave {wave_num}."
@@ -214,8 +198,8 @@ class ArenaMasterPuppet(object):
         :param float new_difficulty: See ARENA_DIFFICULTY_LEVEL's keys.
         """
 
-        self.difficulty_mod = ARENA_DIFFICULTY_LEVELS[new_difficulty]['modifier']
-        attrs = {'DIFFICULTY_MOD.D': self.difficulty_mod}
+        self.difficulty_level = new_difficulty
+        attrs = {'DIFFICULTY_LEVEL.D': self.difficulty_level}
         yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
         message = (
             "%ch[name({leader_dbref})] has set the difficulty "

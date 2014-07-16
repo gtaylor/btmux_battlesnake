@@ -18,6 +18,8 @@ from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
     announce_arena_state_change
 from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
     handle_kill
+from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
+    ARENA_DIFFICULTY_LEVELS
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
@@ -47,8 +49,8 @@ class PickWaveCommand(BaseCommand):
             'opposing_bv2', type=int,
             help="Total BV2 of opposing force.")
         parser.add_argument(
-            'difficulty_mod', type=float,
-            help="1.0 being the base level difficulty")
+            'difficulty_level', type=str, choices=ARENA_DIFFICULTY_LEVELS,
+            help="The difficulty of the wave")
 
         args = parser.parse_args(args=cmd_line)
         try:
@@ -61,7 +63,7 @@ class PickWaveCommand(BaseCommand):
         output = str(args)
         mux_commands.pemit(protocol, invoker_dbref, output)
         refs = yield pick_refs_for_wave(
-            args.wave_num, args.opposing_bv2, args.difficulty_mod)
+            args.wave_num, args.opposing_bv2, args.difficulty_level)
         mux_commands.pemit(protocol, invoker_dbref, str(refs))
 
 
@@ -86,8 +88,8 @@ class SpawnWaveCommand(BaseCommand):
             'opposing_bv2', type=int,
             help="Total BV2 of opposing force.")
         parser.add_argument(
-            'difficulty_mod', type=float,
-            help="1.0 being the base level difficulty.")
+            'difficulty_level', type=str, choices=ARENA_DIFFICULTY_LEVELS,
+            help="Difficulty level name.")
         parser.add_argument(
             'arena_master_dbref', type=str,
             help="Arena master dbref to spawn through.")
@@ -110,7 +112,7 @@ class SpawnWaveCommand(BaseCommand):
             raise CommandError("Invalid arena dbref.")
 
         yield spawn_wave(
-            protocol, args.wave_num, args.opposing_bv2, args.difficulty_mod,
+            protocol, args.wave_num, args.opposing_bv2, args.difficulty_level,
             puppet)
         mux_commands.pemit(protocol, invoker_dbref,
             "Spawning wave.")
@@ -291,7 +293,7 @@ class ArenaListCommand(BaseCommand):
                 "[ljust(words(zwho(#{dbref})),7)] "
                 "{state}".format(
                 dbref=puppet.dbref[1:], leader_dbref=puppet.leader_dbref,
-                difficulty=puppet.difficulty_name.capitalize(),
+                difficulty=puppet.difficulty_level.capitalize(),
                 state=puppet.game_state))
         if not puppets:
             retval += "[center(There are no active arenas. Create one!,78)]"

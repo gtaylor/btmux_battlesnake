@@ -46,7 +46,7 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
         " [ljust(%chCurrent wave:%cn {current_wave},45)]"
         " %chEnemies remaining:%cn {remaining_enemies}".format(
             arena_leader_dbref=arena_master_puppet.leader_dbref,
-            difficulty=arena_master_puppet.difficulty_name.capitalize(),
+            difficulty=arena_master_puppet.difficulty_level.capitalize(),
             game_state=arena_master_puppet.game_state,
             remaining_friendlies=len(remaining_friendlies),
             current_wave=arena_master_puppet.current_wave,
@@ -86,7 +86,7 @@ def _return_state_specific_help(protocol, arena_master_puppet, invoker_dbref):
 def _return_staging_state_help(protocol, arena_master_puppet, invoker_dbref):
     leader_dbref = arena_master_puppet.leader_dbref
     if leader_dbref == invoker_dbref:
-        difficulty_vals = '|'.join(ARENA_DIFFICULTY_LEVELS.keys())
+        difficulty_vals = '|'.join(ARENA_DIFFICULTY_LEVELS)
         retval = (
             ' To set the difficulty level, type %ch%cgdifficulty <{difficulty_vals}>%cn.%r'
             ' Once you are ready to get the match started, type %ch%cgbegin%cn.%r'
