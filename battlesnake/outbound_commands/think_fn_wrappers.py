@@ -1,6 +1,7 @@
 """
 Functions wrappers using the 'think' command.
 """
+import itertools
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
@@ -107,6 +108,28 @@ def get(protocol, obj, attr_name):
     think_str = "[get({obj}/{attr_name})]".format(
         obj=obj, attr_name=attr_name)
     return mux_commands.think(protocol, think_str)
+
+
+@inlineCallbacks
+def get_attrs(protocol, obj, attr_list, attr_delim='@&~'):
+    """
+    Retrieves multiple attributes from an object in one shot. More efficient
+    than multiple calls to get().
+
+    :param BattlesnakeTelnetProtocol protocol:
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :param list attr_list: A list of attribute key names to retrieve.
+    :keyword str attr_delim: This delimeter breaks up the get() values in
+        the response.
+    """
+
+    key_iter_str = '|'.join(attr_list)
+    think_str = "[iter({key_iter_str},[get({obj}/##)]{attr_delim},|)]".format(
+        key_iter_str=key_iter_str, obj=obj, attr_delim=attr_delim)
+    result = yield mux_commands.think(protocol, think_str)
+    vals = result.split(attr_delim)
+    combined = itertools.izip(attr_list, vals)
+    returnValue({k: v.strip() for k, v in combined})
 
 
 def name(protocol, obj):

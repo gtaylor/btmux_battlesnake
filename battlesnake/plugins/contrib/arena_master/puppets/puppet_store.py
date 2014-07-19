@@ -8,7 +8,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 from battlesnake.core.utils import is_valid_dbref
 from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions, \
-    get
+    get, get_attrs
 from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
     ArenaMasterPuppet
 
@@ -62,19 +62,25 @@ class ArenaMasterPuppetStore(object):
         """
 
         p = protocol
-        map_dbref = yield get(p, arena_master_dbref, 'MAP.DBREF')
-        leader_dbref = yield get(p, arena_master_dbref, 'LEADER.DBREF')
-        staging_dbref = yield get(p, arena_master_dbref, 'STAGING_ROOM.DBREF')
-        arena_name = yield get(p, arena_master_dbref, 'ARENA_NAME.D')
-        current_wave = yield get(p, arena_master_dbref, 'CURRENT_WAVE.D')
-        game_mode = yield get(p, arena_master_dbref, 'GAME_MODE.D')
-        game_state = yield get(p, arena_master_dbref, 'GAME_STATE.D')
-        difficulty_level = yield get(p, arena_master_dbref, 'DIFFICULTY_LEVEL.D')
-        map_width, map_height = yield get_map_dimensions(p, map_dbref)
+        # Map in-game puppet object attribs to ArenaMasterPuppet kwargs.
+        attr_kwarg_map = {
+            'MAP.DBREF': 'map_dbref',
+            'LEADER.DBREF': 'leader_dbref',
+            'CREATOR.DBREF': 'creator_dbref',
+            'STAGING_ROOM.DBREF': 'staging_dbref',
+            'CURRENT_WAVE.D': 'current_wave',
+            'GAME_MODE.D': 'game_mode',
+            'GAME_STATE.D': 'game_state',
+            'DIFFICULTY_LEVEL.D': 'difficulty_level',
+        }
+        arena_attrs = yield get_attrs(p, arena_master_dbref, attr_kwarg_map.keys())
+        # Convert attribute keys to ArenaMasterPuppet kwargs.
+        arena_kwargs = {attr_kwarg_map[k]: v for k, v in arena_attrs.items()}
+        map_width, map_height = yield get_map_dimensions(p, arena_kwargs['map_dbref'])
+        # Instantiate like a boss.
         puppet = ArenaMasterPuppet(
-            protocol, arena_master_dbref, map_dbref, staging_dbref,
-            leader_dbref, map_height, map_width, arena_name, current_wave,
-            game_mode, game_state, difficulty_level)
+            protocol, arena_master_dbref,
+            map_height=map_height, map_width=map_width, **arena_kwargs)
         self.update_or_add_puppet(puppet)
 
         returnValue(puppet)

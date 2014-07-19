@@ -28,6 +28,7 @@ def create_arena(protocol, leader_dbref):
 
     arena_master_attrs = {
         'MAP.DBREF': map_dbref,
+        'CREATOR.DBREF': leader_dbref,
         'LEADER.DBREF': leader_dbref,
         'PUPPET_OL.DBREF': puppet_ol_dbref,
         'STAGING_ROOM.DBREF': staging_dbref,

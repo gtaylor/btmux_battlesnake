@@ -19,12 +19,8 @@ from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
 from battlesnake.plugins.contrib.arena_master.puppets.strategic_logic import \
     move_idle_units, handle_ai_target_change
 
-ARENA_DIFFICULTY_LEVELS = [
-    'easy',
-    'normal',
-    'hard',
-    'overkill',
-]
+ARENA_DIFFICULTY_LEVELS = ['easy', 'normal', 'hard', 'overkill']
+GAME_STATES = ['staging', 'in-between', 'active', 'finished']
 
 
 class ArenaMasterPuppet(object):
@@ -33,19 +29,20 @@ class ArenaMasterPuppet(object):
     """
 
     def __init__(self, protocol, dbref, map_dbref, staging_dbref, leader_dbref,
-                 map_height, map_width, arena_name, current_wave, game_mode,
-                 game_state, difficulty_level):
+                 creator_dbref, map_height, map_width, current_wave,
+                 game_mode, game_state, difficulty_level):
         self.protocol = protocol
         self.dbref = dbref
         self.map_dbref = map_dbref
         self.staging_dbref = staging_dbref
         self.leader_dbref = leader_dbref
+        self.creator_dbref = creator_dbref
         # A cache for all units in the arena, plus their states.
         self.unit_store = ArenaMapUnitStore(
             arena_master_puppet=self, unit_change_callback=self.handle_unit_change)
         self.map_width = int(map_width)
         self.map_height = int(map_height)
-        self.arena_name = arena_name
+        self.arena_name = 'Arena %s' % self.dbref[1:]
         # Currently only 'wave'.
         self.game_mode = game_mode
         # One of: 'Staging', 'In-Between', 'Active', 'Finished'
