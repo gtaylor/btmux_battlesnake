@@ -219,10 +219,10 @@ class CreateArenaCommand(BaseCommand):
         self._check_for_dupe_arenas(invoker_dbref)
         mux_commands.pemit(
             p, invoker_dbref, "Please wait while we create an arena for you...")
-        arena_master_dbref, staging_dbref = yield create_arena(p, invoker_dbref)
+        puppet = yield create_arena(p, invoker_dbref)
         mux_commands.pemit(p, invoker_dbref, "Your arena is ready. Good luck!")
 
-        think_fn_wrappers.tel(p, invoker_dbref, staging_dbref)
+        think_fn_wrappers.tel(p, invoker_dbref, puppet.staging_dbref)
 
         message = (
             "[name({leader_dbref})] has created a new arena"
@@ -230,7 +230,7 @@ class CreateArenaCommand(BaseCommand):
             "Arena Nexus and: %cgajoin {arena_id}%cw"
         ).format(
             leader_dbref=invoker_dbref,
-            arena_id=arena_master_dbref[1:]
+            arena_id=puppet.dbref[1:]
         )
         yield announce_arena_state_change(p, message)
 

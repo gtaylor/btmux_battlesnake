@@ -11,7 +11,7 @@ from battlesnake.outbound_commands import mux_commands
 from battlesnake.plugins.contrib.chargen.archetypes import JACK_OF_ALL_TRADES
 from battlesnake.plugins.contrib.chargen.outbound_commands import \
     setup_new_player
-from battlesnake.plugins.contrib.player_profiles.api import create_new_player
+from battlesnake.plugins.contrib.player_profiles.api import add_existing_player_to_db
 
 
 class SetupNewPlayerCommand(BaseCommand):
@@ -47,7 +47,8 @@ class SetupNewPlayerCommand(BaseCommand):
         if '.' not in email:
             raise CommandError(invalid_email_msg)
 
-        yield create_new_player(parsed_line.kwargs['username'], email)
+        yield add_existing_player_to_db(
+            invoker_dbref, parsed_line.kwargs['username'], email)
 
         yield mux_commands.pemit(protocol, parsed_line.invoker_dbref,
             "Starting new player setup...")

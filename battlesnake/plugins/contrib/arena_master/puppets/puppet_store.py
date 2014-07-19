@@ -72,6 +72,7 @@ class ArenaMasterPuppetStore(object):
             'GAME_MODE.D': 'game_mode',
             'GAME_STATE.D': 'game_state',
             'DIFFICULTY_LEVEL.D': 'difficulty_level',
+            'MATCH_ID.D': 'match_id',
         }
         arena_attrs = yield get_attrs(p, arena_master_dbref, attr_kwarg_map.keys())
         # Convert attribute keys to ArenaMasterPuppet kwargs.

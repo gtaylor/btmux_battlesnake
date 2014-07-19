@@ -30,7 +30,7 @@ class ArenaMasterPuppet(object):
 
     def __init__(self, protocol, dbref, map_dbref, staging_dbref, leader_dbref,
                  creator_dbref, map_height, map_width, current_wave,
-                 game_mode, game_state, difficulty_level):
+                 game_mode, game_state, difficulty_level, match_id):
         self.protocol = protocol
         self.dbref = dbref
         self.map_dbref = map_dbref
@@ -48,6 +48,8 @@ class ArenaMasterPuppet(object):
         # One of: 'Staging', 'In-Between', 'Active', 'Finished'
         self.game_state = game_state
         self.difficulty_level = difficulty_level.lower()
+        # Match ID in the DB.
+        self.match_id = match_id
 
         ## Wave survival stuff.
         # This is the faction that the arena puppet has control of.

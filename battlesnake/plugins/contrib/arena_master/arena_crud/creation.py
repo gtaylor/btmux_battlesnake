@@ -3,16 +3,15 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
-
-from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
-    ARENA_DIFFICULTY_LEVELS
-from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
-    PUPPET_STORE
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF, \
     ATTACKER_FACTION_DBREF
 from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
     create_unit
+
+from battlesnake.plugins.contrib.arena_master.db_api import insert_match_in_db
+from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
+    PUPPET_STORE
 
 
 @inlineCallbacks
@@ -38,8 +37,12 @@ def create_arena(protocol, leader_dbref):
         'DIFFICULTY_LEVEL.D': 'normal',
     }
     yield think_fn_wrappers.set_attrs(p, arena_master_dbref, arena_master_attrs)
-    yield PUPPET_STORE.add_puppet_from_arena_master_object(p, arena_master_dbref)
-    returnValue((arena_master_dbref, staging_dbref))
+    puppet = yield PUPPET_STORE.add_puppet_from_arena_master_object(
+        p, arena_master_dbref)
+    puppet.match_id = yield insert_match_in_db(puppet)
+    yield think_fn_wrappers.set_attrs(
+        p, arena_master_dbref, {'MATCH_ID.D': puppet.match_id})
+    returnValue(puppet)
 
 
 @inlineCallbacks
