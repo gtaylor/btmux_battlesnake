@@ -124,7 +124,7 @@ def _return_finished_state_help(protocol, arena_master_puppet, invoker_dbref):
     leader_dbref = arena_master_puppet.leader_dbref
     if leader_dbref == invoker_dbref:
         retval = (
-            "%r %ch%cyAll defenders have perished, the match has finished.%cn"
+            " %ch%cyAll defenders have perished, the match has finished.%cn"
             "%r Type %ch%cgend%cn to close the arena, or "
             "%ch%cgrestart%cn to start back at wave 1."
         )

@@ -138,9 +138,6 @@ class ArenaMasterPuppet(object):
 
         p = protocol
         yield self.change_game_state(p, 'Finished')
-        message = "%chThe match has ended after %cc{wave_num}%cw wave(s).%cn".format(
-            wave_num=self.current_wave - 1)
-        self.pemit_throughout_zone(p, message)
         # TODO: Send match summary?
         mux_commands.trigger(p, self.map_dbref, 'DEST_ALL_MECHS.T')
 
@@ -161,6 +158,7 @@ class ArenaMasterPuppet(object):
 
         p = protocol
         yield self.change_game_state(p, 'Staging')
+        yield self.set_current_wave(protocol, 1)
         message = (
             "%chThe arena has been restarted. The match will start when "
             "[name({leader_dbref})] types %cgbegin%cw.%cn".format(
@@ -334,6 +332,26 @@ class ArenaMasterPuppet(object):
         for unit in self.list_defending_units():
             yield unit_manipulation.repair_unit_damage(protocol, unit.dbref)
             yield unit_manipulation.heal_unit_pilot(protocol, unit.dbref)
+
+    def announce_num_units_remaining(self, protocol, exclude_unit=None):
+        """
+        Announces the "score" to the arena.
+
+        :type exclude_unit: ArenaMapUnit or None
+        :keyword exclude_unit: If a unit was killed, pass it in here so that
+            they won't be counted towards either of the totals. The unit isn't
+            cleared from the map instantly, making this a necessary evil.
+        """
+
+        num_attackers = len([un for un in self.list_attacking_units() if un != exclude_unit])
+        num_defenders = len([un for un in self.list_defending_units() if un != exclude_unit])
+        score_msg = (
+            "%chThere are %cy{num_attackers} attacker%(s%)%cw and "
+            "%cc{num_defenders} defender%(s%)%cw remaining in play.%cn".format(
+                num_attackers=num_attackers, num_defenders=num_defenders,
+            )
+        )
+        self.pemit_throughout_zone(protocol, score_msg)
 
     def save_defender_tics(self, protocol):
         """
