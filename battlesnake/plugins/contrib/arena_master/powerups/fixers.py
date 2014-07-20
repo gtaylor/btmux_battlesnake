@@ -44,6 +44,7 @@ def uniformly_repair_armor(protocol, unit_dbref, percent_fix):
         if not section.startswith('A'):
             # Not armor, no fix for you.
             modified_sections.append(section)
+            continue
 
         sec_id, damage_level = section.split('/')
         damage_level = int(damage_level)
@@ -84,6 +85,7 @@ def fix_all_internals(protocol, unit_dbref):
         if not section.startswith('I'):
             # Not internals, no fix for you.
             modified_sections.append(section)
+            continue
         # All of the internals get left out of the modified list, thus fixing
         # them all.
 
@@ -112,6 +114,7 @@ def reload_all_ammo(protocol, unit_dbref):
         if not section.startswith('R'):
             # Not missing ammo, no fix for you.
             modified_sections.append(section)
+            continue
         # All of the internals get left out of the modified list, thus fixing
         # them all.
 
