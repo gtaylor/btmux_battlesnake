@@ -295,11 +295,7 @@ class ArenaMasterPuppet(object):
         :returns: The total BV2 of all defending units left in the match.
         """
 
-        bv2_total = 0
-        for unit in self.list_defending_units():
-            print "UNIT", unit, unit.battle_value
-            bv2_total += unit.battle_value
-        print "TOTAL", bv2_total
+        bv2_total = sum([unit.battle_value for unit in self.list_defending_units()])
         return bv2_total
 
     def list_attacking_units(self, piloted_only=True):
@@ -313,6 +309,15 @@ class ArenaMasterPuppet(object):
         units_by_faction = self.unit_store.list_units_by_faction(
             piloted_only=piloted_only)
         return units_by_faction.get(self.attacking_faction_dbref, [])
+
+    def calc_total_attacking_units_bv2(self):
+        """
+        :rtype: int
+        :returns: The total BV2 of all attacking units left in the match.
+        """
+
+        bv2_total = sum([unit.battle_value for unit in self.list_attacking_units()])
+        return bv2_total
 
     def get_defender_spawn_coords(self):
         """

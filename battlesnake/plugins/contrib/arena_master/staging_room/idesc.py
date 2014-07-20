@@ -22,9 +22,11 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
 
     p = protocol
 
-    remaining_friendlies = arena_master_puppet.list_defending_units()
-    remaining_enemies = arena_master_puppet.list_attacking_units()
+    defenders = arena_master_puppet.list_defending_units()
+    attackers = arena_master_puppet.list_attacking_units()
     staging_dbref = arena_master_puppet.staging_dbref
+    defender_bv2 = arena_master_puppet.calc_total_defending_units_bv2()
+    attacker_bv2 = arena_master_puppet.calc_total_attacking_units_bv2()
 
     if render_header:
         header_txt = 'Arena {arena_id}'.format(
@@ -35,22 +37,28 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
 
     retval += (
         "%r This arena is in %chwave%cn game mode. Survive increasingly more "
-        "challenging waves%r of enemy AI."
+        "challenging waves%r of enemy AI attackers."
     )
     retval += get_footer_str('-')
     retval += (
-        "%r [ljust(%chArena leader:%cn [name({arena_leader_dbref})],45)]"
+        "%r [ljust(%chArena leader:%cn [name({arena_leader_dbref})],{lcol_ljust})]"
         " %chDifficulty%cn: {difficulty}%r"
-        " [ljust(%chCurrent state:%cn {game_state},45)]"
-        " %chFriendlies remaining:%cn {remaining_friendlies}%r"
-        " [ljust(%chCurrent wave:%cn {current_wave},45)]"
-        " %chEnemies remaining:%cn {remaining_enemies}".format(
+        " [ljust(%chCurrent state:%cn {game_state},{lcol_ljust})]"
+        " %chCurrent wave:%cn {current_wave}%r"
+        " [ljust(%ch%ccDefenders remaining%cw:%cn {defenders} "
+        "    %({defender_bv2} BV2%),{lcol_ljust})]"
+        " %ch%cyAttackers remaining%cw:%cn {attackers} "
+        "    %({attacker_bv2} BV2%)"
+        "".format(
+            lcol_ljust=40,
             arena_leader_dbref=arena_master_puppet.leader_dbref,
             difficulty=arena_master_puppet.difficulty_level.capitalize(),
             game_state=arena_master_puppet.game_state,
-            remaining_friendlies=len(remaining_friendlies),
             current_wave=arena_master_puppet.current_wave,
-            remaining_enemies=len(remaining_enemies))
+            defenders=len(defenders),
+            defender_bv2=defender_bv2,
+            attackers=len(attackers),
+            attacker_bv2=attacker_bv2)
     )
     if render_lower_tip:
         retval += get_footer_str('-')
