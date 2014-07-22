@@ -3,6 +3,8 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
+    GAME_STATE_STAGING
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF, \
     ATTACKER_FACTION_DBREF
@@ -33,7 +35,7 @@ def create_arena(protocol, leader_dbref):
         'STAGING_ROOM.DBREF': staging_dbref,
         'CURRENT_WAVE.D': '1',
         'GAME_MODE.D': 'wave',
-        'GAME_STATE.D': 'Staging',
+        'GAME_STATE.D': GAME_STATE_STAGING,
         'DIFFICULTY_LEVEL.D': 'normal',
     }
     yield think_fn_wrappers.set_attrs(p, arena_master_dbref, arena_master_attrs)

@@ -4,8 +4,9 @@ Various components for the staging room.
 
 from battlesnake.core.utils import get_footer_str, get_header_str
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
-    ARENA_DIFFICULTY_LEVELS
+from battlesnake.plugins.contrib.arena_master.puppets.defines import \
+    GAME_STATE_STAGING, GAME_STATE_IN_BETWEEN, GAME_STATE_ACTIVE, \
+    GAME_STATE_FINISHED, ARENA_DIFFICULTY_LEVELS
 
 
 def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
@@ -76,13 +77,13 @@ def pemit_staging_room_idesc(protocol, arena_master_puppet, invoker_dbref,
 
 def _return_state_specific_help(protocol, arena_master_puppet, invoker_dbref):
     state = arena_master_puppet.game_state.lower()
-    if state == 'staging':
+    if state == GAME_STATE_STAGING:
         rfunc = _return_staging_state_help
-    elif state == 'in-between':
+    elif state == GAME_STATE_IN_BETWEEN:
         rfunc = _return_in_between_state_help
-    elif state == 'active':
+    elif state == GAME_STATE_ACTIVE:
         rfunc = _return_active_state_help
-    elif state == 'finished':
+    elif state == GAME_STATE_FINISHED:
         rfunc = _return_finished_state_help
     else:
         raise ValueError("Invalid arena state: %s" % state)

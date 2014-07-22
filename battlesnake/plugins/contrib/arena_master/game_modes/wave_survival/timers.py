@@ -1,6 +1,8 @@
 from battlesnake.conf import settings
 from battlesnake.core.timers import TimerTable, IntervalTimer
 
+from battlesnake.plugins.contrib.arena_master.puppets.defines import \
+    GAME_STATE_ACTIVE
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 
@@ -25,7 +27,7 @@ class ActiveArenaChecksTimer(IntervalTimer):
                 # Wave check is on cooldown. Decrement and ignore.
                 puppet.wave_check_cooldown_counter -= 1
                 continue
-            if puppet.game_state.lower() != 'active':
+            if puppet.game_state != GAME_STATE_ACTIVE:
                 # They're not fighting, we're not interested.
                 continue
             defenders_remaining = len(puppet.list_defending_units())

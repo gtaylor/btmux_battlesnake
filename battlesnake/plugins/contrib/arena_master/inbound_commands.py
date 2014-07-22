@@ -8,6 +8,7 @@ from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
+
 from battlesnake.plugins.contrib.arena_master.arena_crud.creation import \
     create_arena
 from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
@@ -16,10 +17,10 @@ from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
     announce_arena_state_change
+from battlesnake.plugins.contrib.arena_master.puppets.defines import \
+    GAME_STATE_IN_BETWEEN, ARENA_DIFFICULTY_LEVELS
 from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
     handle_kill
-from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
-    ARENA_DIFFICULTY_LEVELS
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
@@ -397,7 +398,7 @@ class ContinueMatchCommand(BaseCommand):
         if leader_dbref != invoker_dbref:
             raise CommandError("Only the arena leader can do that.")
 
-        if puppet.game_state.lower() != 'in-between':
+        if puppet.game_state != GAME_STATE_IN_BETWEEN:
             raise CommandError("You may only %ch%cgcontinue%cn when between waves.")
 
         yield puppet.change_state_to_active(p)

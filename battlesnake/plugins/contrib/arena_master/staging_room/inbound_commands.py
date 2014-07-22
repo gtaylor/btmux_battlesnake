@@ -6,10 +6,6 @@ from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
-    destroy_arena
-from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
-    ARENA_DIFFICULTY_LEVELS
 
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
@@ -17,10 +13,15 @@ from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
 from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
     create_unit
 
+from battlesnake.plugins.contrib.arena_master.puppets.defines import \
+    GAME_STATE_STAGING, GAME_STATE_FINISHED, GAME_STATE_IN_BETWEEN, \
+    ARENA_DIFFICULTY_LEVELS, GAME_STATE_ACTIVE
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.staging_room.idesc import \
     pemit_staging_room_idesc
+from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
+    destroy_arena
 
 
 class ArenaInternalDescriptionCommand(BaseCommand):
@@ -68,14 +69,14 @@ class SimpleSpawnCommand(BaseCommand):
         except KeyError:
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
 
-        game_state = puppet.game_state.lower()
-        if game_state == 'staging':
+        game_state = puppet.game_state
+        if game_state == GAME_STATE_STAGING:
             raise CommandError(
                 "The match hasn't started yet. The arena leader still needs "
                 "to %ch%cgbegin%cn.")
-        elif game_state == 'finished':
+        elif game_state == GAME_STATE_FINISHED:
             raise CommandError("The match is already over!")
-        elif game_state != 'in-between':
+        elif game_state != GAME_STATE_IN_BETWEEN:
             raise CommandError("You can only spawn between waves.")
 
         yield think_fn_wrappers.btsetcharvalue(p, invoker_dbref, 'bruise', 0, 0)
@@ -120,13 +121,13 @@ class BeginMatchCommand(BaseCommand):
         if leader_dbref != invoker_dbref:
             raise CommandError("Only the arena leader can do that.")
 
-        game_state = puppet.game_state.lower()
-        if game_state == 'finished':
+        game_state = puppet.game_state
+        if game_state == GAME_STATE_FINISHED:
             raise CommandError("The match is already over!")
-        elif game_state != 'staging':
+        elif game_state != GAME_STATE_STAGING:
             raise CommandError("The match has already begun!")
 
-        yield puppet.change_game_state(p, 'In-Between')
+        yield puppet.change_game_state(p, GAME_STATE_IN_BETWEEN)
         puppet.pemit_throughout_zone(
             p, "The match has begun. You may now %ch%cgspawn%cn.")
 
@@ -152,12 +153,12 @@ class EndMatchCommand(BaseCommand):
         if leader_dbref != invoker_dbref:
             raise CommandError("Only the arena leader can do that.")
 
-        game_state = puppet.game_state.lower()
-        if game_state == 'active':
+        game_state = puppet.game_state
+        if game_state == GAME_STATE_ACTIVE:
             raise CommandError("You can't end a match while a wave is underway.")
 
-        if game_state != 'finished':
-            yield puppet.change_game_state(p, 'Finished')
+        if game_state != GAME_STATE_FINISHED:
+            yield puppet.change_game_state(p, GAME_STATE_FINISHED)
         puppet.pemit_throughout_zone(
             p, "[name({invoker_dbref})] has ended the match.".format(
                 invoker_dbref=invoker_dbref))
@@ -185,8 +186,8 @@ class RestartMatchCommand(BaseCommand):
         if leader_dbref != invoker_dbref:
             raise CommandError("Only the arena leader can do that.")
 
-        game_state = puppet.game_state.lower()
-        if game_state != 'finished':
+        game_state = puppet.game_state
+        if game_state != GAME_STATE_FINISHED:
             raise CommandError("You can only restart a finished match.")
 
         yield puppet.reset_arena(p)
@@ -244,8 +245,8 @@ class SetDifficultyCommand(BaseCommand):
         if leader_dbref != invoker_dbref:
             raise CommandError("Only the arena leader can do that.")
 
-        game_state = puppet.game_state.lower()
-        if game_state != 'staging':
+        game_state = puppet.game_state
+        if game_state != GAME_STATE_STAGING:
             raise CommandError(
                 "Difficulty can only be adjusted during pre-match staging.")
 

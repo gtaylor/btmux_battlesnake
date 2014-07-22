@@ -4,25 +4,28 @@ from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import unit_manipulation
-from battlesnake.plugins.contrib.arena_master.db_api import insert_wave_in_db, \
-    mark_wave_as_finished_in_db
-from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
-    spawn_wave
-from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
-    announce_arena_state_change
 
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
     DEFENDER_FACTION_DBREF
 
 from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     check_unit_for_fixer_use
+from battlesnake.plugins.contrib.arena_master.db_api import insert_wave_in_db, \
+    mark_wave_as_finished_in_db, update_match_game_state_in_db, \
+    update_match_difficulty_in_db, insert_match_in_db, \
+    mark_match_as_finished_in_db, update_highest_wave_in_db, \
+    mark_match_as_destroyed_in_db
+from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
+    spawn_wave
+from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
+    announce_arena_state_change
+from battlesnake.plugins.contrib.arena_master.puppets.defines import \
+    GAME_STATE_STAGING, GAME_STATE_ACTIVE, GAME_STATE_IN_BETWEEN, \
+    GAME_STATE_FINISHED
 from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
     ArenaMapUnitStore
 from battlesnake.plugins.contrib.arena_master.puppets.strategic_logic import \
     move_idle_units, handle_ai_target_change
-
-ARENA_DIFFICULTY_LEVELS = ['easy', 'normal', 'hard', 'overkill']
-GAME_STATES = ['staging', 'in-between', 'active', 'finished']
 
 
 class ArenaMasterPuppet(object):
@@ -47,8 +50,9 @@ class ArenaMasterPuppet(object):
         self.arena_name = 'Arena %s' % self.dbref[1:]
         # Currently only 'wave'.
         self.game_mode = game_mode
-        # One of: 'Staging', 'In-Between', 'Active', 'Finished'
+        # One of: 'staging', 'in-between', 'active', 'finished'
         self.game_state = game_state
+        # One of: 'easy', 'normal', 'hard', 'overkill'
         self.difficulty_level = difficulty_level.lower()
         # Match ID in the DB.
         self.match_id = match_id
@@ -83,9 +87,10 @@ class ArenaMasterPuppet(object):
         """
 
         p = protocol
-        assert self.game_state == 'In-Between', "Can only go Active from In-Between."
+        assert self.game_state == GAME_STATE_IN_BETWEEN, \
+            "Can only go Active from In-Between."
         self.save_defender_tics(protocol)
-        yield self.change_game_state(p, 'Active')
+        yield self.change_game_state(p, GAME_STATE_ACTIVE)
         yield self.repair_all_defending_units(protocol)
         message = "%ch%crWARNING: %cwAttacker wave %cc{wave_num}%cw has arrived!%cn".format(
             wave_num=self.current_wave)
@@ -111,8 +116,9 @@ class ArenaMasterPuppet(object):
         """
 
         p = protocol
-        assert self.game_state == 'Active', "Can only go In-Between from Active."
-        yield self.change_game_state(p, 'In-Between')
+        assert self.game_state == GAME_STATE_ACTIVE, \
+            "Can only go In-Between from Active."
+        yield self.change_game_state(p, GAME_STATE_IN_BETWEEN)
         message = (
             "%chWave %cc{wave_num}%cw complete! Re-opening spawning/de-spawning. "
             "The next wave will arrive when the arena leader types %cgcontinue%cw.%cn".format(
@@ -128,6 +134,7 @@ class ArenaMasterPuppet(object):
         )
         yield announce_arena_state_change(p, message)
         yield mark_wave_as_finished_in_db(self, was_completed=True)
+        yield update_highest_wave_in_db(self)
 
         next_wave = self.current_wave + 1
         yield self.set_current_wave(protocol, next_wave)
@@ -140,7 +147,7 @@ class ArenaMasterPuppet(object):
         """
 
         p = protocol
-        yield self.change_game_state(p, 'Finished')
+        yield self.change_game_state(p, GAME_STATE_FINISHED)
         # TODO: Send match summary?
         mux_commands.trigger(p, self.map_dbref, 'DEST_ALL_MECHS.T')
 
@@ -153,6 +160,7 @@ class ArenaMasterPuppet(object):
         )
         yield announce_arena_state_change(p, message)
         yield mark_wave_as_finished_in_db(self, was_completed=False)
+        yield mark_match_as_finished_in_db(self)
 
     @inlineCallbacks
     def reset_arena(self, protocol):
@@ -161,7 +169,11 @@ class ArenaMasterPuppet(object):
         """
 
         p = protocol
-        yield self.change_game_state(p, 'Staging')
+        # This wraps things up as far as the DB is concerned.
+        yield mark_match_as_destroyed_in_db(self)
+        # This causes a new match to be created.
+        self.match_id = yield insert_match_in_db(self)
+        yield self.change_game_state(p, GAME_STATE_STAGING)
         yield self.set_current_wave(protocol, 1)
         message = (
             "%chThe arena has been restarted. The match will start when "
@@ -183,14 +195,15 @@ class ArenaMasterPuppet(object):
         """
         Changes the match's state.
 
-        :param str new_state: One of 'Staging', 'In-Between', 'Active', or
-            'Finished'.
+        :param str new_state: See GAME_STATE_* defines.
         """
 
+        new_state = new_state.lower()
         self.wave_check_cooldown_counter = settings['arena_master']['wave_check_cooldown']
         self.game_state = new_state
         attrs = {'GAME_STATE.D': new_state}
         yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+        yield update_match_game_state_in_db(self)
 
     @inlineCallbacks
     def set_difficulty(self, protocol, new_difficulty):
@@ -203,6 +216,7 @@ class ArenaMasterPuppet(object):
         self.difficulty_level = new_difficulty
         attrs = {'DIFFICULTY_LEVEL.D': self.difficulty_level}
         yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+        yield update_match_difficulty_in_db(self, new_difficulty)
         message = (
             "%ch[name({leader_dbref})] has set the difficulty "
             "level to: %cy{difficulty}%cn".format(
