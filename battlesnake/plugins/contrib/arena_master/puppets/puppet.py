@@ -4,6 +4,8 @@ from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import unit_manipulation
+from battlesnake.plugins.contrib.arena_master.db_api import insert_wave_in_db, \
+    mark_wave_as_finished_in_db
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     spawn_wave
 from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
@@ -99,6 +101,7 @@ class ArenaMasterPuppet(object):
             wave_num=self.current_wave,
         )
         yield announce_arena_state_change(p, message)
+        yield insert_wave_in_db(self)
 
     @inlineCallbacks
     def change_state_to_in_between(self, protocol):
@@ -124,6 +127,7 @@ class ArenaMasterPuppet(object):
             wave_num=self.current_wave,
         )
         yield announce_arena_state_change(p, message)
+        yield mark_wave_as_finished_in_db(self, was_completed=True)
 
         next_wave = self.current_wave + 1
         yield self.set_current_wave(protocol, next_wave)
@@ -148,6 +152,7 @@ class ArenaMasterPuppet(object):
             wave_num=self.current_wave - 1,
         )
         yield announce_arena_state_change(p, message)
+        yield mark_wave_as_finished_in_db(self, was_completed=False)
 
     @inlineCallbacks
     def reset_arena(self, protocol):

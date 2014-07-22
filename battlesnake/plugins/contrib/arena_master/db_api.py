@@ -59,3 +59,55 @@ def mark_match_as_destroyed_in_db(puppet):
     )
 
     yield conn.runOperation(query_str, value_tuple)
+
+
+@inlineCallbacks
+def insert_wave_in_db(puppet):
+    """
+
+    """
+
+    leader_id = int(puppet.leader_dbref[1:])
+
+    conn = yield get_db_connection()
+    query_str = (
+        'INSERT INTO arena_wave'
+        '  (match_id, wave_number, leader_id, mode_specific_data, start_time,'
+        '   was_successfully_completed)'
+        '  VALUES (%s, %s, %s, %s, %s, %s)'
+        ' RETURNING id'
+    )
+    value_tuple = (
+        puppet.match_id,
+        puppet.current_wave,
+        leader_id,
+        Json({}),
+        datetime.datetime.now(),
+        False,
+    )
+    result = yield conn.runQuery(query_str, value_tuple)
+    # The newly inserted match's ID.
+    returnValue(result[0][0])
+
+
+@inlineCallbacks
+def mark_wave_as_finished_in_db(puppet, was_completed):
+    """
+
+    """
+
+    conn = yield get_db_connection()
+    query_str = (
+        'UPDATE arena_wave SET'
+        '  finished_time=%s,'
+        '  was_successfully_completed=%s'
+        ' WHERE match_id=%s AND wave_number=%s'
+    )
+    value_tuple = (
+        datetime.datetime.now(),
+        was_completed,
+        puppet.match_id,
+        puppet.current_wave,
+    )
+
+    yield conn.runOperation(query_str, value_tuple)
