@@ -251,10 +251,10 @@ class SetDifficultyCommand(BaseCommand):
                 "Difficulty can only be adjusted during pre-match staging.")
 
         difficulty_level = difficulty_level.lower()
-        if difficulty_level not in ARENA_DIFFICULTY_LEVELS.keys():
+        if difficulty_level not in ARENA_DIFFICULTY_LEVELS:
             raise CommandError(
                 "Invalid difficulty level. Must be one of: %s" % (
-                    ', '.join(ARENA_DIFFICULTY_LEVELS.keys()),)
+                    ', '.join(ARENA_DIFFICULTY_LEVELS),)
             )
 
         yield puppet.set_difficulty(p, difficulty_level)

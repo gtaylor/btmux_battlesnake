@@ -216,7 +216,7 @@ class ArenaMasterPuppet(object):
         self.difficulty_level = new_difficulty
         attrs = {'DIFFICULTY_LEVEL.D': self.difficulty_level}
         yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
-        yield update_match_difficulty_in_db(self, new_difficulty)
+        yield update_match_difficulty_in_db(self)
         message = (
             "%ch[name({leader_dbref})] has set the difficulty "
             "level to: %cy{difficulty}%cn".format(
@@ -255,7 +255,8 @@ class ArenaMasterPuppet(object):
         :param str message: The message to send.
         """
 
-        announce_cmd = "@dol [zwho({dbref})]=@pemit ##={message}".format(
+        # We do the setdiff() here to remove dupes.
+        announce_cmd = "@dol [setdiff(zwho({dbref}),)]=@pemit ##={message}".format(
             dbref=self.dbref, message=message)
         protocol.write(announce_cmd)
 

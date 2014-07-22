@@ -111,6 +111,7 @@ def _return_in_between_state_help(protocol, arena_master_puppet, invoker_dbref):
     retval = (
         " The arena is currently in between waves. If you'd like to join %r"
         " the action, now is your chance!%r%r"
+        " To see a list of units, type %ch%cglistrefs%cn%r"
         " Type %ch%cgspawn <ref>%cn to spawn a unit of your choice"
     )
     leader_dbref = arena_master_puppet.leader_dbref
