@@ -2,10 +2,13 @@
 Kill tracking logic.
 """
 
-from battlesnake.outbound_commands import mux_commands
+from twisted.internet.defer import inlineCallbacks
+
+from battlesnake.plugins.contrib.arena_master.db_api import record_kill_in_db
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF
 
 
+@inlineCallbacks
 def handle_kill(protocol, puppet, victim_unit_dbref, killer_unit_dbref,
                 cause_of_death):
     """
@@ -32,9 +35,10 @@ def handle_kill(protocol, puppet, victim_unit_dbref, killer_unit_dbref,
         print "ERROR: Killer %s not found on @Amechdest!" % killer_unit_dbref
 
     if victim_unit and killer_unit:
-        record_kill(p, puppet, victim_unit, killer_unit, cause_of_death)
+        yield record_kill(p, puppet, victim_unit, killer_unit, cause_of_death)
 
 
+@inlineCallbacks
 def record_kill(protocol, puppet, victim_unit, killer_unit, cause_of_death):
     """
     :param ArenaMasterPuppet puppet:
@@ -42,6 +46,8 @@ def record_kill(protocol, puppet, victim_unit, killer_unit, cause_of_death):
     :param ArenaMapUnit killer_unit: The killing unit.
     :param str cause_of_death: What caused the victim to die.
     """
+
+    yield record_kill_in_db(puppet, victim_unit.dbref, killer_unit.dbref)
 
     if victim_unit == killer_unit:
         # May have been spewed on, an ammo boom, or something suicidal.

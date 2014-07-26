@@ -96,7 +96,7 @@ class ArenaMasterPuppet(object):
             wave_num=self.current_wave)
         self.pemit_throughout_zone(p, message)
         defenders_bv2 = self.calc_total_defending_units_bv2()
-        yield spawn_wave(
+        spawned_units = yield spawn_wave(
             p, self.current_wave, defenders_bv2, self.difficulty_level, self)
 
         message = (
@@ -106,7 +106,7 @@ class ArenaMasterPuppet(object):
             wave_num=self.current_wave,
         )
         yield announce_arena_state_change(p, message)
-        yield insert_wave_in_db(self)
+        yield insert_wave_in_db(self, spawned_units)
 
     @inlineCallbacks
     def change_state_to_in_between(self, protocol):
