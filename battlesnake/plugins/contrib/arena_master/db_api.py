@@ -175,8 +175,10 @@ def insert_wave_in_db(puppet, spawned_units):
 
     participant_query_str = (
         'INSERT INTO arena_participant'
-        '  (wave_id, unit_id, pilot_id, faction_id, unit_dbref)'
-        '  VALUES (%s, %s, %s, %s, %s)'
+        '  (wave_id, unit_id, pilot_id, faction_id, unit_dbref,'
+        '   shots_fired, shots_missed, shots_hit, damage_inflicted,'
+        '   damage_taken, units_killed, hexes_walked)'
+        '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
     )
 
     # No record all participants.
@@ -188,9 +190,19 @@ def insert_wave_in_db(puppet, spawned_units):
             int(unit.pilot_dbref[1:]) if not unit.is_ai else None,
             int(unit.faction_dbref[1:]),
             int(unit.dbref[1:]),
+            unit.shots_fired,
+            unit.shots_missed,
+            unit.shots_landed,
+            unit.damage_inflicted,
+            unit.damage_taken,
+            unit.units_killed,
+            unit.hexes_walked,
         )
         yield conn.runOperation(participant_query_str, value_tuple)
 
+    # Since the attacking units just spawned, we have to do a nasty hack here.
+    # We don't have ArenaMapUnit instances to play with yet, so we just pass in
+    # a bunch of sensible defaults.
     for unit in spawned_units:
         unit_ref, unit_dbref = unit
         value_tuple = (
@@ -199,6 +211,20 @@ def insert_wave_in_db(puppet, spawned_units):
             None,
             int(ATTACKER_FACTION_DBREF[1:]),
             int(unit_dbref[1:]),
+            # shots_fired
+            0,
+            # shots_missed
+            0,
+            # shots_landed
+            0,
+            # damage_inflicted
+            0,
+            # damage_taken
+            0,
+            # units_killed
+            0,
+            # hexes_walked
+            0
         )
         yield conn.runOperation(participant_query_str, value_tuple)
 
@@ -224,6 +250,8 @@ def mark_wave_as_finished_in_db(puppet, was_completed):
         puppet.current_wave,
     )
     yield conn.runOperation(query_str, value_tuple)
+    units = puppet.unit_store.list_all_units(piloted_only=True)
+    yield update_participants_in_db(puppet, units)
 
 
 @inlineCallbacks
@@ -251,6 +279,9 @@ def get_participant_id_from_db(wave_id, unit_dbref):
     :returns: The participant's ID if a match was found, or None if not.
     """
 
+    if not (wave_id and unit_dbref):
+        returnValue(None)
+
     conn = yield get_db_connection()
     results = yield conn.runQuery(
         'SELECT id FROM arena_participant WHERE wave_id=%s AND unit_dbref=%s',
@@ -262,10 +293,13 @@ def get_participant_id_from_db(wave_id, unit_dbref):
 
 
 @inlineCallbacks
-def record_kill_in_db(puppet, victim_dbref, killer_dbref):
+def record_kill_in_db(puppet, victim, killer):
     """
 
     """
+
+    victim_dbref = victim.dbref
+    killer_dbref = killer.dbref
 
     wave_id = yield _get_match_current_wave_id(puppet)
     if not wave_id:
@@ -293,19 +327,45 @@ def record_kill_in_db(puppet, victim_dbref, killer_dbref):
         victim_id,
     )
     result = yield conn.runQuery(query_str, value_tuple)
+
+    yield update_participants_in_db(puppet, [victim, killer], wave_id=wave_id)
     # The newly inserted kill's ID.
-    kill_id = result[0][0]
+    returnValue(result[0][0])
 
-    # Now update the Participant record to reflect their untimely death.
-    query_str = (
-        'UPDATE arena_participant SET'
-        '  death_id=%s'
-        ' WHERE id=%s'
-    )
-    value_tuple = (
-        kill_id,
-        victim_id,
-    )
-    yield conn.runOperation(query_str, value_tuple)
 
-    returnValue(kill_id)
+@inlineCallbacks
+def update_participants_in_db(puppet, units, wave_id=None):
+    """
+
+    """
+
+    if not wave_id:
+        wave_id = yield _get_match_current_wave_id(puppet)
+
+    for unit in units:
+        participant_id = yield get_participant_id_from_db(wave_id, unit.dbref)
+        if not participant_id:
+            continue
+        conn = yield get_db_connection()
+        query_str = (
+            'UPDATE arena_participant SET'
+            '  shots_fired=%s,'
+            '  shots_missed=%s,'
+            '  shots_hit=%s,'
+            '  damage_inflicted=%s,'
+            '  damage_taken=%s,'
+            '  units_killed=%s,'
+            '  hexes_walked=%s'
+            ' WHERE id=%s'
+        )
+        value_tuple = (
+            unit.shots_fired,
+            unit.shots_missed,
+            unit.shots_landed,
+            unit.damage_inflicted,
+            unit.damage_taken,
+            unit.units_killed,
+            unit.hexes_walked,
+            participant_id,
+        )
+        yield conn.runOperation(query_str, value_tuple)

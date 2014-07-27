@@ -81,6 +81,7 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             "[btgetxcodevalue(##,shots_fired)]:"
             "[btgetxcodevalue(##,shots_hit)]:"
             "[btgetxcodevalue(##,damage_inflicted)]:"
+            "[btgetxcodevalue(##,damage_taken)]:"
             "[btgetxcodevalue(##,shots_missed)]:"
             "[btgetxcodevalue(##,units_killed)]:"
             "[btgetxcodevalue(##,maxspeed)]:"
@@ -88,7 +89,8 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             "[get(##/Pilot)]:"
             "[default(##/IS_POWERUP,0)]:"
             "[default(##/OPTIMAL_WEAP_RANGE.D,3)]:"
-            "[btarmorstatus(##,all)]"
+            "[btarmorstatus(##,all)]:"
+            "[btgetxcodevalue(##,hexes_walked)]"
         "^)]"
     ).format(
         puppet_parent_dbref=puppet_parent_dbref, map_dbref=map_dbref
@@ -104,9 +106,9 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             x_coord, y_coord, z_coord, speed, heading, tonnage, heat,\
             status, status2, critstatus, critstatus2, faction_dbref, \
             battle_value, target_dbref, shots_fired, shots_landed,\
-            damage_inflicted, shots_missed, units_killed, maxspeed,\
+            damage_inflicted, damage_taken, shots_missed, units_killed, maxspeed,\
             is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range,\
-            armor_int_total = unit_split
+            armor_int_total, hexes_walked = unit_split
         unit_obj = ArenaMapUnit(
             dbref=dbref, contact_id=contact_id, unit_ref=unit_ref,
             unit_type=unit_type, unit_move_type=unit_move_type,
@@ -116,11 +118,11 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             critstatus2=critstatus2, faction_dbref=faction_dbref,
             battle_value=battle_value, target_dbref=target_dbref,
             shots_fired=shots_fired, shots_landed=shots_landed,
-            damage_inflicted=damage_inflicted, shots_missed=shots_missed,
-            units_killed=units_killed, maxspeed=maxspeed, is_ai=is_ai,
-            pilot_dbref=pilot_dbref, is_powerup=is_powerup,
-            ai_optimal_weap_range=ai_optimal_weap_range,
-            armor_int_total=armor_int_total,
+            damage_inflicted=damage_inflicted, damage_taken=damage_taken,
+            shots_missed=shots_missed, units_killed=units_killed,
+            maxspeed=maxspeed, is_ai=is_ai, pilot_dbref=pilot_dbref,
+            is_powerup=is_powerup, ai_optimal_weap_range=ai_optimal_weap_range,
+            armor_int_total=armor_int_total, hexes_walked=hexes_walked,
         )
         if not unit_obj.contact_id:
             continue

@@ -47,7 +47,7 @@ def record_kill(protocol, puppet, victim_unit, killer_unit, cause_of_death):
     :param str cause_of_death: What caused the victim to die.
     """
 
-    yield record_kill_in_db(puppet, victim_unit.dbref, killer_unit.dbref)
+    yield record_kill_in_db(puppet, victim_unit, killer_unit)
 
     if victim_unit == killer_unit:
         # May have been spewed on, an ammo boom, or something suicidal.

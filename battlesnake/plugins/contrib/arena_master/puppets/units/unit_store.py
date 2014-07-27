@@ -30,15 +30,20 @@ class ArenaMapUnitStore(object):
         for unit in self._unit_store.values():
             yield unit
 
-    def list_all_units(self):
+    def list_all_units(self, piloted_only=False):
         """
         Non-generator way to list all units on the map.
 
+        :keyword bool piloted_only: If True, only return units that have
+            an AI or human pilot.
         :rtype: list
         :returns: A list of ArenaMapUnit instances we currently know of.
         """
 
-        return self._unit_store.values()
+        if piloted_only:
+            return [unit for unit in self._unit_store.values() if unit.pilot_dbref]
+        else:
+            return self._unit_store.values()
 
     def add_unit(self, unit):
         """
@@ -254,9 +259,9 @@ class ArenaMapUnit(object):
                  mech_name, x_coord, y_coord, z_coord, speed, heading, tonnage,
                  heat, status, status2, critstatus, critstatus2, faction_dbref,
                  battle_value, target_dbref, shots_fired, shots_landed,
-                 damage_inflicted, shots_missed, units_killed, maxspeed,
-                 is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range,
-                 armor_int_total):
+                 damage_inflicted, damage_taken, shots_missed, units_killed,
+                 maxspeed, is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range,
+                 armor_int_total, hexes_walked):
         self.dbref = dbref.strip()
         self.contact_id = contact_id.strip().upper()
         self.unit_ref = unit_ref
@@ -281,7 +286,9 @@ class ArenaMapUnit(object):
         self.shots_landed = int(shots_landed)
         self.shots_missed = int(shots_missed)
         self.damage_inflicted = int(damage_inflicted)
+        self.damage_taken = int(damage_taken)
         self.units_killed = int(units_killed)
+        self.hexes_walked = float(hexes_walked)
         self.maxspeed = float(maxspeed)
         self.is_ai = is_ai == '1'
         self.pilot_dbref = pilot_dbref

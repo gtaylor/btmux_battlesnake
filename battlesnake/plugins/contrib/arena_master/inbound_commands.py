@@ -13,6 +13,8 @@ from battlesnake.plugins.contrib.arena_master.arena_crud.creation import \
     create_arena
 from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
     destroy_arena
+from battlesnake.plugins.contrib.arena_master.db_api import \
+    update_participants_in_db
 from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
     spawn_fixer_unit, uniformly_repair_armor, fix_all_internals, reload_all_ammo
 from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
@@ -165,6 +167,46 @@ class FixUnitCommand(BaseCommand):
             yield reload_all_ammo(p, args.mech_dbref)
 
 
+class TestUnitCommand(BaseCommand):
+    """
+    This is a command that can be used on an arena unit to test whatever bit
+    of code we're screwing with right now.
+    """
+
+    command_name = "am_testunit"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        cmd_line = parsed_line.kwargs['cmd'].split()
+
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="testunit", description='Does something mysterious.')
+
+        parser.add_argument(
+            'mech_dbref', type=str,
+            help="The dbref of the mech to test something on.")
+
+        args = parser.parse_args(args=cmd_line)
+        try:
+            yield self.handle(protocol, invoker_dbref, args)
+        except AssertionError as exc:
+            raise CommandError(exc.message)
+
+    @inlineCallbacks
+    def handle(self, protocol, invoker_dbref, args):
+        output = str(args)
+        p = protocol
+        mux_commands.pemit(p, invoker_dbref, output)
+
+        puppet = PUPPET_STORE.find_puppet_for_unit_dbref(args.mech_dbref)
+        try:
+            unit = puppet.unit_store.get_unit_by_dbref(args.mech_dbref)
+        except ValueError:
+            raise CommandError('Unable to find unit in the unit store.')
+
+        yield update_participants_in_db(puppet, [unit])
+
+
 class SpawnFixerCommand(BaseCommand):
     """
     Spawns a fixer unit.
@@ -295,7 +337,7 @@ class ArenaListCommand(BaseCommand):
                 "{state}".format(
                 dbref=puppet.dbref[1:], leader_dbref=puppet.leader_dbref,
                 difficulty=puppet.difficulty_level.capitalize(),
-                state=puppet.game_state))
+                state=puppet.game_state.capitalize()))
         if not puppets:
             retval += "[center(There are no active arenas. Create one!,78)]"
         retval += self._get_footer_str()
@@ -649,6 +691,8 @@ class PScanCommand(BaseCommand):
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
+        TestUnitCommand,
+
         ArenaListCommand,
         ArenaJoinCommand,
         ArenaDetailsCommand,
