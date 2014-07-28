@@ -6,6 +6,8 @@ import datetime
 
 from psycopg2.extras import Json
 from twisted.internet.defer import inlineCallbacks, returnValue
+from battlesnake.outbound_commands.think_fn_wrappers import btunitpartslist, \
+    btunitpartslist_ref
 from battlesnake.plugins.contrib.arena_master.puppets.defines import \
     GAME_STATE_STAGING
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF
@@ -177,13 +179,14 @@ def insert_wave_in_db(puppet, spawned_units):
         'INSERT INTO arena_participant'
         '  (wave_id, unit_id, pilot_id, faction_id, unit_dbref,'
         '   shots_fired, shots_missed, shots_hit, damage_inflicted,'
-        '   damage_taken, units_killed, hexes_walked)'
-        '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        '   damage_taken, units_killed, hexes_walked, intact_parts)'
+        '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
     )
 
     # No record all participants.
     units = puppet.list_defending_units()
     for unit in units:
+        parts = yield btunitpartslist(puppet.protocol, unit.dbref)
         value_tuple = (
             wave_id,
             unit.unit_ref,
@@ -197,6 +200,7 @@ def insert_wave_in_db(puppet, spawned_units):
             unit.damage_taken,
             unit.units_killed,
             unit.hexes_walked,
+            Json(parts),
         )
         yield conn.runOperation(participant_query_str, value_tuple)
 
@@ -205,6 +209,7 @@ def insert_wave_in_db(puppet, spawned_units):
     # a bunch of sensible defaults.
     for unit in spawned_units:
         unit_ref, unit_dbref = unit
+        parts = yield btunitpartslist_ref(puppet.protocol, unit_ref)
         value_tuple = (
             wave_id,
             unit_ref,
@@ -224,7 +229,9 @@ def insert_wave_in_db(puppet, spawned_units):
             # units_killed
             0,
             # hexes_walked
-            0
+            0,
+            # intact_parts
+            Json(parts),
         )
         yield conn.runOperation(participant_query_str, value_tuple)
 
@@ -346,6 +353,7 @@ def update_participants_in_db(puppet, units, wave_id=None):
         participant_id = yield get_participant_id_from_db(wave_id, unit.dbref)
         if not participant_id:
             continue
+        parts = yield btunitpartslist(puppet.protocol, unit.dbref)
         conn = yield get_db_connection()
         query_str = (
             'UPDATE arena_participant SET'
@@ -355,7 +363,8 @@ def update_participants_in_db(puppet, units, wave_id=None):
             '  damage_inflicted=%s,'
             '  damage_taken=%s,'
             '  units_killed=%s,'
-            '  hexes_walked=%s'
+            '  hexes_walked=%s,'
+            '  intact_parts=%s'
             ' WHERE id=%s'
         )
         value_tuple = (
@@ -366,6 +375,7 @@ def update_participants_in_db(puppet, units, wave_id=None):
             unit.damage_taken,
             unit.units_killed,
             unit.hexes_walked,
+            Json(parts),
             participant_id,
         )
         yield conn.runOperation(query_str, value_tuple)

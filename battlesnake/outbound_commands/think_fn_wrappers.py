@@ -430,6 +430,28 @@ def btweapstat(protocol, weapon):
     }
     returnValue(retval)
 
+
+def _parse_partslist(pl_output):
+    """
+    Given the output of btpartslist() or btpartslist_ref(), parse it and
+    split it back out as a dict.
+
+    :param str pl_output: The output of btpartslist() or btpartslist_ref().
+    :rtype: dict
+    :returns: A dict of parts.
+    """
+
+    retval = {}
+    if not pl_output:
+        returnValue(retval)
+    part_split = pl_output.split('|')
+    for part_pair in part_split:
+        if not part_pair:
+            continue
+        part, quantity = part_pair.split(':')
+        retval[part] = quantity
+    return retval
+
 @inlineCallbacks
 def btunitpartslist_ref(protocol, unit_ref):
     """
@@ -438,17 +460,19 @@ def btunitpartslist_ref(protocol, unit_ref):
     """
 
     think_str = "[btunitpartslist_ref({unit_ref})]".format(unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
-    retval = {}
-    if not func_result:
-        returnValue(retval)
-    part_split = func_result.split('|')
-    for part_pair in part_split:
-        if not part_pair:
-            continue
-        part, quantity = part_pair.split(':')
-        retval[part] = quantity
-    returnValue(retval)
+    pl_output = yield mux_commands.think(protocol, think_str)
+    returnValue(_parse_partslist(pl_output))
+
+@inlineCallbacks
+def btunitpartslist(protocol, obj):
+    """
+    :param str obj: A valid MUX object string. 'me', 'here', a dbref, etc.
+    :rtype: list
+    """
+
+    think_str = "[btunitpartslist({obj})]".format(obj=obj)
+    pl_output = yield mux_commands.think(protocol, think_str)
+    returnValue(_parse_partslist(pl_output))
 
 
 @inlineCallbacks
