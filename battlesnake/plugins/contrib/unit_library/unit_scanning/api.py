@@ -6,7 +6,7 @@ from btmux_template_io.parsers.btmux import parse_from_file
 from battlesnake.conf import settings
 from battlesnake.core.inbound_command_handling.base import CommandError
 from battlesnake.outbound_commands.think_fn_wrappers import \
-    btgetxcodevalue, btfasabasecost_ref, btgetbv_ref, bttechlist_ref, \
+    btgetxcodevalue, btfasabasecost_ref, bttechlist_ref, \
     btgetobv_ref, btgetdbv_ref, btpayload_ref, btunitpartslist_ref
 
 from battlesnake.plugins.contrib.unit_library.api import save_unit_to_db
@@ -29,7 +29,6 @@ def scan_unit_from_templater(protocol, invoker_dbref):
 
     # Template files don't have all the goodies in them. Resort to BT funcs
     # where it is pragmatic to do so.
-    bv = yield btgetbv_ref(p, unit_ref)
     offensive_bv2 = yield btgetobv_ref(p, unit_ref)
     defensive_bv2 = yield btgetdbv_ref(p, unit_ref)
     base_cost = yield btfasabasecost_ref(p, unit_ref)
@@ -39,7 +38,7 @@ def scan_unit_from_templater(protocol, invoker_dbref):
 
     # Marshall the unit and send it to the DB.
     yield save_unit_to_db(
-        unit, bv, offensive_bv2, defensive_bv2, base_cost, tech_list, payload,
+        unit, offensive_bv2, defensive_bv2, base_cost, tech_list, payload,
         build_parts)
 
 

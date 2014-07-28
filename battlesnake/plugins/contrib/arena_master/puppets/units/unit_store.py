@@ -258,7 +258,7 @@ class ArenaMapUnit(object):
     def __init__(self, dbref, contact_id, unit_ref, unit_type, unit_move_type,
                  mech_name, x_coord, y_coord, z_coord, speed, heading, tonnage,
                  heat, status, status2, critstatus, critstatus2, faction_dbref,
-                 battle_value, target_dbref, shots_fired, shots_landed,
+                 battle_value2, target_dbref, shots_fired, shots_landed,
                  damage_inflicted, damage_taken, shots_missed, units_killed,
                  maxspeed, is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range,
                  armor_int_total, hexes_walked):
@@ -280,7 +280,7 @@ class ArenaMapUnit(object):
         self.critstatus = critstatus
         self.critstatus2 = critstatus2
         self.faction_dbref = faction_dbref
-        self.battle_value = int(float(battle_value))
+        self.battle_value2 = int(float(battle_value2))
         self.target_dbref = '#%s' % target_dbref
         self.shots_fired = int(shots_fired)
         self.shots_landed = int(shots_landed)

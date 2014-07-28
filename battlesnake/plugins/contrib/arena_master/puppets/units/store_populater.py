@@ -105,7 +105,7 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
         dbref, contact_id, unit_ref, unit_type, unit_move_type, mech_name,\
             x_coord, y_coord, z_coord, speed, heading, tonnage, heat,\
             status, status2, critstatus, critstatus2, faction_dbref, \
-            battle_value, target_dbref, shots_fired, shots_landed,\
+            battle_value2, target_dbref, shots_fired, shots_landed,\
             damage_inflicted, damage_taken, shots_missed, units_killed, maxspeed,\
             is_ai, pilot_dbref, is_powerup, ai_optimal_weap_range,\
             armor_int_total, hexes_walked = unit_split
@@ -116,7 +116,7 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
             z_coord=z_coord, speed=speed, heading=heading, tonnage=tonnage,
             heat=heat, status=status, status2=status2, critstatus=critstatus,
             critstatus2=critstatus2, faction_dbref=faction_dbref,
-            battle_value=battle_value, target_dbref=target_dbref,
+            battle_value2=battle_value2, target_dbref=target_dbref,
             shots_fired=shots_fired, shots_landed=shots_landed,
             damage_inflicted=damage_inflicted, damage_taken=damage_taken,
             shots_missed=shots_missed, units_killed=units_killed,

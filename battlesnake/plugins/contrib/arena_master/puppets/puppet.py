@@ -315,7 +315,7 @@ class ArenaMasterPuppet(object):
         :returns: The total BV2 of all defending units left in the match.
         """
 
-        bv2_total = sum([unit.battle_value for unit in self.list_defending_units()])
+        bv2_total = sum([unit.battle_value2 for unit in self.list_defending_units()])
         return bv2_total
 
     def list_attacking_units(self, piloted_only=True):
@@ -336,7 +336,7 @@ class ArenaMasterPuppet(object):
         :returns: The total BV2 of all attacking units left in the match.
         """
 
-        bv2_total = sum([unit.battle_value for unit in self.list_attacking_units()])
+        bv2_total = sum([unit.battle_value2 for unit in self.list_attacking_units()])
         return bv2_total
 
     def get_defender_spawn_coords(self):

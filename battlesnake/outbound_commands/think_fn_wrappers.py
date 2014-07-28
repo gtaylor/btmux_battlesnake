@@ -278,20 +278,6 @@ def btgetxcodevalue_ref(protocol, unit_ref, key):
 
 
 @inlineCallbacks
-def btgetbv_ref(protocol, unit_ref):
-    """
-    :param str unit_ref: The unit reference to retrieve the BV for.
-    :rtype: defer.Deferred
-    """
-
-    think_str = "[btgetbv_ref({unit_ref})]".format(unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
-    if func_result.startswith("#-1"):
-        raise ValueError(func_result)
-    returnValue(float(func_result))
-
-
-@inlineCallbacks
 def btgetbv2_ref(protocol, unit_ref):
     """
     :param str unit_ref: The unit reference to retrieve the BV2 for.
