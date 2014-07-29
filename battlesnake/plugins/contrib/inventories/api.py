@@ -27,3 +27,32 @@ def modify_player_inventory(player_dbref, item_name, mod_amount):
     for result in results:
         for row in result:
             returnValue(row)
+
+
+@inlineCallbacks
+def get_player_inventory(player_dbref, type_filter=None):
+    """
+    Filters, sorts, and returns a player's inventory.
+
+    :param str player_dbref: A valid player dbref.
+    :keyword str type_filter: One of: all, part, melee_weapon, weapon, commodity.
+    :rtype: list
+    :returns: A list of inventory item dicts.
+    """
+
+    owner_id = int(player_dbref[1:])
+    query = (
+        "SELECT item_id, quantity, econ_item.item_type AS item_type"
+        "  FROM inventories_owneditem "
+        "  INNER JOIN econ_item ON inventories_owneditem.item_id = econ_item.name"
+        "  WHERE quantity > 0 AND owner_id=%d" % owner_id
+    )
+
+    if type_filter:
+        query += " AND item_type='%s' " % type_filter
+
+    query += ' ORDER BY item_id'
+    conn = yield get_db_connection()
+    results = yield conn.runQuery(query)
+
+    returnValue(results)
