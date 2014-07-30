@@ -18,22 +18,10 @@ WAVE_DIFFICULTY_LEVELS = {
     'overkill': {'modifier': 1.3, 'wave_step': 0.40},
 }
 
-@inlineCallbacks
-def find_lowest_bv2_ai_unit():
-    """
-    Finds the lowest possible BV2 unit that the AI can use.
-
-    :rtype: int
-    :returns: The lowest BV2 value unit.
-    """
-
-    conn = yield get_db_connection()
-    results = yield conn.runQuery(
-        'SELECT battle_value2 FROM unit_library_unit '
-        '  WHERE is_ai_spawnable=True ORDER BY battle_value2 ASC LIMIT 1',
-    )
-    for row in results:
-        returnValue(row['battle_value2'])
+# This defines the rock bottom BV2 level for a wave, regardless of difficulty
+# level modifiers or what the player(s) are in. We do this to ensure enough
+# variety at the easy difficulty and lower waves.
+MIN_WAVE_BV2 = 600
 
 
 def calc_max_wave_bv2(min_wave_bv2, defender_bv2, difficulty_level, wave_num):
@@ -79,9 +67,8 @@ def pick_refs_for_wave(wave_num, opposing_bv2, difficulty_level):
     """
 
     print "Total Defender BV2", opposing_bv2
-    min_wave_bv2 = yield find_lowest_bv2_ai_unit()
     max_wave_bv2 = calc_max_wave_bv2(
-        min_wave_bv2, opposing_bv2, difficulty_level, wave_num)
+        MIN_WAVE_BV2, opposing_bv2, difficulty_level, wave_num)
     print "Max Attacker BV2", max_wave_bv2
 
     conn = yield get_db_connection()
