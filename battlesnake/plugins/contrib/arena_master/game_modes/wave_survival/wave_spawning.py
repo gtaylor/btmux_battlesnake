@@ -12,10 +12,10 @@ from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
 
 
 WAVE_DIFFICULTY_LEVELS = {
-    'easy': {'modifier': 0.5, 'wave_step': 0.1},
-    'normal': {'modifier': 0.8, 'wave_step': 0.25},
-    'hard': {'modifier': 1.15, 'wave_step': 0.30},
-    'overkill': {'modifier': 1.3, 'wave_step': 0.40},
+    'easy': {'modifier': 0.5, 'wave_step': 0.1, 'salvage_rate': 6},
+    'normal': {'modifier': 0.8, 'wave_step': 0.25, 'salvage_rate': 8},
+    'hard': {'modifier': 1.15, 'wave_step': 0.30, 'salvage_rate': 10},
+    'overkill': {'modifier': 1.3, 'wave_step': 0.40, 'salvage_rate': 12},
 }
 
 # This defines the rock bottom BV2 level for a wave, regardless of difficulty
