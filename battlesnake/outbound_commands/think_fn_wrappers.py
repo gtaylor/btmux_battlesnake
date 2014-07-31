@@ -435,7 +435,7 @@ def _parse_partslist(pl_output):
         if not part_pair:
             continue
         part, quantity = part_pair.split(':')
-        retval[part] = quantity
+        retval[part] = int(quantity)
     return retval
 
 @inlineCallbacks
