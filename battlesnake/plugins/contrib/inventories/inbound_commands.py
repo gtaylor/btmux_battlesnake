@@ -13,7 +13,7 @@ from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
 
 from battlesnake.plugins.contrib.inventories.api import modify_player_inventory, \
-    get_player_inventory
+    get_player_inventory, check_player_item_levels
 from battlesnake.plugins.contrib.inventories.defines import ITEM_TYPES, \
     ITEM_TYPE_WEAPON, ITEM_TYPE_MELEE_WEAPON, ITEM_TYPE_PART, ITEM_TYPE_COMMOD
 
@@ -48,9 +48,13 @@ class ModInventoryCommand(BaseCommand):
                 modifier=modifier, player_dbref=player_dbref))
         mux_commands.pemit(protocol, invoker_dbref, message)
 
-        new_balance = yield modify_player_inventory(
-            player_dbref, econ_item, mod_amount)
-        message = "New balance: %d" % new_balance
+        modded_dict = {
+            econ_item: mod_amount,
+        }
+
+        new_balance = yield modify_player_inventory(player_dbref, modded_dict)
+        #new_balance = yield check_player_item_levels(player_dbref, modded_dict)
+        message = "New balance: %s" % new_balance
         mux_commands.pemit(protocol, invoker_dbref, message)
 
 

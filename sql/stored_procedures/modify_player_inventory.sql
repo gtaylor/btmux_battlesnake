@@ -12,7 +12,7 @@ BEGIN
       -- first try to update the key
       UPDATE inventories_owneditem
         SET quantity=quantity + mod_amount
-        WHERE owner_id=player_id AND item_id=item_name
+        WHERE owner_id=player_id AND item_id ILIKE item_name
         RETURNING quantity INTO new_balance;
       IF found THEN
         RETURN new_balance;
