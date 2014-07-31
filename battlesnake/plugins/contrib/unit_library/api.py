@@ -80,7 +80,10 @@ def get_unit_by_ref(unit_ref):
 
     conn = yield get_db_connection()
     results = yield conn.runQuery(
-        'SELECT * FROM unit_library_unit WHERE reference ILIKE %s',
+        'SELECT unit_library_unit.*, unit_library_manufacturer.name as manufacturer '
+        'FROM unit_library_unit '
+        'LEFT OUTER JOIN unit_library_manufacturer ON manufacturer_id=unit_library_manufacturer.id '
+        'WHERE reference ILIKE %s',
         (unit_ref,)
     )
     for row in results:
@@ -91,33 +94,14 @@ def get_unit_by_ref(unit_ref):
         unit.heatsink_total = row['heatsink_total']
         unit.weight = row['weight']
         unit.max_speed = row['max_speed']
-        unit.unit_tro = row['tro_id']
         unit.cargo_space = row['cargo_space']
         unit.cargo_max_ton = row['cargo_max_tonnage']
         unit.base_cost = row['base_cost']
         unit.sections = row['sections']
         unit.specials = set(row['special_tech_raw'].split())
+        unit.manufacturer = row['manufacturer']
         returnValue(unit)
-
-
-@inlineCallbacks
-def get_tro_id_from_name(tro_name):
-    """
-    :param str tro_name: The technical readout name whose ID to look up.
-    :rtype: int or None
-    :returns: The TRO's ID if a match was found, or None if not.
-    """
-
-    if not tro_name:
-        returnValue(None)
-    conn = yield get_db_connection()
-    results = yield conn.runQuery(
-        'SELECT id FROM unit_library_technicalreadout WHERE name=%s',
-        (tro_name,)
-    )
-    for result in results:
-        for row in result:
-            returnValue(row)
+    raise ValueError("Invalid ref.")
 
 
 @inlineCallbacks
@@ -137,12 +121,11 @@ def save_unit_to_db(unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
     """
 
     exists = yield get_unit_by_ref(unit.reference)
-    tro_id = yield get_tro_id_from_name(unit.unit_tro)
     if exists:
         update_unit_in_db(
             unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
-            tro_id, payload, build_parts)
+            payload, build_parts)
     else:
         insert_unit_in_db(
             unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
-            tro_id, payload, build_parts)
+            payload, build_parts)

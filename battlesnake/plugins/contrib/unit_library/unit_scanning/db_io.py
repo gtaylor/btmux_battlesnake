@@ -13,7 +13,7 @@ from battlesnake.plugins.contrib.unit_library.unit_scanning.optimal_range import
 
 @inlineCallbacks
 def update_unit_in_db(
-        unit, offensive_bv2, defensive_bv2, base_cost, tech_list, tro_id,
+        unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
         payload, build_parts):
     """
     :param btmux_template_io.unit.BTMuxUnit unit: The unit to save in the DB.
@@ -21,8 +21,6 @@ def update_unit_in_db(
     :param float defensive_bv2: The in-game calculated defensive battle value 2.
     :param int base_cost: The in-game calculated base cost.
     :param set tech_list: A set of special tech in the unit.
-    :type tro_id: int or None
-    :param tro_id: The unit's TRO's ID or None if no TRO is set.
     :param dict payload: A dict breaking down the unit's weapons/ammo payload.
     :param dict build_parts: A dict containing the unit's parts list.
     """
@@ -35,7 +33,6 @@ def update_unit_in_db(
         '  unit_move_type=%s,'
         '  weight=%s,'
         '  max_speed=%s,'
-        '  tro_id=%s,'
         '  engine_size=%s,'
         '  armor_total=%s,'
         '  internals_total=%s,'
@@ -60,7 +57,6 @@ def update_unit_in_db(
         unit.unit_move_type,
         unit.weight,
         unit.max_speed,
-        tro_id,
         unit.engine_size,
         unit.armor_total,
         unit.internals_total,
@@ -85,7 +81,7 @@ def update_unit_in_db(
 
 @inlineCallbacks
 def insert_unit_in_db(
-        unit, offensive_bv2, defensive_bv2, base_cost, tech_list, tro_id,
+        unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
         payload, build_parts):
     """
     :param btmux_template_io.unit.BTMuxUnit unit: The unit to save in the DB.
@@ -94,8 +90,6 @@ def insert_unit_in_db(
     :param float defensive_bv2: The in-game calculated defensive battle value 2..
     :param int base_cost: The in-game calculated base cost.
     :param set tech_list: A set of special tech in the unit.
-    :type tro_id: int or None
-    :param tro_id: The unit's TRO's ID or None if no TRO is set.
     :param dict payload: A dict breaking down the unit's weapons/ammo payload.
     :param dict build_parts: A dict containing the unit's parts list.
     """
@@ -104,14 +98,14 @@ def insert_unit_in_db(
     query_str = (
         'INSERT INTO unit_library_unit'
         '  (reference, name, unit_type, unit_move_type, weight, max_speed,'
-        '   tro_id, engine_size, armor_total, internals_total, heatsink_total,'
+        '   engine_size, armor_total, internals_total, heatsink_total,'
         '   battle_value2, offensive_battle_value2, '
         '   defensive_battle_value2, weapons_loadout, build_parts, sections,'
         '   cargo_space, cargo_max_tonnage, jumpjet_range, base_cost,'
         '   special_tech_raw, is_hidden, is_player_spawnable,'
         '   is_ai_spawnable, optimal_weapons_range)'
         '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,'
-        '   %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        '   %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
     )
     value_tuple = (
         unit.reference,
@@ -120,7 +114,6 @@ def insert_unit_in_db(
         unit.unit_move_type,
         unit.weight,
         unit.max_speed,
-        tro_id,
         unit.engine_size,
         unit.armor_total,
         unit.internals_total,

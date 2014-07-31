@@ -132,7 +132,10 @@ class UnitSpecsCommand(BaseCommand):
     def run(self, protocol, parsed_line, invoker_dbref):
         p = protocol
         unit_ref = parsed_line.kwargs['unit_ref']
-        unit = yield get_unit_by_ref(unit_ref)
+        try:
+            unit = yield get_unit_by_ref(unit_ref)
+        except ValueError:
+            raise CommandError("Invalid reference.")
 
         header_txt = "%cy{unit_ref} %cr{unit_name}%cn".format(
             unit_ref=unit.reference, unit_name=unit.name,
@@ -149,13 +152,16 @@ class UnitSpecsCommand(BaseCommand):
             ""
             " [rjust(BV2,{col1rjust})]: [ljust(round(BTGETBV2_REF({unit_ref}),0),{col1ljust})]"
             " [rjust(Off-BV2,{col2rjust})]: [ljust(round(BTGETOBV_REF({unit_ref}),0),{col2ljust})]"
-            " Def-BV2: [round(BTGETDBV_REF({unit_ref}),0)]".format(
+            " Def-BV2: [round(BTGETDBV_REF({unit_ref}),0)]%r"
+            ""
+            " [rjust(Mfg,{col1rjust})]: {manufacturer}".format(
                 unit_type=unit.unit_type, weight=unit.weight,
                 weight_class=unit.weight_class, walk_mp=unit.walk_mp,
                 run_mp=unit.run_mp, jj_total=unit.jumpjet_total,
                 armor_total=unit.armor_total, internals_total=unit.internals_total,
                 heatsink_total=unit.heatsink_total,
                 unit_ref=unit.reference,
+                manufacturer=unit.manufacturer if unit.manufacturer else 'Unknown',
                 col1rjust=9, col1ljust=19,
                 col2rjust=9, col2ljust=19
             ))
