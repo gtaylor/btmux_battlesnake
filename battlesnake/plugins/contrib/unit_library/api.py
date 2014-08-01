@@ -120,7 +120,12 @@ def save_unit_to_db(unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
     :param dict build_parts: A dict containing the unit's parts list.
     """
 
-    exists = yield get_unit_by_ref(unit.reference)
+    try:
+        yield get_unit_by_ref(unit.reference)
+        exists = True
+    except ValueError:
+        exists = False
+
     if exists:
         update_unit_in_db(
             unit, offensive_bv2, defensive_bv2, base_cost, tech_list,

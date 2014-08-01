@@ -111,8 +111,9 @@ class LoadUnitCommand(BaseCommand):
             protocol, templater_dbref,
             "Loading %s in templater..." % reference)
         yield load_ref_in_templater(protocol, reference)
-        unit = yield get_unit_by_ref(reference)
-        if not unit:
+        try:
+            yield get_unit_by_ref(reference)
+        except ValueError:
             yield mux_commands.remit(
                 protocol, templater_dbref,
                 "WARNING: %s is not in the unit library." % reference)
