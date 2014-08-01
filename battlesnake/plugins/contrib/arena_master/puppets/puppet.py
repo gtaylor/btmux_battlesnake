@@ -4,6 +4,8 @@ from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import unit_manipulation
+from battlesnake.plugins.contrib.arena_master.puppets.salvage import \
+    reward_salvage_for_wave
 
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
     DEFENDER_FACTION_DBREF
@@ -14,9 +16,9 @@ from battlesnake.plugins.contrib.arena_master.db_api import insert_wave_in_db, \
     mark_wave_as_finished_in_db, update_match_game_state_in_db, \
     update_match_difficulty_in_db, insert_match_in_db, \
     mark_match_as_finished_in_db, update_highest_wave_in_db, \
-    mark_match_as_destroyed_in_db
+    mark_match_as_destroyed_in_db, get_match_current_wave_id_from_db
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
-    spawn_wave
+    spawn_wave, WAVE_DIFFICULTY_LEVELS
 from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
     announce_arena_state_change
 from battlesnake.plugins.contrib.arena_master.puppets.defines import \
@@ -79,6 +81,15 @@ class ArenaMasterPuppet(object):
 
         return self.dbref[1:]
 
+    def get_salvage_loss_percentage(self):
+        """
+        :rtype: int
+        :returns: A number from 0-100 representing the approximate
+            percentage of salvage that will be lost.
+        """
+
+        return WAVE_DIFFICULTY_LEVELS[self.difficulty_level]['salvage_loss']
+
     @inlineCallbacks
     def change_state_to_active(self, protocol):
         """
@@ -132,8 +143,11 @@ class ArenaMasterPuppet(object):
             arena_id=self.dbref[1:],
             wave_num=self.current_wave,
         )
+        wave_id = yield get_match_current_wave_id_from_db(self)
         yield announce_arena_state_change(p, message)
         yield mark_wave_as_finished_in_db(self, was_completed=True)
+        salvage_loss = self.get_salvage_loss_percentage()
+        yield reward_salvage_for_wave(p, wave_id, salvage_loss)
         yield update_highest_wave_in_db(self)
 
         next_wave = self.current_wave + 1
@@ -356,7 +370,7 @@ class ArenaMasterPuppet(object):
         for unit in self.list_defending_units():
             yield unit_manipulation.repair_unit_damage(protocol, unit.dbref)
             yield unit_manipulation.heal_unit_pilot(protocol, unit.dbref)
-            yield unit_manipulation.reset_unit_counters(protocol, unit.dbref)
+            unit_manipulation.reset_unit_counters(protocol, unit.dbref)
 
     def announce_num_units_remaining(self, protocol, exclude_unit=None):
         """

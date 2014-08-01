@@ -87,7 +87,6 @@ def heal_unit_pilot(protocol, unit_dbref):
     mux_commands.think(protocol, think_str, return_output=False)
 
 
-@inlineCallbacks
 def reset_unit_counters(protocol, unit_dbref):
     """
     Resets all damage/kill/hex counters on a unit.

@@ -27,6 +27,8 @@ from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     pick_refs_for_wave, spawn_wave
+from battlesnake.plugins.contrib.arena_master.puppets.salvage import \
+    reward_salvage_for_wave
 from battlesnake.plugins.contrib.arena_master.staging_room.idesc import \
     pemit_staging_room_idesc
 
@@ -688,10 +690,42 @@ class PScanCommand(BaseCommand):
         return powerups
 
 
+class TestWaveSalvageCommand(BaseCommand):
+    """
+    Manually trigger a salvage event on a wave.
+    """
+
+    command_name = "am_testwavesalvage"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        cmd_line = parsed_line.kwargs['cmd'].split()
+
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="testsalvage", description='Manually trigger a wave salvage event.')
+
+        parser.add_argument(
+            'wave_id', type=int, nargs='?', default=None,
+            help="The ID of the wave to pay out.")
+
+        args = parser.parse_args(args=cmd_line)
+        try:
+            yield self.handle(protocol, invoker_dbref, parsed_line, args)
+        except AssertionError as exc:
+            raise CommandError(exc.message)
+
+    @inlineCallbacks
+    def handle(self, protocol, invoker_dbref, parsed_line, args):
+        p = protocol
+        mux_commands.pemit(p, invoker_dbref, "Triggering salvage event.")
+        yield reward_salvage_for_wave(protocol, args.wave_id, salvage_loss=94)
+
+
 class ArenaMasterCommandTable(InboundCommandTable):
 
     commands = [
         TestUnitCommand,
+        TestWaveSalvageCommand,
 
         ArenaListCommand,
         ArenaJoinCommand,

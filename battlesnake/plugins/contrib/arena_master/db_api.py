@@ -262,7 +262,7 @@ def mark_wave_as_finished_in_db(puppet, was_completed):
 
 
 @inlineCallbacks
-def _get_match_current_wave_id(puppet):
+def get_match_current_wave_id_from_db(puppet):
     """
     """
 
@@ -308,7 +308,7 @@ def record_kill_in_db(puppet, victim, killer):
     victim_dbref = victim.dbref
     killer_dbref = killer.dbref
 
-    wave_id = yield _get_match_current_wave_id(puppet)
+    wave_id = yield get_match_current_wave_id_from_db(puppet)
     if not wave_id:
         print "Kill reported, but no wave_id match found in DB."
         returnValue(None)
@@ -347,7 +347,7 @@ def update_participants_in_db(puppet, units, wave_id=None):
     """
 
     if not wave_id:
-        wave_id = yield _get_match_current_wave_id(puppet)
+        wave_id = yield get_match_current_wave_id_from_db(puppet)
 
     for unit in units:
         participant_id = yield get_participant_id_from_db(wave_id, unit.dbref)
@@ -379,3 +379,50 @@ def update_participants_in_db(puppet, units, wave_id=None):
             participant_id,
         )
         yield conn.runOperation(query_str, value_tuple)
+
+
+@inlineCallbacks
+def get_wave_salvage_from_db(wave_id, loser_faction_id):
+    """
+    :param int wave_id: The wave's unique ID.
+    :param int loser_faction_id: The ID of the losing faction whose units
+        are being salvaged.
+    :rtype: list
+    :returns: A list of salvage dicts.
+    """
+
+
+    conn = yield get_db_connection()
+    results = yield conn.runQuery(
+        'SELECT intact_parts FROM arena_participant '
+        'WHERE wave_id=%s AND faction_id=%s',
+        (wave_id, loser_faction_id)
+    )
+    salvage_dicts = []
+    for result in results:
+        for row in result:
+            print "ROW", type(row), row
+            salvage_dicts.append(row)
+    returnValue(salvage_dicts)
+
+
+@inlineCallbacks
+def get_wave_participants_from_db(wave_id, faction_id):
+    """
+    :param int wave_id: The wave's unique ID.
+    :param int faction_id: The ID of the faction whose participants to retrieve.
+    :rtype: list
+    :returns: A list of salvage dicts.
+    """
+
+
+    conn = yield get_db_connection()
+    results = yield conn.runQuery(
+        'SELECT * FROM arena_participant '
+        'WHERE wave_id=%s AND faction_id=%s',
+        (wave_id, faction_id)
+    )
+    participants = []
+    for result in results:
+        participants.append(result)
+    returnValue(participants)

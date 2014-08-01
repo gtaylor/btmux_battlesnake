@@ -12,10 +12,10 @@ from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
 
 
 WAVE_DIFFICULTY_LEVELS = {
-    'easy': {'modifier': 0.5, 'wave_step': 0.1, 'salvage_rate': 6},
-    'normal': {'modifier': 0.8, 'wave_step': 0.25, 'salvage_rate': 8},
-    'hard': {'modifier': 1.15, 'wave_step': 0.30, 'salvage_rate': 10},
-    'overkill': {'modifier': 1.3, 'wave_step': 0.40, 'salvage_rate': 12},
+    'easy': {'modifier': 0.5, 'wave_step': 0.1, 'salvage_loss': 95},
+    'normal': {'modifier': 0.8, 'wave_step': 0.25, 'salvage_loss': 93},
+    'hard': {'modifier': 1.15, 'wave_step': 0.30, 'salvage_loss': 91},
+    'overkill': {'modifier': 1.3, 'wave_step': 0.40, 'salvage_loss': 89},
 }
 
 # This defines the rock bottom BV2 level for a wave, regardless of difficulty
@@ -40,18 +40,18 @@ def calc_max_wave_bv2(min_wave_bv2, defender_bv2, difficulty_level, wave_num):
     """
 
     diff_dict = WAVE_DIFFICULTY_LEVELS[difficulty_level]
-    difficulty_modifier = diff_dict['modifier']
-    wave_step = diff_dict['wave_step']
+    difficulty_modifier = float(diff_dict['modifier'])
+    wave_step = float(diff_dict['wave_step'])
 
     # Subtract by one to make sure that we start at the base BV2 for the
     # defending force at wave 1.
     z_wave_num = wave_num - 1
     #y=(bv * diff) + ((bv * wave_step) * wave_num)
     # Start with the defender BV2 total, modified by the difficulty modifier.
-    bv2 = (defender_bv2 * difficulty_modifier)
+    bv2 = defender_bv2 * difficulty_modifier
     # Add the wave-induced difficulty ramp-up. This ends up being a percentage
     # of the defender BV2, the wave_step.
-    bv2 += (defender_bv2 * wave_step * z_wave_num)
+    bv2 += defender_bv2 * wave_step * z_wave_num
     # Cap the lowest possible BV2 to make sure the wave is always spawnable.
     return max(min_wave_bv2, bv2)
 
