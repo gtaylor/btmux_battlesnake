@@ -87,6 +87,29 @@ def heal_unit_pilot(protocol, unit_dbref):
     mux_commands.think(protocol, think_str, return_output=False)
 
 
+@inlineCallbacks
+def reset_unit_counters(protocol, unit_dbref):
+    """
+    Resets all damage/kill/hex counters on a unit.
+
+    :param str unit_dbref: A valid MECH xcode object's dbref.
+    """
+
+    think_str = (
+        "[btsetxcodevalue({unit_dbref},shots_fired,0)]"
+        "[btsetxcodevalue({unit_dbref},shots_hit,0)]"
+        "[btsetxcodevalue({unit_dbref},damage_inflicted,0)]"
+        "[btsetxcodevalue({unit_dbref},damage_taken,0)]"
+        "[btsetxcodevalue({unit_dbref},shots_missed,0)]"
+        "[btsetxcodevalue({unit_dbref},units_killed,0)]"
+        "[btsetxcodevalue({unit_dbref},hexes_walked,0)]"
+        "".format(
+            unit_dbref=unit_dbref
+        )
+    )
+    mux_commands.think(protocol, think_str, return_output=False)
+
+
 def save_unit_tics_to_pilot(protocol, unit_dbref):
     """
     Saves the unit's tics to the pilot.

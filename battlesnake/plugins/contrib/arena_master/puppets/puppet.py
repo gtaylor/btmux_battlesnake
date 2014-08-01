@@ -356,6 +356,7 @@ class ArenaMasterPuppet(object):
         for unit in self.list_defending_units():
             yield unit_manipulation.repair_unit_damage(protocol, unit.dbref)
             yield unit_manipulation.heal_unit_pilot(protocol, unit.dbref)
+            yield unit_manipulation.reset_unit_counters(protocol, unit.dbref)
 
     def announce_num_units_remaining(self, protocol, exclude_unit=None):
         """
