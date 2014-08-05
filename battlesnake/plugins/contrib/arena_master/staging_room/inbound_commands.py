@@ -60,8 +60,9 @@ class SimpleSpawnCommand(BaseCommand):
         unit_ref = parsed_line.kwargs['unit_ref']
         arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
 
-        unit = yield get_unit_by_ref(unit_ref)
-        if not unit:
+        try:
+            unit = yield get_unit_by_ref(unit_ref)
+        except ValueError:
             raise CommandError('Invalid unit reference!')
 
         try:
