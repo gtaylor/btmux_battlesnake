@@ -1,7 +1,7 @@
-DROP FUNCTION modify_player_inventory(
+DROP FUNCTION modify_plr_item_inventory(
 	player_id integer, item_name text, mod_amount integer
 );
-CREATE OR REPLACE FUNCTION modify_player_inventory(
+CREATE OR REPLACE FUNCTION modify_plr_item_inventory(
 	player_id integer, item_name text, mod_amount integer
 ) RETURNS integer AS
 $BODY$

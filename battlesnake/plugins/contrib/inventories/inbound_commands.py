@@ -11,19 +11,21 @@ from battlesnake.core.ansi import ANSI_NORMAL, \
     ANSI_HI_WHITE
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
+from battlesnake.plugins.contrib.inventories.blueprints_api import \
+    modify_player_blueprint_inventory
 
-from battlesnake.plugins.contrib.inventories.api import modify_player_inventory, \
-    get_player_inventory, check_player_item_levels
+from battlesnake.plugins.contrib.inventories.items_api import modify_player_item_inventory, \
+    get_player_item_inventory, check_player_item_levels
 from battlesnake.plugins.contrib.inventories.defines import ITEM_TYPES, \
     ITEM_TYPE_WEAPON, ITEM_TYPE_MELEE_WEAPON, ITEM_TYPE_PART, ITEM_TYPE_COMMOD
 
 
-class ModInventoryCommand(BaseCommand):
+class ModItemInventoryCommand(BaseCommand):
     """
-    Modifies (adds or removes) econ items from a player's inventory.
+    Modifies (adds or removes) econ items from a player's item inventory.
     """
 
-    command_name = "inv_modinv"
+    command_name = "inv_moditem"
 
     @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
@@ -52,8 +54,49 @@ class ModInventoryCommand(BaseCommand):
             econ_item: mod_amount,
         }
 
-        new_balance = yield modify_player_inventory(player_dbref, modded_dict)
+        new_balance = yield modify_player_item_inventory(player_dbref, modded_dict)
         #new_balance = yield check_player_item_levels(player_dbref, modded_dict)
+        message = "New balance: %s" % new_balance
+        mux_commands.pemit(protocol, invoker_dbref, message)
+
+
+class ModBlueprintInventoryCommand(BaseCommand):
+    """
+    Modifies (adds or removes) econ items from a player's blueprint inventory.
+    """
+
+    command_name = "inv_modbp"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        print parsed_line.kwargs
+        player_dbref = parsed_line.kwargs['player_dbref']
+        unit_ref = parsed_line.kwargs['unit_ref']
+        bp_type = parsed_line.kwargs['bp_type']
+        mod_amount = int(parsed_line.kwargs['mod_amount'])
+
+        if mod_amount == 0:
+            raise CommandError("0 is an invalid value for modding.")
+        elif mod_amount < 0:
+            verb = "Removing"
+            modifier = "from"
+        else:
+            verb = "Adding"
+            modifier = "to"
+
+        message = (
+            "{verb} {mod_amount} {bp_type} {unit_ref} blueprint(s) {modifier} "
+            "[name({player_dbref})]%({player_dbref}%)'s inventory.".format(
+                verb=verb, mod_amount=mod_amount, unit_ref=unit_ref,
+                bp_type=bp_type, modifier=modifier, player_dbref=player_dbref))
+        mux_commands.pemit(protocol, invoker_dbref, message)
+
+        bp_mods = [
+            {'unit_ref': unit_ref, 'bp_type': bp_type, 'mod_amount': mod_amount},
+        ]
+
+        new_balance = yield modify_player_blueprint_inventory(
+            player_dbref, bp_mods)
         message = "New balance: %s" % new_balance
         mux_commands.pemit(protocol, invoker_dbref, message)
 
@@ -87,7 +130,7 @@ class ItemsCommand(BaseCommand):
         pval = self._get_header_str('Item Listing', width=73)
         pval += '%r%b%b'
 
-        items = yield get_player_inventory(
+        items = yield get_player_item_inventory(
             invoker_dbref, type_filter=args.item_type)
         for counter, item in enumerate(items, start=1):
             itype = item['item_type']
@@ -127,6 +170,7 @@ class ItemsCommand(BaseCommand):
 class InventoriesCommandTable(InboundCommandTable):
 
     commands = [
-        ModInventoryCommand,
+        ModItemInventoryCommand,
+        ModBlueprintInventoryCommand,
         ItemsCommand
     ]

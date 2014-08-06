@@ -9,7 +9,7 @@ from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF,
 
 from battlesnake.plugins.contrib.arena_master.db_api import \
     get_wave_salvage_from_db, get_wave_participants_from_db
-from battlesnake.plugins.contrib.inventories.api import modify_player_inventory
+from battlesnake.plugins.contrib.inventories.items_api import modify_player_item_inventory
 
 
 def divide_salvage(salvage_dict, num_divisions, salvage_loss):
@@ -109,7 +109,7 @@ def reward_salvage_to_player(protocol, salvage, player_id):
     print "SALVAGE", salvage
     if not salvage:
         return
-    yield modify_player_inventory(player_dbref, salvage)
+    yield modify_player_item_inventory(player_dbref, salvage)
 
     message = "%chYou have been awarded salvage for your participation:%cn"
     for iname, icount in salvage.items():

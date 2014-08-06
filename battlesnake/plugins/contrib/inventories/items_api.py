@@ -50,20 +50,20 @@ def check_player_item_levels(player_dbref, required_dict):
 
 
 @inlineCallbacks
-def _invmod_interaction(cursor, player_id, modded_dict):
+def _item_invmod_interaction(cursor, player_id, modded_dict):
     """
-    This function runs as a transaction within modify_player_inventory().
+    This function runs as a transaction within modify_player_item_inventory().
     We call a plpgsql function that modifies inventory levels.
     """
 
     for item_name, mod_amount in modded_dict.items():
         yield cursor.execute(
-            'SELECT modify_player_inventory(%s, %s, %s);',
+            'SELECT modify_plr_item_inventory(%s, %s, %s);',
             (player_id, item_name, mod_amount))
 
 
 @inlineCallbacks
-def modify_player_inventory(player_dbref, modded_dict):
+def modify_player_item_inventory(player_dbref, modded_dict):
     """
     Calls a plpgsql function that upserts into inventories_owneditem to
     modify the player's inventory level for the given econ item.
@@ -79,16 +79,18 @@ def modify_player_inventory(player_dbref, modded_dict):
     player_id = int(player_dbref[1:])
     conn = yield get_db_connection()
     try:
-        yield conn.runInteraction(_invmod_interaction, player_id, modded_dict)
+        yield conn.runInteraction(_item_invmod_interaction, player_id, modded_dict)
     except IntegrityError as exc:
         if exc.pgcode == '23514':
             missing_dict = yield check_player_item_levels(
                 player_dbref, modded_dict)
             raise InsufficientInventory(missing_dict)
+        else:
+            raise
 
 
 @inlineCallbacks
-def get_player_inventory(player_dbref, type_filter=None):
+def get_player_item_inventory(player_dbref, type_filter=None):
     """
     Filters, sorts, and returns a player's inventory.
 
