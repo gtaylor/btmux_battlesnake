@@ -135,15 +135,10 @@ def get_header_str(header_text, header_text_color=ANSI_HI_YELLOW,
     :rtype: str
     """
 
-    buf = pad_color + (pad_char * 3) + ANSI_HI_WHITE
-    buf += '%[{header_text_color}{header_text}{color_hi_white}%]{pad_color}'.format(
+    buf = "[center(-=< {header_text_color}{header_text}{ansi_normal} >=-,{width})]".format(
         header_text_color=header_text_color, header_text=header_text,
-        color_hi_white=ANSI_HI_WHITE, pad_color=pad_color,
-    )
-    # Unfortunately, we have to account for the color escapes in this.
-    # If you add or remove %-escapes, adjust this number.
-    remaining = width - len(remove_all_percent_sequences(buf))
-    buf += pad_char * remaining
+        ansi_normal=ANSI_NORMAL, width=width)
+    buf += get_footer_str(width=width, pad_char=pad_char, pad_color=pad_color)
     return '\n' + buf + ANSI_NORMAL
 
 

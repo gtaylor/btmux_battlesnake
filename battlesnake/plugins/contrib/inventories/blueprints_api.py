@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from psycopg2 import IntegrityError
 from twisted.internet.defer import inlineCallbacks, returnValue
 
@@ -124,29 +125,41 @@ def modify_player_blueprint_inventory(player_dbref, bp_mods):
 
 
 @inlineCallbacks
-def get_player_blueprint_inventory(player_dbref, type_filter=None):
+def get_player_blueprint_inventory(player_dbref, unit_ref=None):
     """
-    Filters, sorts, and returns a player's inventory.
+    Returns a player's blueprint inventory.
 
     :param str player_dbref: A valid player dbref.
-    :keyword str type_filter: One of: all, part, melee_weapon, weapon, commodity.
+    :keyword str unit_ref: If we're only returning blueprints for a single
+        ref, list it here.
     :rtype: list
     :returns: A list of inventory item dicts.
     """
 
     owner_id = int(player_dbref[1:])
     query = (
-        "SELECT item_id, quantity, econ_item.item_type AS item_type"
-        "  FROM inventories_owneditem "
-        "  INNER JOIN econ_item ON inventories_owneditem.item_id = econ_item.name"
-        "  WHERE quantity > 0 AND owner_id=%d" % owner_id
+        "SELECT unit_id, bp_type, quantity"
+        "  FROM inventories_ownedunitblueprint "
+        "  WHERE quantity > 0 AND owner_id=%s"
     )
 
-    if type_filter:
-        query += " AND item_type='%s' " % type_filter
+    qtuple = (owner_id,)
 
-    query += ' ORDER BY item_id'
+    if unit_ref:
+        query += " AND unit_id ILIKE %s "
+        qtuple += (unit_ref,)
+
+    query += ' ORDER BY unit_id'
     conn = yield get_db_connection()
-    results = yield conn.runQuery(query)
+    results = yield conn.runQuery(query, qtuple)
 
-    returnValue(results)
+    blueprints = OrderedDict()
+    for result in results:
+        unit_id = result['unit_id']
+        bp_type = result['bp_type']
+        quantity = result['quantity']
+        if unit_id not in blueprints:
+            blueprints[unit_id] = {}
+        blueprints[unit_id][bp_type] = quantity
+
+    returnValue(blueprints)

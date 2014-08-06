@@ -321,7 +321,6 @@ class ArenaListCommand(BaseCommand):
         puppets = PUPPET_STORE.list_arena_master_puppets()
 
         retval = self._get_header_str('Active Arena Listing')
-        retval += self._get_footer_str('-')
         retval += (
             "%r%ch "
             "[rjust(ID,4)]%b "

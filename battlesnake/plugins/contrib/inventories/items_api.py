@@ -56,10 +56,13 @@ def _item_invmod_interaction(cursor, player_id, modded_dict):
     We call a plpgsql function that modifies inventory levels.
     """
 
+    new_levels = {}
     for item_name, mod_amount in modded_dict.items():
-        yield cursor.execute(
+        result = yield cursor.execute(
             'SELECT modify_plr_item_inventory(%s, %s, %s);',
             (player_id, item_name, mod_amount))
+        new_levels[item_name] = result.fetchone()[0]
+    returnValue(new_levels)
 
 
 @inlineCallbacks
@@ -79,7 +82,8 @@ def modify_player_item_inventory(player_dbref, modded_dict):
     player_id = int(player_dbref[1:])
     conn = yield get_db_connection()
     try:
-        yield conn.runInteraction(_item_invmod_interaction, player_id, modded_dict)
+        results = yield conn.runInteraction(
+            _item_invmod_interaction, player_id, modded_dict)
     except IntegrityError as exc:
         if exc.pgcode == '23514':
             missing_dict = yield check_player_item_levels(
@@ -87,6 +91,7 @@ def modify_player_item_inventory(player_dbref, modded_dict):
             raise InsufficientInventory(missing_dict)
         else:
             raise
+    returnValue(results)
 
 
 @inlineCallbacks
