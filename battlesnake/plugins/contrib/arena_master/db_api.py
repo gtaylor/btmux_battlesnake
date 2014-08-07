@@ -412,7 +412,7 @@ def get_wave_participants_from_db(wave_id, faction_id):
     :param int wave_id: The wave's unique ID.
     :param int faction_id: The ID of the faction whose participants to retrieve.
     :rtype: list
-    :returns: A list of salvage dicts.
+    :returns: A list of participant player IDs.
     """
 
 

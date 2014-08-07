@@ -4,8 +4,8 @@ from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import unit_manipulation
-from battlesnake.plugins.contrib.arena_master.puppets.salvage import \
-    reward_salvage_for_wave
+from battlesnake.plugins.contrib.arena_master.puppets.rewards import \
+    reward_salvage_for_wave, reward_blueprints_to_participants
 
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
     DEFENDER_FACTION_DBREF
@@ -90,6 +90,16 @@ class ArenaMasterPuppet(object):
 
         return WAVE_DIFFICULTY_LEVELS[self.difficulty_level]['salvage_loss']
 
+    def get_blueprint_probabilities(self):
+        """
+        :rtype: int
+        :return: Returns a percent value in the 0-100 range for drawing
+            a random blueprint. This will eventually be expanded to include
+            rarity selection.
+        """
+
+        return WAVE_DIFFICULTY_LEVELS[self.difficulty_level]['base_bp_draw_chance']
+
     @inlineCallbacks
     def change_state_to_active(self, protocol):
         """
@@ -146,10 +156,15 @@ class ArenaMasterPuppet(object):
         wave_id = yield get_match_current_wave_id_from_db(self)
         yield announce_arena_state_change(p, message)
         yield mark_wave_as_finished_in_db(self, was_completed=True)
+
+        # And now for the fun stuff... rewards!
         salvage_loss = self.get_salvage_loss_percentage()
         yield reward_salvage_for_wave(p, wave_id, salvage_loss)
-        yield update_highest_wave_in_db(self)
+        bp_draw_chance = self.get_blueprint_probabilities()
+        yield reward_blueprints_to_participants(p, wave_id, bp_draw_chance)
 
+        # Back to the boring stuff.
+        yield update_highest_wave_in_db(self)
         next_wave = self.current_wave + 1
         yield self.set_current_wave(protocol, next_wave)
 

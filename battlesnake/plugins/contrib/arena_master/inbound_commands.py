@@ -27,7 +27,7 @@ from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     pick_refs_for_wave, spawn_wave
-from battlesnake.plugins.contrib.arena_master.puppets.salvage import \
+from battlesnake.plugins.contrib.arena_master.puppets.rewards import \
     reward_salvage_for_wave
 from battlesnake.plugins.contrib.arena_master.staging_room.idesc import \
     pemit_staging_room_idesc

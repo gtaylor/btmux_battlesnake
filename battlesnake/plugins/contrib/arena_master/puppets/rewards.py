@@ -9,7 +9,28 @@ from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF,
 
 from battlesnake.plugins.contrib.arena_master.db_api import \
     get_wave_salvage_from_db, get_wave_participants_from_db
+from battlesnake.plugins.contrib.inventories.blueprints_api import \
+    reward_random_blueprint
 from battlesnake.plugins.contrib.inventories.items_api import modify_player_item_inventory
+
+
+@inlineCallbacks
+def reward_blueprints_to_participants(protocol, wave_id, draw_chance):
+    """
+    Gives each wave participant a shot at drawing a blueprint.
+
+    :param int wave_id: ID of the wave in the DB.
+    :param int draw_chance: A number 0-100 that determines the percent
+        chance that a player will draw some kind of blueprint.
+    """
+
+    p = protocol
+    defender_faction_id = int(DEFENDER_FACTION_DBREF[1:])
+    participants = yield get_wave_participants_from_db(
+        wave_id, defender_faction_id)
+    for participant in participants:
+        player_dbref = "#%s" % participant['pilot_id']
+        yield reward_random_blueprint(p, player_dbref, draw_chance)
 
 
 def divide_salvage(salvage_dict, num_divisions, salvage_loss):
