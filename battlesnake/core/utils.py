@@ -10,7 +10,7 @@ import uuid
 import math
 
 from battlesnake.core.ansi import remove_ansi_codes, ANSI_HI_YELLOW, \
-    ANSI_HI_BLUE, ANSI_NORMAL, ANSI_HI_WHITE
+    ANSI_HI_BLUE, ANSI_NORMAL
 
 
 def calc_range(x1, y1, z1, x2, y2, z2):

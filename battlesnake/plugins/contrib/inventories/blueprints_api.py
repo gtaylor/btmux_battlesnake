@@ -1,11 +1,68 @@
+import random
 from collections import OrderedDict
+
 from psycopg2 import IntegrityError
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+from battlesnake.outbound_commands import mux_commands
 from battlesnake.plugins.contrib.pg_db.api import get_db_connection
 
+from battlesnake.plugins.contrib.inventories.defines import BLUEPRINT_TYPES, \
+    BP_TYPE_COLORS
 from battlesnake.plugins.contrib.inventories.exceptions import \
     InsufficientInventory
+
+
+@inlineCallbacks
+def draw_random_blueprint(draw_chance):
+    """
+    Carries out a roll for a chance to draw a random blueprint.
+
+    :param int draw_chance: A number 0-100, representing the percent chance
+        to draw a BP.
+    :rtype: tuple
+    :returns: A tuple in the form of (bp_ref, bp_type).
+    """
+
+    cutoff = 100 - int(draw_chance)
+    roll = random.randint(0, 100)
+
+    if roll < cutoff:
+        returnValue((None, None))
+
+    query = (
+        "SELECT reference FROM unit_library_unit "
+        "  WHERE is_player_spawnable=True ORDER BY random() LIMIT 1"
+    )
+
+    # Clone the list so we don't mess with the define.
+    bp_types = BLUEPRINT_TYPES[:]
+    random.shuffle(bp_types)
+
+    conn = yield get_db_connection()
+    results = yield conn.runQuery(query)
+    for result in results:
+        returnValue((result[0], bp_types[0]))
+
+
+@inlineCallbacks
+def reward_random_blueprint(protocol, player_dbref, draw_chance):
+    bp_ref, bp_type = yield draw_random_blueprint(draw_chance)
+    if not bp_ref:
+        returnValue((None, None))
+    bp_mods = [
+        {'unit_ref': bp_ref, 'bp_type': bp_type, 'mod_amount': 1},
+    ]
+    yield modify_player_blueprint_inventory(player_dbref, bp_mods)
+    message = (
+        "%chYou have been rewarded a %cy{bp_ref}%cw "
+        "%({bp_type_color}{bp_type}%ch%cw%) "
+        "blueprint for your performance! Type %cgblueprints%cw to see "
+        "your full inventory of blueprints%cn".format(
+            bp_type=bp_type, bp_ref=bp_ref,
+            bp_type_color=BP_TYPE_COLORS[bp_type]))
+    mux_commands.pemit(protocol, player_dbref, message)
+    returnValue((bp_ref, bp_type))
 
 
 @inlineCallbacks

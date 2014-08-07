@@ -12,10 +12,11 @@ from battlesnake.core.ansi import ANSI_NORMAL, \
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.plugins.contrib.inventories.blueprints_api import \
-    modify_player_blueprint_inventory, get_player_blueprint_inventory
+    modify_player_blueprint_inventory, get_player_blueprint_inventory, \
+    draw_random_blueprint, reward_random_blueprint
 
 from battlesnake.plugins.contrib.inventories.items_api import modify_player_item_inventory, \
-    get_player_item_inventory, check_player_item_levels
+    get_player_item_inventory
 from battlesnake.plugins.contrib.inventories.defines import ITEM_TYPES, \
     ITEM_TYPE_WEAPON, ITEM_TYPE_MELEE_WEAPON, ITEM_TYPE_PART, ITEM_TYPE_COMMOD
 from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
@@ -262,11 +263,37 @@ class BlueprintsCommand(BaseCommand):
         mux_commands.pemit(protocol, [invoker_dbref], pval)
 
 
+class RewardBpCommand(BaseCommand):
+    """
+    Modifies (adds or removes) econ items from a player's item inventory.
+    """
+
+    command_name = "inv_rewardbp"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        print parsed_line.kwargs
+        player_dbref = parsed_line.kwargs['player_dbref']
+        draw_chance = int(parsed_line.kwargs['draw_chance'])
+
+        bp_ref, bp_type = yield reward_random_blueprint(
+            protocol, player_dbref, draw_chance)
+        if bp_ref:
+            pval = "[name({player_dbref})] draws a {bp_ref} {bp_type} blueprint".format(
+                player_dbref=player_dbref, bp_ref=bp_ref, bp_type=bp_type)
+        else:
+            pval = "[name({player_dbref})] fails to draw anything.".format(
+                player_dbref=player_dbref)
+        mux_commands.pemit(protocol, invoker_dbref, pval)
+
+
 class InventoriesCommandTable(InboundCommandTable):
 
     commands = [
         ModItemInventoryCommand,
         ModBlueprintInventoryCommand,
+        RewardBpCommand,
+
         ItemsCommand,
         BlueprintsCommand,
     ]
