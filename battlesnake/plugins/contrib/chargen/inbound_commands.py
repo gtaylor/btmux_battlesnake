@@ -9,7 +9,7 @@ from battlesnake.core.inbound_command_handling.command_table import \
 from battlesnake.outbound_commands import mux_commands
 
 from battlesnake.plugins.contrib.chargen.archetypes import JACK_OF_ALL_TRADES
-from battlesnake.plugins.contrib.chargen.outbound_commands import \
+from battlesnake.plugins.contrib.chargen.account_setup import \
     setup_new_player
 from battlesnake.plugins.contrib.player_profiles.api import add_existing_player_to_db
 

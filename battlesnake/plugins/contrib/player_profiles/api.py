@@ -24,8 +24,8 @@ def add_existing_player_to_db(player_dbref, username, email):
     query_str = (
         'INSERT INTO accounts_sosuser'
         '  (id, username, alias, email, password, last_login, is_superuser, '
-        '   is_staff, date_joined, is_active)'
-        '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        '   is_staff, date_joined, is_active, cbill_balance)'
+        '  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
     )
     value_tuple = (
         int(player_dbref[1:]),
@@ -43,6 +43,8 @@ def add_existing_player_to_db(player_dbref, username, email):
         now,
         # is_active
         True,
+        # cbill_balance
+        0,
     )
 
     yield conn.runOperation(query_str, value_tuple)
