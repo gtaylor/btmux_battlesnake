@@ -409,6 +409,9 @@ class InventoryListCommand(BaseCommand):
             "%r"
             "%r[center(To see your list of unit blueprints%, type:,{inv_width})]"
             "%r[center(%ch%cgblueprints%cn,{inv_width})]"
+            "%r"
+            "%r[center(To see your list of owned units%, type:,{inv_width})]"
+            "%r[center(%ch%cgunits%cn,{inv_width})]"
             "".format(
                 inv_width=inv_width))
         pval += self._get_footer_str(width=inv_width)
