@@ -21,7 +21,10 @@ from battlesnake.plugins.contrib.inventories.items_api import modify_player_item
     get_player_item_inventory
 from battlesnake.plugins.contrib.inventories.defines import ITEM_TYPES, \
     ITEM_TYPE_WEAPON, ITEM_TYPE_MELEE_WEAPON, ITEM_TYPE_PART, ITEM_TYPE_COMMOD
-from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
+from battlesnake.plugins.contrib.inventories.units_api import \
+    get_player_unit_summary_list
+from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref, \
+    get_weight_class_color_for_tonnage
 
 
 class ModItemInventoryCommand(BaseCommand):
@@ -165,7 +168,7 @@ class ItemsCommand(BaseCommand):
 
     @inlineCallbacks
     def handle(self, protocol, invoker_dbref, args):
-        pval = self._get_header_str('Item Listing', width=73)
+        pval = self._get_header_str('Item Inventory Listing', width=73)
         pval += (
             "%r%b%b[ljust(%chItem,25)]"
             "[ljust(%chQty,10)]"
@@ -240,7 +243,7 @@ class BlueprintsCommand(BaseCommand):
 
     @inlineCallbacks
     def handle(self, protocol, invoker_dbref, args):
-        pval = self._get_header_str('Blueprint Listing', width=73)
+        pval = self._get_header_str('Blueprint Inventory Listing', width=73)
         pval += (
             "%r [ljust(%chUnit Ref.,17)]"
             "[ljust(%ch%cgStructural,12)]"
@@ -324,6 +327,63 @@ class RewardBpCommand(BaseCommand):
         mux_commands.pemit(protocol, invoker_dbref, pval)
 
 
+class UnitListCommand(BaseCommand):
+    """
+    Lists the units that the player owns.
+    """
+
+    command_name = "inv_units"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        cmd_line = parsed_line.kwargs['cmd'].split()
+        class_choices = ['light', 'medium', 'heavy', 'assault']
+        type_choices = ['mech', 'tank', 'vtol', 'battlesuit']
+
+        parser = BTMuxArgumentParser(protocol, invoker_dbref,
+            prog="units", description='Lists the units that you own.')
+
+        parser.add_argument(
+            "--class", type=str, choices=class_choices, dest='filter_class',
+            help="Mech weight class to filter by")
+
+        parser.add_argument(
+            "--type", type=str, choices=type_choices, dest='filter_type',
+            help="Unit type to filter by")
+
+        args = parser.parse_args(args=cmd_line)
+        try:
+            yield self.handle(protocol, invoker_dbref, args)
+        except AssertionError as exc:
+            raise CommandError(exc.message)
+
+    @inlineCallbacks
+    def handle(self, protocol, invoker_dbref, args):
+        lib_summary = yield get_player_unit_summary_list(invoker_dbref,
+            filter_class=args.filter_class, filter_type=args.filter_type)
+        pval = self._get_header_str('Unit Inventory Listing : %d results' % len(lib_summary['refs']))
+        pval += '%r%b%b'
+        for counter, udict in enumerate(lib_summary['refs'], start=1):
+            weight = udict['weight']
+            class_color = get_weight_class_color_for_tonnage(weight)
+            pval += "[ljust({class_color}{reference}{ansi_normal}, 18)]".format(
+                class_color=class_color,
+                reference=udict['reference'],
+                ansi_normal=ANSI_NORMAL,
+            )
+            if counter % 4 == 0:
+                pval += "%r%b%b"
+        pval += self._get_footer_str(pad_char='-')
+        pval += '%r[space(5)]'
+        pval += '[ljust(%ch%cgLight,20)]'
+        pval += '[ljust(%ch%cyMedium, 20)]'
+        pval += '[ljust(%ch%crHeavy, 20)]'
+        pval += '%ch%cmAssault'
+        pval += '%r[space(22)]%cnFor more info, type %ch%units -h'
+        pval += self._get_footer_str()
+        mux_commands.pemit(protocol, [invoker_dbref], pval)
+
+
 class InventoryListCommand(BaseCommand):
     """
     Shows the main inventory list.
@@ -366,4 +426,5 @@ class InventoriesCommandTable(InboundCommandTable):
         InventoryListCommand,
         ItemsCommand,
         BlueprintsCommand,
+        UnitListCommand,
     ]

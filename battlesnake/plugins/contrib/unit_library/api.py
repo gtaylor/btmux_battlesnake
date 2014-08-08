@@ -1,4 +1,7 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
+from battlesnake.plugins.contrib.unit_library.defines import \
+    WEIGHT_CLASS_SQL_MAP, UNIT_TYPE_SQL_MAP, UNIT_WCLASS_LIGHT_COLOR, \
+    UNIT_WCLASS_MEDIUM_COLOR, UNIT_WCLASS_HEAVY_COLOR, UNIT_WCLASS_ASSAULT_COLOR
 
 from btmux_template_io.unit import BTMuxUnit
 from battlesnake.plugins.contrib.pg_db.api import get_db_connection
@@ -12,48 +15,32 @@ def get_library_summary_list(filter_class=None, filter_type=None):
     """
     Returns a dict of unit library info. This can optionally be filtered.
 
-    :keyword str filter_class: One of light, mediu, heavy, or assault.
+    :keyword str filter_class: One of light, medium, heavy, or assault.
     :keyword str filter_type: One of mech, tank, vtol, or battlesuit.
     :rtype: dict
     :returns: A dict with library summary details included.
     """
 
-    query = (
-        'SELECT reference, weight FROM unit_library_unit WHERE '
-        '  is_hidden=False '
-    )
+    filters = ['is_hidden=False']
 
     if filter_class:
         filter_class = filter_class.lower()
-        query += 'AND '
-        if filter_class == 'light':
-            query += 'weight < 40'
-        elif filter_class == 'medium':
-            query += 'weight >= 40 AND weight < 60'
-        elif filter_class == 'heavy':
-            query += 'weight >= 60 AND weight < 80'
-        elif filter_class == 'assault':
-            query += 'weight >= 80'
-        else:
-            query += 'true'
+        filter_sql = WEIGHT_CLASS_SQL_MAP.get(filter_class, None)
+        if filter_sql:
+            filters.append(filter_sql)
 
     if filter_type:
         filter_type = filter_type.lower()
-        if filter_type == 'mech':
-            unit_type = 'Mech'
-        elif filter_type == 'tank':
-            unit_type = 'Vehicle'
-        elif filter_type == 'vtol':
-            unit_type = 'VTOL'
-        elif filter_type == 'battlesuit':
-            unit_type = 'Battlesuit'
-        else:
-            unit_type = None
+        filter_sql = UNIT_TYPE_SQL_MAP.get(filter_type, None)
+        if filter_sql:
+            filters.append(filter_sql)
 
-        if unit_type:
-            query += "AND unit_type = '%s'" % unit_type
+    where_clause = ' AND '.join(filters)
 
-    query += ' ORDER BY reference'
+    query = (
+        'SELECT reference, weight FROM unit_library_unit WHERE {where_clause} '
+        'ORDER BY reference'.format(
+            where_clause=where_clause))
     conn = yield get_db_connection()
     results = yield conn.runQuery(query)
 
@@ -134,3 +121,21 @@ def save_unit_to_db(unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
         insert_unit_in_db(
             unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
             payload, build_parts)
+
+
+def get_weight_class_color_for_tonnage(weight):
+    """
+    :param int weight: A unit weight (in tons).
+    :rtype: str
+    :returns: The MUX ANSI color code for the given tonnage.
+    """
+
+    if weight < 40:
+        class_color = UNIT_WCLASS_LIGHT_COLOR
+    elif weight < 60:
+        class_color = UNIT_WCLASS_MEDIUM_COLOR
+    elif weight < 80:
+        class_color = UNIT_WCLASS_HEAVY_COLOR
+    else:
+        class_color = UNIT_WCLASS_ASSAULT_COLOR
+    return class_color

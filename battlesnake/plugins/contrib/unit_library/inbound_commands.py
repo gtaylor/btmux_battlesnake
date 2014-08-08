@@ -19,7 +19,7 @@ from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
 
 from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref, \
-    get_library_summary_list
+    get_library_summary_list, get_weight_class_color_for_tonnage
 from battlesnake.plugins.contrib.unit_library.outbound_commands import \
     load_ref_in_templater
 from battlesnake.plugins.contrib.unit_library.unit_scanning.api import \
@@ -245,14 +245,7 @@ class ListrefsCommand(BaseCommand):
         pval += '%r%b%b'
         for counter, udict in enumerate(lib_summary['refs'], start=1):
             weight = udict['weight']
-            if weight < 40:
-                class_color = ANSI_HI_GREEN
-            elif weight < 60:
-                class_color = ANSI_HI_YELLOW
-            elif weight < 80:
-                class_color = ANSI_HI_RED
-            else:
-                class_color = ANSI_HI_MAGENTA
+            class_color = get_weight_class_color_for_tonnage(weight)
             pval += "[ljust({class_color}{reference}{ansi_normal}, 18)]".format(
                 class_color=class_color,
                 reference=udict['reference'],
