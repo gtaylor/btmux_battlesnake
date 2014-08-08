@@ -372,6 +372,8 @@ class UnitListCommand(BaseCommand):
             )
             if counter % 4 == 0:
                 pval += "%r%b%b"
+        if not lib_summary['refs']:
+            pval += "[center(You don't own any units. Hit the arenas!,78)]"
         pval += self._get_footer_str(pad_char='-')
         pval += '%r[space(5)]'
         pval += '[ljust(%ch%cgLight,20)]'
