@@ -1,11 +1,11 @@
 Twisted==14.0.0
 TxScheduling==1.1
 configobj==5.0.5
-crontab==0.18
-autobahn==0.8.9
+crontab==0.20
+autobahn==0.8.13
 blinker==1.3
-simplejson==3.5.2
-fysom==1.0.15
+simplejson==3.6.0
+fysom==1.1.2
 git+https://github.com/wulczer/txpostgres.git
 psycopg2==2.5.3
 git+https://github.com/gtaylor/btmux_template_io.git
