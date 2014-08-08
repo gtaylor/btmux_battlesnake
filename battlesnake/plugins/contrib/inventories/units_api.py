@@ -1,7 +1,5 @@
-from psycopg2 import IntegrityError
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from battlesnake.outbound_commands import mux_commands
 from battlesnake.plugins.contrib.pg_db.api import get_db_connection
 from battlesnake.plugins.contrib.unit_library.defines import \
     WEIGHT_CLASS_SQL_MAP, UNIT_TYPE_SQL_MAP

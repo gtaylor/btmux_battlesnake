@@ -10,10 +10,9 @@ from battlesnake.core.ansi import ANSI_NORMAL, \
     ANSI_HI_GREEN, ANSI_HI_YELLOW, ANSI_HI_RED, ANSI_HI_MAGENTA, ANSI_HI_CYAN, \
     ANSI_HI_WHITE
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.plugins.contrib.inventories.blueprints_api import \
     modify_player_blueprint_inventory, get_player_blueprint_inventory, \
-    draw_random_blueprint, reward_random_blueprint
+    reward_random_blueprint
 from battlesnake.plugins.contrib.inventories.cbill_api import \
     mod_player_cbill_balance, get_player_cbill_balance
 
