@@ -38,3 +38,26 @@ def mod_player_cbill_balance(player_dbref, mod_amount):
             raise
 
     returnValue(results)
+
+
+@inlineCallbacks
+def get_player_cbill_balance(player_dbref):
+    """
+    :param str player_dbref: A valid player dbref.
+    :rtype: int
+    :returns: The player's C-Bill balance.
+    """
+
+    player_id = int(player_dbref[1:])
+    query = (
+        "SELECT cbill_balance FROM accounts_sosuser "
+        "  WHERE id=%s LIMIT 1"
+    )
+    values = (player_id,)
+    conn = yield get_db_connection()
+    results = yield conn.runQuery(query, values)
+
+    for result in results:
+        returnValue(result[0])
+
+    returnValue(0)

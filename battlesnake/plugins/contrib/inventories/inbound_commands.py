@@ -15,7 +15,7 @@ from battlesnake.plugins.contrib.inventories.blueprints_api import \
     modify_player_blueprint_inventory, get_player_blueprint_inventory, \
     draw_random_blueprint, reward_random_blueprint
 from battlesnake.plugins.contrib.inventories.cbill_api import \
-    mod_player_cbill_balance
+    mod_player_cbill_balance, get_player_cbill_balance
 
 from battlesnake.plugins.contrib.inventories.items_api import modify_player_item_inventory, \
     get_player_item_inventory
@@ -324,6 +324,37 @@ class RewardBpCommand(BaseCommand):
         mux_commands.pemit(protocol, invoker_dbref, pval)
 
 
+class InventoryListCommand(BaseCommand):
+    """
+    Shows the main inventory list.
+    """
+
+    command_name = "inv_inventory"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        cbill_balance = yield get_player_cbill_balance(invoker_dbref)
+        # Have to escape the comma.
+        cbill_str = "{:,}".format(cbill_balance).replace(',', '%,')
+        inv_width = 50
+
+        pval = self._get_header_str('Inventory', width=inv_width)
+        pval += (
+            "%r[center(%chCurrent C-Bill balance:%cn {cbill_balance},{inv_width})]".format(
+                cbill_balance=cbill_str, inv_width=inv_width))
+        pval += self._get_footer_str(pad_char='-', width=inv_width)
+        pval += (
+            "%r[center(To see your list of parts and weapons%, type:,{inv_width})]"
+            "%r[center(%ch%cgitems%cn,{inv_width})]"
+            "%r"
+            "%r[center(To see your list of unit blueprints%, type:,{inv_width})]"
+            "%r[center(%ch%cgblueprints%cn,{inv_width})]"
+            "".format(
+                inv_width=inv_width))
+        pval += self._get_footer_str(width=inv_width)
+        mux_commands.pemit(protocol, [invoker_dbref], pval)
+
+
 class InventoriesCommandTable(InboundCommandTable):
 
     commands = [
@@ -332,6 +363,7 @@ class InventoriesCommandTable(InboundCommandTable):
         ModCbillsCommand,
         RewardBpCommand,
 
+        InventoryListCommand,
         ItemsCommand,
         BlueprintsCommand,
     ]
