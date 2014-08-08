@@ -10,7 +10,7 @@ from battlesnake.plugins.contrib.pg_db.api import get_db_connection
 from battlesnake.plugins.contrib.inventories.defines import BLUEPRINT_TYPES, \
     BP_TYPE_COLORS
 from battlesnake.plugins.contrib.inventories.exceptions import \
-    InsufficientInventory
+    InsufficientBlueprintInventory
 
 
 @inlineCallbacks
@@ -170,7 +170,7 @@ def modify_player_blueprint_inventory(player_dbref, bp_mods):
             if exc.pgcode == '23514':
                 missing_dict = yield check_player_blueprint_levels(
                     player_dbref, bp_mods)
-                raise InsufficientInventory(missing_dict)
+                raise InsufficientBlueprintInventory(missing_dict)
             else:
                 raise
 

@@ -14,6 +14,8 @@ from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.plugins.contrib.inventories.blueprints_api import \
     modify_player_blueprint_inventory, get_player_blueprint_inventory, \
     draw_random_blueprint, reward_random_blueprint
+from battlesnake.plugins.contrib.inventories.cbill_api import \
+    mod_player_cbill_balance
 
 from battlesnake.plugins.contrib.inventories.items_api import modify_player_item_inventory, \
     get_player_item_inventory
@@ -98,6 +100,41 @@ class ModBlueprintInventoryCommand(BaseCommand):
 
         new_balance = yield modify_player_blueprint_inventory(
             player_dbref, bp_mods)
+        message = "New balance: %s" % new_balance
+        mux_commands.pemit(protocol, invoker_dbref, message)
+
+
+class ModCbillsCommand(BaseCommand):
+    """
+    Modifies (adds or removes) cbills from a player's inventory.
+    """
+
+    command_name = "inv_modcbills"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        print parsed_line.kwargs
+        player_dbref = parsed_line.kwargs['player_dbref']
+        mod_amount = int(parsed_line.kwargs['mod_amount'])
+
+        if mod_amount == 0:
+            raise CommandError("0 is an invalid value for modding.")
+        elif mod_amount < 0:
+            verb = "Removing"
+            modifier = "from"
+        else:
+            verb = "Adding"
+            modifier = "to"
+
+        message = (
+            "{verb} {mod_amount} cbills {modifier} "
+            "[name({player_dbref})]%({player_dbref}%)'s inventory.".format(
+                verb=verb, mod_amount=mod_amount, modifier=modifier,
+                player_dbref=player_dbref))
+        mux_commands.pemit(protocol, invoker_dbref, message)
+
+        new_balance = yield mod_player_cbill_balance(
+            player_dbref, mod_amount)
         message = "New balance: %s" % new_balance
         mux_commands.pemit(protocol, invoker_dbref, message)
 
@@ -292,6 +329,7 @@ class InventoriesCommandTable(InboundCommandTable):
     commands = [
         ModItemInventoryCommand,
         ModBlueprintInventoryCommand,
+        ModCbillsCommand,
         RewardBpCommand,
 
         ItemsCommand,

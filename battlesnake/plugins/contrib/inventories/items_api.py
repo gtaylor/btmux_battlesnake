@@ -4,7 +4,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from battlesnake.plugins.contrib.pg_db.api import get_db_connection
 
 from battlesnake.plugins.contrib.inventories.exceptions import \
-    InsufficientInventory
+    InsufficientItemInventory
 
 
 @inlineCallbacks
@@ -88,7 +88,7 @@ def modify_player_item_inventory(player_dbref, modded_dict):
         if exc.pgcode == '23514':
             missing_dict = yield check_player_item_levels(
                 player_dbref, modded_dict)
-            raise InsufficientInventory(missing_dict)
+            raise InsufficientItemInventory(missing_dict)
         else:
             raise
     returnValue(results)
