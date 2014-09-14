@@ -16,7 +16,8 @@ def announce_arena_state_change(protocol, message):
 
     full_msg = '%ch%cgARENA:%cw {message}%cn'.format(message=message)
 
-    think_str = "[iter(lwho(),ifelse(hasflag(loc(##),IN_CHARACTER),,##))]"
+    # We do the setdiff() here to remove dupes.
+    think_str = "[setdiff(iter(lwho(),ifelse(hasflag(loc(##),IN_CHARACTER),,##)),)]"
     func_result = yield mux_commands.think(protocol, think_str)
     ooc_players = func_result.split()
     mux_commands.pemit(protocol, ooc_players, full_msg)

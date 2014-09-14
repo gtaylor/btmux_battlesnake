@@ -248,7 +248,7 @@ class BlueprintsCommand(BaseCommand):
             "[ljust(%ch%cgStructural,12)]"
             "[ljust(%ch%ccElectronics,15)]"
             "[ljust(%ch%cmWeaponry,14)]"
-            "%cw%chBuildable%cn"
+            "%cw%chComplete set?%cn"
         )
         pval += self._get_footer_str(width=73, pad_char='-')
         if args.unit_ref:
@@ -276,7 +276,7 @@ class BlueprintsCommand(BaseCommand):
                 color=weaponry_color, num_weaponry=num_weaponry)
 
             if num_structural > 0 and num_weaponry > 0 and num_electronics > 0:
-                buildable_str = "{color}Buildable{ansi_normal}".format(
+                buildable_str = "{color}Complete{ansi_normal}".format(
                     color=ANSI_HI_GREEN, ansi_normal=ANSI_NORMAL)
             else:
                 buildable_str = "{color}Incomplete{ansi_normal}".format(

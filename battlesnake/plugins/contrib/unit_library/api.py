@@ -1,7 +1,8 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 from battlesnake.plugins.contrib.unit_library.defines import \
-    WEIGHT_CLASS_SQL_MAP, UNIT_TYPE_SQL_MAP, UNIT_WCLASS_LIGHT_COLOR, \
-    UNIT_WCLASS_MEDIUM_COLOR, UNIT_WCLASS_HEAVY_COLOR, UNIT_WCLASS_ASSAULT_COLOR
+    WEIGHT_CLASS_SQL_MAP, UNIT_TYPE_SQL_MAP, \
+    UNIT_WCLASS_LIGHT, UNIT_WCLASS_MEDIUM, UNIT_WCLASS_HEAVY, \
+    UNIT_WCLASS_ASSAULT, WEIGHT_CLASS_COLOR_MAP
 
 from btmux_template_io.unit import BTMuxUnit
 from battlesnake.plugins.contrib.pg_db.api import get_db_connection
@@ -123,6 +124,23 @@ def save_unit_to_db(unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
             payload, build_parts)
 
 
+def get_weight_class(weight):
+    """
+    :param int weight: A unit weight (in tons).
+    :rtype: str
+    :returns: The weight class constant for the given weight.
+    """
+
+    if weight < 40:
+        return UNIT_WCLASS_LIGHT
+    elif weight < 60:
+        return UNIT_WCLASS_MEDIUM
+    elif weight < 80:
+        return UNIT_WCLASS_HEAVY
+    else:
+        return UNIT_WCLASS_ASSAULT
+
+
 def get_weight_class_color_for_tonnage(weight):
     """
     :param int weight: A unit weight (in tons).
@@ -130,12 +148,5 @@ def get_weight_class_color_for_tonnage(weight):
     :returns: The MUX ANSI color code for the given tonnage.
     """
 
-    if weight < 40:
-        class_color = UNIT_WCLASS_LIGHT_COLOR
-    elif weight < 60:
-        class_color = UNIT_WCLASS_MEDIUM_COLOR
-    elif weight < 80:
-        class_color = UNIT_WCLASS_HEAVY_COLOR
-    else:
-        class_color = UNIT_WCLASS_ASSAULT_COLOR
-    return class_color
+    weight_class = get_weight_class(weight)
+    return WEIGHT_CLASS_COLOR_MAP[weight_class]
