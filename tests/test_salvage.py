@@ -1,7 +1,7 @@
 from pprint import pprint
 import unittest
 
-from battlesnake.plugins.contrib.arena_master.puppets.rewards import \
+from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.rewards import \
     divide_salvage
 
 

@@ -7,10 +7,8 @@ map events and to issue orders to the AIs.
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from battlesnake.core.utils import is_valid_dbref
-from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions, \
-    get, get_attrs
-from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
-    ArenaMasterPuppet
+from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.puppet import \
+    WaveSurvivalPuppet
 
 
 class ArenaMasterPuppetStore(object):
@@ -61,29 +59,10 @@ class ArenaMasterPuppetStore(object):
             ArenaMasterPuppet instance.
         """
 
-        p = protocol
-        # Map in-game puppet object attribs to ArenaMasterPuppet kwargs.
-        attr_kwarg_map = {
-            'MAP.DBREF': 'map_dbref',
-            'LEADER.DBREF': 'leader_dbref',
-            'CREATOR.DBREF': 'creator_dbref',
-            'STAGING_ROOM.DBREF': 'staging_dbref',
-            'CURRENT_WAVE.D': 'current_wave',
-            'GAME_MODE.D': 'game_mode',
-            'GAME_STATE.D': 'game_state',
-            'DIFFICULTY_LEVEL.D': 'difficulty_level',
-            'MATCH_ID.D': 'match_id',
-        }
-        arena_attrs = yield get_attrs(p, arena_master_dbref, attr_kwarg_map.keys())
-        # Convert attribute keys to ArenaMasterPuppet kwargs.
-        arena_kwargs = {attr_kwarg_map[k]: v for k, v in arena_attrs.items()}
-        map_width, map_height = yield get_map_dimensions(p, arena_kwargs['map_dbref'])
-        # Instantiate like a boss.
-        puppet = ArenaMasterPuppet(
-            protocol, arena_master_dbref,
-            map_height=map_height, map_width=map_width, **arena_kwargs)
+        # TODO: Un-hardcode.
+        puppet = WaveSurvivalPuppet(protocol, arena_master_dbref)
+        yield puppet.load_arena_from_ingame_obj()
         self.update_or_add_puppet(puppet)
-
         returnValue(puppet)
 
     def get_puppet_by_dbref(self, puppet_dbref):

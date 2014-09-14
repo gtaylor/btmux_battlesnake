@@ -23,12 +23,12 @@ class ActiveArenaChecksTimer(IntervalTimer):
     def run(self, protocol):
         wave_puppets = PUPPET_STORE.list_arena_master_puppets(game_mode='wave')
         for puppet in wave_puppets:
+            if puppet.game_state != GAME_STATE_ACTIVE:
+                # They're not fighting, we're not interested.
+                continue
             if puppet.wave_check_cooldown_counter >= 0:
                 # Wave check is on cooldown. Decrement and ignore.
                 puppet.wave_check_cooldown_counter -= 1
-                continue
-            if puppet.game_state != GAME_STATE_ACTIVE:
-                # They're not fighting, we're not interested.
                 continue
             defenders_remaining = len(puppet.list_defending_units())
             if defenders_remaining == 0:

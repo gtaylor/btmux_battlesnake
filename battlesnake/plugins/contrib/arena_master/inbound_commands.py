@@ -8,7 +8,6 @@ from battlesnake.core.inbound_command_handling.command_table import \
     InboundCommandTable
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
-
 from battlesnake.plugins.contrib.arena_master.arena_crud.creation import \
     create_arena
 from battlesnake.plugins.contrib.arena_master.arena_crud.destruction import \
@@ -27,7 +26,7 @@ from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     pick_refs_for_wave, spawn_wave
-from battlesnake.plugins.contrib.arena_master.puppets.rewards import \
+from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.rewards import \
     reward_salvage_for_wave
 from battlesnake.plugins.contrib.arena_master.staging_room.idesc import \
     pemit_staging_room_idesc

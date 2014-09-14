@@ -45,6 +45,14 @@ class ArenaMapUnitStore(object):
         else:
             return self._unit_store.values()
 
+    def list_human_units(self):
+        """
+        :rtype: list
+        :returns: A list of human-piloted ArenaMapUnit instances.
+        """
+
+        return [unit for unit in self._unit_store.values() if unit.has_human_pilot()]
+
     def add_unit(self, unit):
         """
         We've got a unit we haven't seen before. Add it to the store as new.
@@ -308,6 +316,15 @@ class ArenaMapUnit(object):
 
     def __repr__(self):
         return "[%s] %s" % (self.contact_id, self.mech_name)
+
+    def has_human_pilot(self):
+        """
+        :rtype: bool
+        :return: True if this unit has a pilot AND it is human, False if
+            either of those two conditions aren't met.
+        """
+
+        return bool(not self.is_ai and self.pilot_dbref)
 
     def calc_armor_condition(self):
         """

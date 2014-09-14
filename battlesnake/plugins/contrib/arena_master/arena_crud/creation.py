@@ -3,14 +3,15 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
-from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
-    GAME_STATE_STAGING
+
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF, \
     ATTACKER_FACTION_DBREF
 from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
     create_unit
 
+from battlesnake.plugins.contrib.arena_master.puppets.defines import \
+    GAME_STATE_STAGING
 from battlesnake.plugins.contrib.arena_master.db_api import insert_match_in_db
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE

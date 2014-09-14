@@ -6,12 +6,12 @@ from twisted.internet.defer import inlineCallbacks
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
     DEFENDER_FACTION_DBREF
-
-from battlesnake.plugins.contrib.arena_master.db_api import \
-    get_wave_salvage_from_db, get_wave_participants_from_db
 from battlesnake.plugins.contrib.inventories.blueprints_api import \
     reward_random_blueprint
 from battlesnake.plugins.contrib.inventories.items_api import modify_player_item_inventory
+
+from battlesnake.plugins.contrib.arena_master.db_api import \
+    get_wave_salvage_from_db, get_wave_participants_from_db
 
 
 @inlineCallbacks
