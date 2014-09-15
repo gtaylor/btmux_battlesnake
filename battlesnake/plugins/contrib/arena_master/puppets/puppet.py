@@ -1,12 +1,8 @@
 from twisted.internet.defer import inlineCallbacks
 
-from battlesnake.conf import settings
 from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import unit_manipulation
 from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions
-
-from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF, \
-    DEFENDER_FACTION_DBREF
 
 from battlesnake.plugins.contrib.arena_master.db_api import \
     update_match_game_state_in_db, \
