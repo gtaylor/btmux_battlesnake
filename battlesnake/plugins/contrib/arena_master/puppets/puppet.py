@@ -1,6 +1,7 @@
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.outbound_commands import think_fn_wrappers
+from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import unit_manipulation
 from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions
 
@@ -24,6 +25,7 @@ class ArenaMasterPuppet(object):
 
         self.map_dbref = None
         self.staging_dbref = None
+        self.puppet_ol_dbref = None
         self.leader_dbref = None
         self.creator_dbref = None
         # A cache for all units in the arena, plus their states.
@@ -56,6 +58,7 @@ class ArenaMasterPuppet(object):
             'LEADER.DBREF': 'leader_dbref',
             'CREATOR.DBREF': 'creator_dbref',
             'STAGING_ROOM.DBREF': 'staging_dbref',
+            'PUPPET_OL.DBREF': 'puppet_ol_dbref',
             'GAME_MODE.D': 'game_mode',
             'GAME_STATE.D': 'game_state',
             'DIFFICULTY_LEVEL.D': 'difficulty_level',
@@ -180,3 +183,35 @@ class ArenaMasterPuppet(object):
 
         for unit in self.unit_store.list_human_units():
             unit_manipulation.save_unit_tics_to_pilot(protocol, unit.dbref)
+
+    @inlineCallbacks
+    def change_map(self, map_name):
+        """
+        Changes the currently loaded map.
+
+        :param str map_name: The name of the map file to load.
+        """
+
+        p = self.protocol
+        yield think_fn_wrappers.btloadmap(p, self.map_dbref, map_name)
+        map_width, map_height = yield get_map_dimensions(p, self.map_dbref)
+        for unit in self.unit_store.list_all_units():
+            yield think_fn_wrappers.btsetxy(
+                p, unit.dbref, self.map_dbref, map_width / 2, map_height / 2)
+            if unit.pilot_dbref:
+                mux_commands.force(p, unit.pilot_dbref, 'startup')
+        yield self.reload_observers()
+
+    @inlineCallbacks
+    def reload_observers(self):
+        """
+        Reloads the observation lounges. This is currently only Staging
+        and the Puppet OL.
+        """
+
+        p = self.protocol
+        map_width, map_height = yield get_map_dimensions(p, self.map_dbref)
+        for ol_dbref in [self.staging_dbref, self.puppet_ol_dbref]:
+            yield think_fn_wrappers.btsetxy(
+                p, ol_dbref, self.map_dbref, map_width / 2, map_height / 2)
+            mux_commands.force(p, ol_dbref, 'startup ov')

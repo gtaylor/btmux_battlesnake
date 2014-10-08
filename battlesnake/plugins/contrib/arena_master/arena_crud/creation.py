@@ -71,7 +71,7 @@ def _create_arena_master_object(protocol):
 def _create_map(protocol, arena_name, arena_master_dbref):
     p = protocol
     # TODO: Un-hardcode this
-    initial_mapfile = 'spaceport.map'
+    initial_mapfile = 'holding_area.map'
     map_name = "%ch%cgArenaMap:%cn " + arena_name
     map_dbref = yield think_fn_wrappers.create(p, map_name, otype='t')
     mux_commands.chzone(p, map_dbref, arena_master_dbref)

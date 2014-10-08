@@ -136,9 +136,10 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         assert self.game_state == GAME_STATE_IN_BETWEEN, \
             "Can only go Active from In-Between."
         self.save_player_tics(protocol)
+        yield self.repair_all_defending_units(protocol)
+        yield self.change_map('spaceport.map')
         self.wave_check_cooldown_counter = settings['arena_master']['wave_check_cooldown']
         yield self.change_game_state(p, GAME_STATE_ACTIVE)
-        yield self.repair_all_defending_units(protocol)
         message = "%ch%crWARNING: %cwAttacker wave %cc{wave_num}%cw has arrived!%cn".format(
             wave_num=self.current_wave)
         self.pemit_throughout_zone(p, message)
