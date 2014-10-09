@@ -185,21 +185,31 @@ class ArenaMasterPuppet(object):
             unit_manipulation.save_unit_tics_to_pilot(protocol, unit.dbref)
 
     @inlineCallbacks
-    def change_map(self, map_name):
+    def change_map(self, mmap):
         """
         Changes the currently loaded map.
 
-        :param str map_name: The name of the map file to load.
+        :param MuxMap mmap: The generated map to load.
         """
 
         p = self.protocol
+        map_name = '%sx%s' % mmap.dimensions
+        # This yanks all units off of the map.
         yield think_fn_wrappers.btloadmap(p, self.map_dbref, map_name)
-        map_width, map_height = yield get_map_dimensions(p, self.map_dbref)
+        # Feed terrain in via btsetmaphex() a whole line at a time.
+        for y in range(0, mmap.get_map_height()):
+            yield think_fn_wrappers.btsetmaphex_line(
+                p, self.map_dbref, y,
+                mmap.terrain_list[y], mmap.elevation_list[y])
+
+        map_width, map_height = mmap.dimensions
+        # Now we'll put all of the units back on the map.
         for unit in self.unit_store.list_all_units():
             yield think_fn_wrappers.btsetxy(
                 p, unit.dbref, self.map_dbref, map_width / 2, map_height / 2)
             if unit.pilot_dbref:
                 mux_commands.force(p, unit.pilot_dbref, 'startup')
+        # And reload the staging and puppet OLs.
         yield self.reload_observers()
 
     @inlineCallbacks

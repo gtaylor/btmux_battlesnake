@@ -10,6 +10,8 @@ from battlesnake.plugins.contrib.arena_master.db_api import insert_wave_in_db, \
     mark_match_as_destroyed_in_db, insert_match_in_db
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.defines import \
     WAVE_DIFFICULTY_LEVELS
+from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.map_generation import \
+    generate_new_muxmap
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     spawn_wave
 from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
@@ -125,6 +127,7 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
 
         return WAVE_DIFFICULTY_LEVELS[self.difficulty_level]['base_bp_draw_chance']
 
+
     @inlineCallbacks
     def change_state_to_active(self, protocol):
         """
@@ -137,7 +140,8 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
             "Can only go Active from In-Between."
         self.save_player_tics(protocol)
         yield self.repair_all_defending_units(protocol)
-        yield self.change_map('spaceport.map')
+        # Auto-generate and load a new map.
+        yield self.change_map(generate_new_muxmap())
         self.wave_check_cooldown_counter = settings['arena_master']['wave_check_cooldown']
         yield self.change_game_state(p, GAME_STATE_ACTIVE)
         message = "%ch%crWARNING: %cwAttacker wave %cc{wave_num}%cw has arrived!%cn".format(

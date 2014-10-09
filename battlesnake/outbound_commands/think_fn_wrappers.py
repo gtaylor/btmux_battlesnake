@@ -4,6 +4,7 @@ Functions wrappers using the 'think' command.
 import itertools
 
 from twisted.internet.defer import inlineCallbacks, returnValue
+from battlesnake.core.utils import add_escaping_percent_sequences
 
 from battlesnake.outbound_commands import mux_commands
 from btmux_template_io.item_table import WEAPON_TYPE_IDS
@@ -183,7 +184,7 @@ def btloadmech(protocol, obj, unit_ref):
 
     think_str = "[btloadmech({obj},{unit_ref})]".format(
         obj=obj, unit_ref=unit_ref)
-    return mux_commands.think(protocol, think_str, return_output=False)
+    return mux_commands.think(protocol, think_str)
 
 
 def btloadmap(protocol, obj, map_filename):
@@ -195,7 +196,47 @@ def btloadmap(protocol, obj, map_filename):
 
     think_str = "[btloadmap({obj},{map_filename})]".format(
         obj=obj, map_filename=map_filename)
+    return mux_commands.think(protocol, think_str)
+
+
+def btsetmaphex(protocol, obj, x, y, terrain, elev):
+    """
+    :param str obj: A valid map object string. 'here', a dbref, etc.
+    :param int x: The X coord to set.
+    :param int y: The Y coord to set.
+    :param str terrain: The terrain symbol to set ('.' for clear).
+    :param int elev: The elevation of the hex.
+    :rtype: defer.Deferred
+    """
+
+    escaped_terrain = add_escaping_percent_sequences(terrain)
+    think_str = "[btsetmaphex({obj},{x},{y},{terrain},{elev})]".format(
+        obj=obj, x=x, y=y, terrain=escaped_terrain, elev=elev)
     return mux_commands.think(protocol, think_str, return_output=False)
+
+
+def btsetmaphex_line(protocol, obj, y, terrain_line, elev_line):
+    """
+    If you need to set a bunch of hexes at a time, it's much faster to
+    do an entire row of hexes at once than to do them all individually.
+    Note that you will eventually hit the input buffer limit if your
+    Y line is too wide. We should probably eventually handle that here.
+
+    :param str obj: A valid map object string. 'here', a dbref, etc.
+    :param int y: The Y line whose hexes to set.
+    :param list terrain_line: A list of terrain values for the Y line.
+    :param list elev_line: A list of elevation values for the Y line.
+    :rtype: defer.Deferred
+    """
+
+    buf = ""
+    for x, _ in enumerate(terrain_line):
+        terrain = terrain_line[x]
+        elev = elev_line[x]
+        escaped_terrain = add_escaping_percent_sequences(terrain)
+        buf += "[btsetmaphex({obj},{x},{y},{terrain},{elev})]".format(
+            obj=obj, x=x, y=y, terrain=escaped_terrain, elev=elev)
+    return mux_commands.think(protocol, buf, return_output=False)
 
 
 def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
