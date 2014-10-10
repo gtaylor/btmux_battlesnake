@@ -37,7 +37,7 @@ class ActiveArenaChecksTimer(IntervalTimer):
             attackers_remaining = len(puppet.list_attacking_units())
             if attackers_remaining == 0:
                 # Wave wiped!
-                puppet.change_state_to_in_between(protocol)
+                puppet.change_state_to_in_between()
 
 
 class WaveSurvivalTimerTable(TimerTable):

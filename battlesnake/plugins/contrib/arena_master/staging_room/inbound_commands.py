@@ -97,7 +97,7 @@ class SimpleSpawnCommand(BaseCommand):
             "%ch[ucstr({unit_ref})]%cn.".format(
                 invoker_dbref=invoker_dbref, unit_ref=unit_ref)
         )
-        puppet.pemit_throughout_zone(p, message)
+        puppet.pemit_throughout_zone(message)
 
 
 class BeginMatchCommand(BaseCommand):
@@ -128,9 +128,9 @@ class BeginMatchCommand(BaseCommand):
         elif game_state != GAME_STATE_STAGING:
             raise CommandError("The match has already begun!")
 
-        yield puppet.change_game_state(p, GAME_STATE_IN_BETWEEN)
+        yield puppet.change_game_state(GAME_STATE_IN_BETWEEN)
         puppet.pemit_throughout_zone(
-            p, "The match has begun. You may now %ch%cgspawn%cn.")
+            "The match has begun. You may now %ch%cgspawn%cn.")
 
 
 class EndMatchCommand(BaseCommand):
@@ -159,9 +159,9 @@ class EndMatchCommand(BaseCommand):
             raise CommandError("You can't end a match while a wave is underway.")
 
         if game_state != GAME_STATE_FINISHED:
-            yield puppet.change_game_state(p, GAME_STATE_FINISHED)
+            yield puppet.change_game_state(GAME_STATE_FINISHED)
         puppet.pemit_throughout_zone(
-            p, "[name({invoker_dbref})] has ended the match.".format(
+            "[name({invoker_dbref})] has ended the match.".format(
                 invoker_dbref=invoker_dbref))
         yield destroy_arena(p, arena_master_dbref)
         
@@ -191,7 +191,7 @@ class RestartMatchCommand(BaseCommand):
         if game_state != GAME_STATE_FINISHED:
             raise CommandError("You can only restart a finished match.")
 
-        yield puppet.reset_arena(p)
+        yield puppet.reset_arena()
 
 
 class TransferLeaderStatusCommand(BaseCommand):
@@ -220,8 +220,8 @@ class TransferLeaderStatusCommand(BaseCommand):
             "%ch%cy[name({invoker_dbref})]%cw has transferred arena leadership "
             "to %cc[name({new_leader_dbref})]%cw.%cn".format(
                 invoker_dbref=invoker_dbref, new_leader_dbref=new_leader_dbref))
-        puppet.pemit_throughout_zone(p, message)
-        yield puppet.set_arena_leader(p, new_leader_dbref)
+        puppet.pemit_throughout_zone(message)
+        yield puppet.set_arena_leader(new_leader_dbref)
 
 
 class SetDifficultyCommand(BaseCommand):
@@ -258,7 +258,7 @@ class SetDifficultyCommand(BaseCommand):
                     ', '.join(ARENA_DIFFICULTY_LEVELS),)
             )
 
-        yield puppet.set_difficulty(p, difficulty_level)
+        yield puppet.set_difficulty(difficulty_level)
 
 
 class ArenaStagingRoomCommandTable(InboundCommandTable):

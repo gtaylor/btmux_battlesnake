@@ -100,14 +100,6 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         # Put any idle/slacking units to work.
         move_idle_units(self, attacking_ai_units, defending_units)
 
-    def save_player_tics(self, protocol):
-        """
-        Saves all human player tics.
-        """
-
-        for unit in self.unit_store.list_human_units():
-            unit_manipulation.save_unit_tics_to_pilot(protocol, unit.dbref)
-
     def get_salvage_loss_percentage(self):
         """
         :rtype: int
@@ -128,24 +120,24 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         return WAVE_DIFFICULTY_LEVELS[self.difficulty_level]['base_bp_draw_chance']
 
     @inlineCallbacks
-    def change_state_to_active(self, protocol):
+    def change_state_to_active(self):
         """
         This always gets called from the In-Between state. Changes to Active
         state, poops out a wave of units.
         """
 
-        p = protocol
+        p = self.protocol
         assert self.game_state == GAME_STATE_IN_BETWEEN, \
             "Can only go Active from In-Between."
-        self.save_player_tics(protocol)
-        yield self.repair_all_defending_units(protocol)
+        self.save_player_tics()
+        yield self.repair_all_defending_units()
         # Auto-generate and load a new map.
         yield self.change_map(generate_new_muxmap())
         self.wave_check_cooldown_counter = settings['arena_master']['wave_check_cooldown']
-        yield self.change_game_state(p, GAME_STATE_ACTIVE)
+        yield self.change_game_state(GAME_STATE_ACTIVE)
         message = "%ch%crWARNING: %cwAttacker wave %cc{wave_num}%cw has arrived!%cn".format(
             wave_num=self.current_wave)
-        self.pemit_throughout_zone(p, message)
+        self.pemit_throughout_zone(message)
         defenders_bv2 = self.calc_total_defending_units_bv2()
         spawned_units = yield spawn_wave(
             p, self.current_wave, defenders_bv2, self.difficulty_level, self)
@@ -160,21 +152,21 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         yield insert_wave_in_db(self, spawned_units)
 
     @inlineCallbacks
-    def change_state_to_in_between(self, protocol):
+    def change_state_to_in_between(self):
         """
         The players have dispatched all attackers, move to the next wave's
         In-Between period.
         """
 
-        p = protocol
+        p = self.protocol
         assert self.game_state == GAME_STATE_ACTIVE, \
             "Can only go In-Between from Active."
-        yield self.change_game_state(p, GAME_STATE_IN_BETWEEN)
+        yield self.change_game_state(GAME_STATE_IN_BETWEEN)
         message = (
             "%chWave %cc{wave_num}%cw complete! Re-opening spawning/de-spawning. "
             "The next wave will arrive when the arena leader types %cgcontinue%cw.%cn".format(
             wave_num=self.current_wave))
-        self.pemit_throughout_zone(p, message)
+        self.pemit_throughout_zone(message)
 
         message = (
             "Arena %cc{arena_id}%cw has completed wave {wave_num}. "
@@ -196,7 +188,7 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         # Back to the boring stuff.
         yield update_highest_wave_in_db(self)
         next_wave = self.current_wave + 1
-        yield self.set_current_wave(protocol, next_wave)
+        yield self.set_current_wave(next_wave)
 
     @inlineCallbacks
     def change_state_to_finished(self, protocol):
@@ -206,7 +198,7 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         """
 
         p = protocol
-        yield self.change_game_state(p, GAME_STATE_FINISHED)
+        yield self.change_game_state(GAME_STATE_FINISHED)
         # TODO: Send match summary?
         mux_commands.trigger(p, self.map_dbref, 'DEST_ALL_MECHS.T')
 
@@ -222,25 +214,25 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         yield mark_match_as_finished_in_db(self)
 
     @inlineCallbacks
-    def reset_arena(self, protocol):
+    def reset_arena(self):
         """
         Completely resets the arena back to its wave 1 initial state.
         """
 
-        p = protocol
+        p = self.protocol
         # This wraps things up as far as the DB is concerned.
         yield mark_match_as_destroyed_in_db(self)
         # This causes a new match to be created.
         self.match_id = yield insert_match_in_db(self)
-        yield self.change_game_state(p, GAME_STATE_STAGING)
-        yield self.set_current_wave(protocol, 1)
+        yield self.change_game_state(GAME_STATE_STAGING)
+        yield self.set_current_wave(1)
         # TODO: Un-hardcode this.
         yield self.change_map('holding_area.map')
         message = (
             "%chThe arena has been restarted. The match will start when "
             "[name({leader_dbref})] types %cgbegin%cw.%cn".format(
             wave_num=self.current_wave - 1, leader_dbref=self.leader_dbref))
-        self.pemit_throughout_zone(p, message)
+        self.pemit_throughout_zone(message)
 
         message = (
             "Arena %cc{arena_id}%cw has restarted at wave 1 in "
@@ -252,7 +244,7 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         yield announce_arena_state_change(p, message)
 
     @inlineCallbacks
-    def set_current_wave(self, protocol, wave_num):
+    def set_current_wave(self, wave_num):
         """
         Sets the current wave to a new value.
 
@@ -261,7 +253,7 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
 
         self.current_wave = wave_num
         yield think_fn_wrappers.set_attrs(
-            protocol, self.dbref, {'CURRENT_WAVE.D': wave_num})
+            self.protocol, self.dbref, {'CURRENT_WAVE.D': wave_num})
 
     def list_defending_units(self, piloted_only=True):
         """
@@ -314,19 +306,21 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         return self.map_width / 2, self.map_height / 2
 
     @inlineCallbacks
-    def repair_all_defending_units(self, protocol):
+    def repair_all_defending_units(self):
         """
         Repairs all defending units on the map.
         """
 
+        p = self.protocol
         for unit in self.list_defending_units():
+            yield unit_manipulation.heal_unit_pilot(p, unit.dbref)
             # Rather than deal with manually setting counters and fixing
             # some of the other hidden state, just reload the units entirely.
             # The map change will cause the auto-restart.
             yield think_fn_wrappers.btloadmech(
-                protocol, unit.dbref, unit.unit_ref)
+                p, unit.dbref, unit.unit_ref)
 
-    def announce_num_units_remaining(self, protocol, exclude_unit=None):
+    def announce_num_units_remaining(self, exclude_unit=None):
         """
         Announces the "score" to the arena.
 
@@ -344,4 +338,4 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
                 num_attackers=num_attackers, num_defenders=num_defenders,
             )
         )
-        self.pemit_throughout_zone(protocol, score_msg)
+        self.pemit_throughout_zone(score_msg)

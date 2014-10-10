@@ -428,7 +428,6 @@ class ContinueMatchCommand(BaseCommand):
 
     @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
-        p = protocol
         arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
 
         try:
@@ -443,7 +442,7 @@ class ContinueMatchCommand(BaseCommand):
         if puppet.game_state != GAME_STATE_IN_BETWEEN:
             raise CommandError("You may only %ch%cgcontinue%cn when between waves.")
 
-        yield puppet.change_state_to_active(p)
+        yield puppet.change_state_to_active()
 
 
 class ReportDestructionCommand(BaseCommand):
@@ -471,7 +470,7 @@ class ReportDestructionCommand(BaseCommand):
 
         cause_of_death = parsed_line.kwargs['cause_of_death']
         yield handle_kill(
-            p, puppet, victim_unit_dbref, killer_unit_dbref, cause_of_death)
+            puppet, victim_unit_dbref, killer_unit_dbref, cause_of_death)
         # This *has* to happen.
         self._clear_corpse(p, victim_unit_dbref)
 

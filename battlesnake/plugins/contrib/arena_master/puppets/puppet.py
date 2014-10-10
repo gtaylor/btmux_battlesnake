@@ -95,7 +95,7 @@ class ArenaMasterPuppet(object):
         return self.dbref[1:]
 
     @inlineCallbacks
-    def change_game_state(self, protocol, new_state):
+    def change_game_state(self, new_state):
         """
         Changes the match's state.
 
@@ -105,11 +105,11 @@ class ArenaMasterPuppet(object):
         new_state = new_state.lower()
         self.game_state = new_state
         attrs = {'GAME_STATE.D': new_state}
-        yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+        yield think_fn_wrappers.set_attrs(self.protocol, self.dbref, attrs)
         yield update_match_game_state_in_db(self)
 
     @inlineCallbacks
-    def set_difficulty(self, protocol, new_difficulty):
+    def set_difficulty(self, new_difficulty):
         """
         Sets the difficulty level for an arena.
 
@@ -118,16 +118,16 @@ class ArenaMasterPuppet(object):
 
         self.difficulty_level = new_difficulty
         attrs = {'DIFFICULTY_LEVEL.D': self.difficulty_level}
-        yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+        yield think_fn_wrappers.set_attrs(self.protocol, self.dbref, attrs)
         yield update_match_difficulty_in_db(self)
         message = (
             "%ch[name({leader_dbref})] has set the difficulty "
             "level to: %cy{difficulty}%cn".format(
                 leader_dbref=self.leader_dbref, difficulty=new_difficulty))
-        self.pemit_throughout_zone(protocol, message)
+        self.pemit_throughout_zone(message)
 
     @inlineCallbacks
-    def set_arena_leader(self, protocol, new_leader):
+    def set_arena_leader(self, new_leader):
         """
         Changes an arena's leader.
 
@@ -136,9 +136,9 @@ class ArenaMasterPuppet(object):
 
         self.leader_dbref = new_leader
         attrs = {'LEADER.DBREF': new_leader}
-        yield think_fn_wrappers.set_attrs(protocol, self.dbref, attrs)
+        yield think_fn_wrappers.set_attrs(self.protocol, self.dbref, attrs)
 
-    def pemit_throughout_zone(self, protocol, message):
+    def pemit_throughout_zone(self, message):
         """
         Sends a message to the entire arena.
 
@@ -148,7 +148,7 @@ class ArenaMasterPuppet(object):
         # We do the setdiff() here to remove dupes.
         announce_cmd = "@dol [setdiff(zwho({dbref}),)]=@pemit ##={message}".format(
             dbref=self.dbref, message=message)
-        protocol.write(announce_cmd)
+        self.protocol.write(announce_cmd)
 
     def handle_unit_change(self, old_unit, new_unit, changes):
         """
@@ -176,16 +176,16 @@ class ArenaMasterPuppet(object):
 
         raise NotImplementedError("Implement do_strategic_tic()")
 
-    def save_player_tics(self, protocol):
+    def save_player_tics(self):
         """
         Saves all human player tics.
         """
 
         for unit in self.unit_store.list_human_units():
-            unit_manipulation.save_unit_tics_to_pilot(protocol, unit.dbref)
+            unit_manipulation.save_unit_tics_to_pilot(self.protocol, unit.dbref)
 
     @inlineCallbacks
-    def change_map(self, mmap_or_mapname, reload_units=True):
+    def change_map(self, mmap_or_mapname):
         """
         Changes the currently loaded map.
 
