@@ -14,6 +14,10 @@ from btmux_maplib.map_generator.modifiers.water_limiter import \
 
 
 def generate_new_muxmap():
+    """
+    For now, we generate a random map with some pretty similar attributes.
+    Eventually, we'll break this up a bunch by "climate" and stuff.
+    """
 
     gen = MapGenerator(
         dimensions=(75, 75),

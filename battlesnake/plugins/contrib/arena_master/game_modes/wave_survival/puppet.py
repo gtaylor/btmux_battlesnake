@@ -127,7 +127,6 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
 
         return WAVE_DIFFICULTY_LEVELS[self.difficulty_level]['base_bp_draw_chance']
 
-
     @inlineCallbacks
     def change_state_to_active(self, protocol):
         """
@@ -321,9 +320,11 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         """
 
         for unit in self.list_defending_units():
-            yield unit_manipulation.repair_unit_damage(protocol, unit.dbref)
-            yield unit_manipulation.heal_unit_pilot(protocol, unit.dbref)
-            unit_manipulation.reset_unit_counters(protocol, unit.dbref)
+            # Rather than deal with manually setting counters and fixing
+            # some of the other hidden state, just reload the units entirely.
+            # The map change will cause the auto-restart.
+            yield think_fn_wrappers.btloadmech(
+                protocol, unit.dbref, unit.unit_ref)
 
     def announce_num_units_remaining(self, protocol, exclude_unit=None):
         """

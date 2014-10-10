@@ -185,7 +185,7 @@ class ArenaMasterPuppet(object):
             unit_manipulation.save_unit_tics_to_pilot(protocol, unit.dbref)
 
     @inlineCallbacks
-    def change_map(self, mmap_or_mapname):
+    def change_map(self, mmap_or_mapname, reload_units=True):
         """
         Changes the currently loaded map.
 
