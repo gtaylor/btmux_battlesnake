@@ -235,6 +235,8 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         self.match_id = yield insert_match_in_db(self)
         yield self.change_game_state(p, GAME_STATE_STAGING)
         yield self.set_current_wave(protocol, 1)
+        # TODO: Un-hardcode this.
+        yield self.change_map('holding_area.map')
         message = (
             "%chThe arena has been restarted. The match will start when "
             "[name({leader_dbref})] types %cgbegin%cw.%cn".format(

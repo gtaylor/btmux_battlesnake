@@ -185,11 +185,39 @@ class ArenaMasterPuppet(object):
             unit_manipulation.save_unit_tics_to_pilot(protocol, unit.dbref)
 
     @inlineCallbacks
-    def change_map(self, mmap):
+    def change_map(self, mmap_or_mapname):
         """
         Changes the currently loaded map.
 
-        :param MuxMap mmap: The generated map to load.
+        :param mmap_or_mapname: The generated map to load.
+        :type mmap_or_mapname: MuxMap or str
+        """
+
+        p = self.protocol
+        if isinstance(mmap_or_mapname, str):
+            # This yanks all units off of the map.
+            yield think_fn_wrappers.btloadmap(p, self.map_dbref, mmap_or_mapname)
+            map_width, map_height = yield get_map_dimensions(p, self.map_dbref)
+        else:
+            yield self._populate_arena_map_from_memory(mmap_or_mapname)
+            map_width, map_height = mmap_or_mapname.dimensions
+
+        # Now we'll put all of the units back on the map.
+        for unit in self.unit_store.list_all_units():
+            yield think_fn_wrappers.btsetxy(
+                p, unit.dbref, self.map_dbref, map_width / 2, map_height / 2)
+            if unit.pilot_dbref:
+                mux_commands.force(p, unit.pilot_dbref, 'startup')
+        # And reload the staging and puppet OLs.
+        yield self.reload_observers()
+
+    @inlineCallbacks
+    def _populate_arena_map_from_memory(self, mmap):
+        """
+        Given a MuxMap instance, populate the arena's map from it.
+
+        :param MuxMap mmap: The in-memory map instance containing all of
+            the terrain/elevation data.
         """
 
         p = self.protocol
@@ -201,16 +229,6 @@ class ArenaMasterPuppet(object):
             yield think_fn_wrappers.btsetmaphex_line(
                 p, self.map_dbref, y,
                 mmap.terrain_list[y], mmap.elevation_list[y])
-
-        map_width, map_height = mmap.dimensions
-        # Now we'll put all of the units back on the map.
-        for unit in self.unit_store.list_all_units():
-            yield think_fn_wrappers.btsetxy(
-                p, unit.dbref, self.map_dbref, map_width / 2, map_height / 2)
-            if unit.pilot_dbref:
-                mux_commands.force(p, unit.pilot_dbref, 'startup')
-        # And reload the staging and puppet OLs.
-        yield self.reload_observers()
 
     @inlineCallbacks
     def reload_observers(self):
