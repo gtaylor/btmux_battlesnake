@@ -4,6 +4,7 @@ Constants and defines for the wave survival arena type.
 
 WAVE_DIFFICULTY_LEVELS = {
     'easy': {
+        # BV2 modifier, relative to the defenders' total BV2.
         'modifier': 0.5,
         'wave_step': 0.1,
         'salvage_loss': 95,

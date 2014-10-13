@@ -6,7 +6,6 @@ XCODE attribute.
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.core.utils import add_escaping_percent_sequences
-from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands.mux_commands import remit, trigger
 from battlesnake.outbound_commands.think_fn_wrappers import btgetxcodevalue, \
     btsetxcodevalue, get
