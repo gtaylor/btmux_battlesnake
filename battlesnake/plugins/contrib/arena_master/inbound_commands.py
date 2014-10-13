@@ -20,8 +20,6 @@ from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
     announce_arena_state_change
 from battlesnake.plugins.contrib.arena_master.puppets.defines import \
     GAME_STATE_IN_BETWEEN, ARENA_DIFFICULTY_LEVELS
-from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
-    handle_kill
 from battlesnake.plugins.contrib.arena_master.puppets.puppet_store import \
     PUPPET_STORE
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
@@ -454,25 +452,42 @@ class ReportDestructionCommand(BaseCommand):
 
     @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
-        p = protocol
-        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
-        victim_unit_dbref = parsed_line.kwargs['victim_unit_dbref']
-        killer_unit_dbref = parsed_line.kwargs['killer_unit_dbref']
 
         print "Unit destruction reported", parsed_line.kwargs
 
         try:
+            yield self._handle_destruction(protocol, parsed_line)
+        finally:
+            victim_unit_dbref = parsed_line.kwargs['victim_unit_dbref']
+            # This *has* to happen.
+            self._clear_corpse(protocol, victim_unit_dbref)
+
+    @inlineCallbacks
+    def _handle_destruction(self, protocol, parsed_line):
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+        victim_unit_dbref = parsed_line.kwargs['victim_unit_dbref']
+        killer_unit_dbref = parsed_line.kwargs['killer_unit_dbref']
+
+        try:
             puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
         except KeyError:
-            # This *has* to happen.
-            self._clear_corpse(p, victim_unit_dbref)
             raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+        unit_store = puppet.unit_store
 
-        cause_of_death = parsed_line.kwargs['cause_of_death']
-        yield handle_kill(
-            puppet, victim_unit_dbref, killer_unit_dbref, cause_of_death)
-        # This *has* to happen.
-        self._clear_corpse(p, victim_unit_dbref)
+        try:
+            victim_unit = unit_store.get_unit_by_dbref(victim_unit_dbref)
+        except ValueError:
+            victim_unit = None
+            print "ERROR: Victim %s not found on @Amechdest!" % victim_unit_dbref
+
+        try:
+            killer_unit = unit_store.get_unit_by_dbref(killer_unit_dbref)
+        except ValueError:
+            killer_unit = None
+            print "ERROR: Killer %s not found on @Amechdest!" % killer_unit_dbref
+
+        #cause_of_death = parsed_line.kwargs['cause_of_death']
+        yield puppet.handle_unit_destruction(victim_unit, killer_unit)
 
     def _clear_corpse(self, p, victim_unit_dbref):
         mux_commands.trigger(p, victim_unit_dbref, 'DESTMECH.T')

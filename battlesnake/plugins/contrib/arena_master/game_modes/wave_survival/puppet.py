@@ -63,28 +63,6 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         yield super(WaveSurvivalPuppet, self).load_arena_from_ingame_obj()
         self.current_wave = int(self.current_wave)
 
-    def handle_unit_change(self, old_unit, new_unit, changes):
-        """
-        This gets called by the unit store whenever a unit's state changes.
-        We can react strategically.
-
-        :param ArenaMapUnit old_unit: The old version of the unit in the
-            store. This doesn't have the new changes that were picked up.
-        :param ArenaMapUnit new_unit: The new unit instance generated from
-            polling the units on the map. The store will copy over the
-            changed attributes from this instance to ``old_unit`` after this
-            handler runs.
-        :param list changes: A list of attribute names that changed on
-            the ``new_unit`` compared to ``old_unit``.
-        """
-
-        if not new_unit.is_ai:
-            if 'x_coord' in changes or 'y_coord' in changes:
-                check_unit_for_fixer_use(self, new_unit)
-
-        if 'target_dbref' in changes and new_unit.is_ai:
-            handle_ai_target_change(self, old_unit, new_unit)
-
     def do_strategic_tic(self):
         """
         For now, we use smallish maps and get the AI to stumble into the
@@ -339,3 +317,44 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
             )
         )
         self.pemit_throughout_zone(score_msg)
+
+    #
+    ## Begin event handling
+    #
+
+    def handle_unit_change(self, old_unit, new_unit, changes):
+        """
+        This gets called by the unit store whenever a unit's state changes.
+        We can react strategically.
+
+        :param ArenaMapUnit old_unit: The old version of the unit in the
+            store. This doesn't have the new changes that were picked up.
+        :param ArenaMapUnit new_unit: The new unit instance generated from
+            polling the units on the map. The store will copy over the
+            changed attributes from this instance to ``old_unit`` after this
+            handler runs.
+        :param list changes: A list of attribute names that changed on
+            the ``new_unit`` compared to ``old_unit``.
+        """
+
+        if not new_unit.is_ai:
+            if 'x_coord' in changes or 'y_coord' in changes:
+                check_unit_for_fixer_use(self, new_unit)
+
+        if 'target_dbref' in changes and new_unit.is_ai:
+            handle_ai_target_change(self, old_unit, new_unit)
+
+    @inlineCallbacks
+    def handle_unit_destruction(self, victim_unit, killer_unit):
+        """
+        Triggered when a unit is destroyed. Human, AI, or otherwise.
+
+        :type victim_unit: ArenaMapUnit or None
+        :param victim_unit: The unit who was killed.
+        :type killer_unit: ArenaMapUnit or None
+        :param killer_unit: The unit who did the killing.
+        """
+
+        yield super(WaveSurvivalPuppet, self).handle_unit_destruction(
+            victim_unit, killer_unit)
+        self.announce_num_units_remaining(exclude_unit=victim_unit)

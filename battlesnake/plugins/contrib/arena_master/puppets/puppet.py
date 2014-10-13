@@ -8,6 +8,8 @@ from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions
 from battlesnake.plugins.contrib.arena_master.db_api import \
     update_match_game_state_in_db, \
     update_match_difficulty_in_db
+from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
+    record_kill, announce_death
 from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
     ArenaMapUnitStore
 
@@ -150,23 +152,6 @@ class ArenaMasterPuppet(object):
             dbref=self.dbref, message=message)
         self.protocol.write(announce_cmd)
 
-    def handle_unit_change(self, old_unit, new_unit, changes):
-        """
-        This gets called by the unit store whenever a unit's state changes.
-        We can react strategically.
-
-        :param ArenaMapUnit old_unit: The old version of the unit in the
-            store. This doesn't have the new changes that were picked up.
-        :param ArenaMapUnit new_unit: The new unit instance generated from
-            polling the units on the map. The store will copy over the
-            changed attributes from this instance to ``old_unit`` after this
-            handler runs.
-        :param list changes: A list of attribute names that changed on
-            the ``new_unit`` compared to ``old_unit``.
-        """
-
-        raise NotImplementedError("Implement handle_unit_change()")
-
     def do_strategic_tic(self):
         """
         For now, we use smallish maps and get the AI to stumble into the
@@ -243,3 +228,43 @@ class ArenaMasterPuppet(object):
             yield think_fn_wrappers.btsetxy(
                 p, ol_dbref, self.map_dbref, map_width / 2, map_height / 2)
             mux_commands.force(p, ol_dbref, 'startup ov')
+
+    #
+    ## Begin event handling
+    #
+
+    def handle_unit_change(self, old_unit, new_unit, changes):
+        """
+        This gets called by the unit store whenever a unit's state changes.
+        We can react strategically.
+
+        :param ArenaMapUnit old_unit: The old version of the unit in the
+            store. This doesn't have the new changes that were picked up.
+        :param ArenaMapUnit new_unit: The new unit instance generated from
+            polling the units on the map. The store will copy over the
+            changed attributes from this instance to ``old_unit`` after this
+            handler runs.
+        :param list changes: A list of attribute names that changed on
+            the ``new_unit`` compared to ``old_unit``.
+        """
+
+        raise NotImplementedError("Implement handle_unit_change()")
+
+    @inlineCallbacks
+    def handle_unit_destruction(self, victim_unit, killer_unit):
+        """
+        Triggered when a unit is destroyed. Human, AI, or otherwise.
+
+        :type victim_unit: ArenaMapUnit or None
+        :param victim_unit: The unit who was killed.
+        :type killer_unit: ArenaMapUnit or None
+        :param killer_unit: The unit who did the killing.
+        """
+
+        if not (victim_unit and killer_unit):
+            # TODO: We probably want to handle this somehow. Could have been
+            # killed by the environment or @damage.
+            return
+
+        yield record_kill(self, victim_unit, killer_unit)
+        announce_death(self, victim_unit, killer_unit)

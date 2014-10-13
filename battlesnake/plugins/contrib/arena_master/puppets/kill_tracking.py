@@ -9,45 +9,22 @@ from battlesnake.plugins.contrib.factions.defines import ATTACKER_FACTION_DBREF
 
 
 @inlineCallbacks
-def handle_kill(puppet, victim_unit_dbref, killer_unit_dbref,
-                cause_of_death):
-    """
-    Given a set of details on a kill, figure out how to react and track it.
-
-    :param ArenaMasterPuppet puppet:
-    :param str victim_unit_dbref: dbref of the unit that was destroyed.
-    :param str killer_unit_dbref: dbref of the killing unit.
-    :param str cause_of_death: What caused the victim to die.
-    """
-
-    p = puppet.protocol
-    unit_store = puppet.unit_store
-
-    try:
-        victim_unit = unit_store.get_unit_by_dbref(victim_unit_dbref)
-    except ValueError:
-        victim_unit = None
-        print "ERROR: Victim %s not found on @Amechdest!" % victim_unit_dbref
-    try:
-        killer_unit = unit_store.get_unit_by_dbref(killer_unit_dbref)
-    except ValueError:
-        killer_unit = None
-        print "ERROR: Killer %s not found on @Amechdest!" % killer_unit_dbref
-
-    if victim_unit and killer_unit:
-        yield record_kill(p, puppet, victim_unit, killer_unit, cause_of_death)
-
-
-@inlineCallbacks
-def record_kill(protocol, puppet, victim_unit, killer_unit, cause_of_death):
+def record_kill(puppet, victim_unit, killer_unit):
     """
     :param ArenaMasterPuppet puppet:
     :param ArenaMapUnit victim_unit: The unit that was destroyed.
-    :param ArenaMapUnit killer_unit: The killing unit.
-    :param str cause_of_death: What caused the victim to die.
+    :param ArenaMapUnit killer_unit: The killer unit.
     """
 
     yield record_kill_in_db(puppet, victim_unit, killer_unit)
+
+
+def announce_death(puppet, victim_unit, killer_unit):
+    """
+    :param ArenaMasterPuppet puppet:
+    :param ArenaMapUnit victim_unit: The unit that was destroyed.
+    :param ArenaMapUnit killer_unit: The killer unit.
+    """
 
     if victim_unit == killer_unit:
         # May have been spewed on, an ammo boom, or something suicidal.
@@ -108,7 +85,6 @@ def announce_attacker_killed(puppet, victim_unit, killer_unit):
             victim_mechname=victim_unit.mech_name)
     )
     puppet.pemit_throughout_zone(message)
-    puppet.announce_num_units_remaining(exclude_unit=victim_unit)
 
 
 def announce_defender_killed(puppet, victim_unit, killer_unit):
@@ -129,4 +105,3 @@ def announce_defender_killed(puppet, victim_unit, killer_unit):
             killer_mechname=killer_unit.mech_name)
     )
     puppet.pemit_throughout_zone(message)
-    puppet.announce_num_units_remaining(exclude_unit=victim_unit)
