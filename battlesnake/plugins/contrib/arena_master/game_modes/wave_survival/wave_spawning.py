@@ -28,9 +28,9 @@ def calc_max_wave_bv2(min_wave_bv2, defender_bv2, difficulty_level, wave_num):
     :returns: The max BV2 for the wave.
     """
 
-    diff_dict = WAVE_DIFFICULTY_LEVELS[difficulty_level]
-    difficulty_modifier = float(diff_dict['modifier'])
-    wave_step = float(diff_dict['wave_step'])
+    wave_diff_defines = WAVE_DIFFICULTY_LEVELS[difficulty_level]
+    difficulty_modifier = wave_diff_defines['modifier']
+    wave_step = wave_diff_defines['wave_step']
 
     # Subtract by one to make sure that we start at the base BV2 for the
     # defending force at wave 1.
@@ -130,16 +130,22 @@ def spawn_wave(protocol, wave_num, opposing_bv2, difficulty_level,
         Tuples are in the form of (unit_ref, unit_dbref).
     """
 
+    wave_diff_defines = WAVE_DIFFICULTY_LEVELS[difficulty_level]
+    ai_gunnery = wave_diff_defines['ai_gunnery_skills']
+    ai_piloting = wave_diff_defines['ai_piloting_skills']
     map_dbref = arena_master_puppet.map_dbref
     map_width, map_height = yield get_map_dimensions(protocol, map_dbref)
     refs = yield pick_refs_for_wave(wave_num, opposing_bv2, difficulty_level)
     faction = get_faction(ATTACKER_FACTION_DBREF)
+
     spawned = []
     for unit_ref in refs:
         unit_x, unit_y = choose_unit_spawn_spot(map_width, map_height)
         unit_dbref = yield create_unit(
             protocol, unit_ref, map_dbref, faction, unit_x, unit_y,
             zone_dbref=arena_master_puppet.dbref)
-        start_unit_ai(protocol, unit_dbref)
+        start_unit_ai(
+            protocol, unit_dbref, piloting_skill=ai_piloting,
+            gunnery_skill=ai_gunnery)
         spawned.append((unit_ref, unit_dbref))
     returnValue(spawned)

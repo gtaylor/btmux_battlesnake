@@ -10,6 +10,8 @@ WAVE_DIFFICULTY_LEVELS = {
         'base_bp_draw_chance': 18,
         'armor_fixer_percent': 0.6,
         'fixer_spawn_percent': 0.7,
+        'ai_gunnery_skills': 5,
+        'ai_piloting_skills': 4,
     },
     'normal': {
         'modifier': 0.8,
@@ -18,6 +20,8 @@ WAVE_DIFFICULTY_LEVELS = {
         'base_bp_draw_chance': 20,
         'armor_fixer_percent': 0.5,
         'fixer_spawn_percent': 0.6,
+        'ai_gunnery_skills': 4,
+        'ai_piloting_skills': 4,
     },
     'hard': {
         'modifier': 1.15,
@@ -26,6 +30,8 @@ WAVE_DIFFICULTY_LEVELS = {
         'base_bp_draw_chance': 22,
         'armor_fixer_percent': 0.4,
         'fixer_spawn_percent': 0.5,
+        'ai_gunnery_skills': 3,
+        'ai_piloting_skills': 3,
     },
     'overkill': {
         'modifier': 1.3,
@@ -34,6 +40,8 @@ WAVE_DIFFICULTY_LEVELS = {
         'base_bp_draw_chance': 24,
         'armor_fixer_percent': 0.3,
         'fixer_spawn_percent': 0.4,
+        'ai_gunnery_skills': 3,
+        'ai_piloting_skills': 3,
     },
 }
 
