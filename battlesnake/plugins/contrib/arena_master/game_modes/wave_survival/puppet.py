@@ -1,3 +1,4 @@
+import random
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.conf import settings
@@ -15,12 +16,14 @@ from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.map_gener
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
     spawn_wave
 from battlesnake.plugins.contrib.arena_master.powerups.fixers import \
-    check_unit_for_fixer_use
+    check_unit_for_fixer_use, spawn_fixer_unit
 from battlesnake.plugins.contrib.arena_master.puppets.announcing import \
     announce_arena_state_change
 from battlesnake.plugins.contrib.arena_master.puppets.defines import \
     GAME_STATE_IN_BETWEEN, GAME_STATE_ACTIVE, GAME_STATE_FINISHED, \
     GAME_STATE_STAGING
+from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
+    announce_death
 from battlesnake.plugins.contrib.arena_master.puppets.puppet import \
     ArenaMasterPuppet
 from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.rewards import \
@@ -128,6 +131,8 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         )
         yield announce_arena_state_change(p, message)
         yield insert_wave_in_db(self, spawned_units)
+        # Just in case we raced on change_state_to_in_between().
+        self.clear_all_powerups()
 
     @inlineCallbacks
     def change_state_to_in_between(self):
@@ -167,6 +172,7 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         yield update_highest_wave_in_db(self)
         next_wave = self.current_wave + 1
         yield self.set_current_wave(next_wave)
+        self.clear_all_powerups()
 
     @inlineCallbacks
     def change_state_to_finished(self, protocol):
@@ -318,6 +324,41 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         )
         self.pemit_throughout_zone(score_msg)
 
+    @inlineCallbacks
+    def spawn_fixer_near_unit(self, unit):
+        """
+        Handles the spawning of fixers/reloaders randomly near a unit.
+        :param ArenaMapUnit unit: The unit to place the fixer near.
+        """
+
+        wave_diff_defines = WAVE_DIFFICULTY_LEVELS[self.difficulty_level]
+        fixer_probability = wave_diff_defines['fixer_spawn_percent']
+        if random.random() > fixer_probability:
+            return
+
+        fx, fy = self.unit_store.get_random_hex_near_unit(unit, max_distance=5)
+        if random.randint(0, 1) == 1:
+            fixer_type = 'armor'
+            a_an = 'An'
+            fixer_name = 'armor fixer'
+        else:
+            fixer_type = 'ammo'
+            a_an = 'A'
+            fixer_name = 'reloader'
+
+        # Ammo is always 100%. Armor is variable.
+        fix_percent = wave_diff_defines['armor_fixer_percent']
+        yield spawn_fixer_unit(
+            protocol=self.protocol, map_dbref=self.map_dbref, x=fx, y=fy,
+            fixer_type=fixer_type, fix_percent=fix_percent)
+        msg = (
+            "%ch{a_an} %cg{fixer_name}%cw falls from the sky, landing roughly "
+            "around: %cg{x}, {y}%cn".format(
+                a_an=a_an, fixer_name=fixer_name, x=fx, y=fy,
+            )
+        )
+        self.pemit_throughout_zone(msg)
+
     #
     ## Begin event handling
     #
@@ -355,6 +396,9 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         :param killer_unit: The unit who did the killing.
         """
 
+        announce_death(self, victim_unit, killer_unit)
+        if victim_unit.faction_dbref == ATTACKER_FACTION_DBREF:
+            yield self.spawn_fixer_near_unit(victim_unit)
         yield super(WaveSurvivalPuppet, self).handle_unit_destruction(
             victim_unit, killer_unit)
         self.announce_num_units_remaining(exclude_unit=victim_unit)

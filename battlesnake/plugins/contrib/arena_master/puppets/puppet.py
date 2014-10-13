@@ -9,7 +9,7 @@ from battlesnake.plugins.contrib.arena_master.db_api import \
     update_match_game_state_in_db, \
     update_match_difficulty_in_db
 from battlesnake.plugins.contrib.arena_master.puppets.kill_tracking import \
-    record_kill, announce_death
+    record_kill
 from battlesnake.plugins.contrib.arena_master.puppets.units.unit_store import \
     ArenaMapUnitStore
 
@@ -215,6 +215,14 @@ class ArenaMasterPuppet(object):
                 p, self.map_dbref, y,
                 mmap.terrain_list[y], mmap.elevation_list[y])
 
+    def clear_all_powerups(self):
+        """
+        Clears all powerups off the map.
+        """
+
+        for powerup in self.unit_store.list_powerup_units():
+            mux_commands.trigger(self.protocol, powerup.dbref, 'DESTMECH.T')
+
     @inlineCallbacks
     def reload_observers(self):
         """
@@ -267,4 +275,3 @@ class ArenaMasterPuppet(object):
             return
 
         yield record_kill(self, victim_unit, killer_unit)
-        announce_death(self, victim_unit, killer_unit)

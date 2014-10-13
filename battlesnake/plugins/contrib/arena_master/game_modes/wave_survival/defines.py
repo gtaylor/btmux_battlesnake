@@ -8,24 +8,32 @@ WAVE_DIFFICULTY_LEVELS = {
         'wave_step': 0.1,
         'salvage_loss': 95,
         'base_bp_draw_chance': 18,
+        'armor_fixer_percent': 0.6,
+        'fixer_spawn_percent': 0.7,
     },
     'normal': {
         'modifier': 0.8,
         'wave_step': 0.25,
         'salvage_loss': 93,
         'base_bp_draw_chance': 20,
+        'armor_fixer_percent': 0.5,
+        'fixer_spawn_percent': 0.6,
     },
     'hard': {
         'modifier': 1.15,
         'wave_step': 0.30,
         'salvage_loss': 91,
         'base_bp_draw_chance': 22,
+        'armor_fixer_percent': 0.4,
+        'fixer_spawn_percent': 0.5,
     },
     'overkill': {
         'modifier': 1.3,
         'wave_step': 0.40,
         'salvage_loss': 89,
         'base_bp_draw_chance': 24,
+        'armor_fixer_percent': 0.3,
+        'fixer_spawn_percent': 0.4,
     },
 }
 

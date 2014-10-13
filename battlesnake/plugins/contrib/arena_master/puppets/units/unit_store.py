@@ -1,4 +1,6 @@
+import random
 import datetime
+import math
 
 from battlesnake.conf import settings
 from battlesnake.core.utils import calc_xy_range
@@ -256,6 +258,37 @@ class ArenaMapUnitStore(object):
                 continue
             units.append(unit)
         return units
+
+    def get_random_hex_near_unit(self, unit, max_distance):
+        """
+        Given a unit, find a random hex within ``max_distance`` hexes.
+
+        :param ArenaMapUnit unit: The unit in question.
+        :param int max_distance: A maximum 2D distance between the generated
+            coordinate and the unit's current coordinate. Constrains the
+            radius.
+        """
+
+        map_width = self.arena_master_puppet.map_width
+        map_height = self.arena_master_puppet.map_height
+        x = unit.x_coord
+        y = unit.y_coord
+
+        rand_angle = math.radians(random.randint(0, 359))
+        rand_radius = random.randint(0, max_distance)
+        # Generate some random X/Y offsets with a 0,0 origin.
+        offset_x = int(round(math.sin(rand_angle) * rand_radius))
+        offset_y = int(round(math.cos(rand_angle) * rand_radius))
+        # Add the offsets to the unit's position.
+        rand_x = x + offset_x
+        rand_y = y + offset_y
+        # Prevent negative coords.
+        rand_x = max(0, rand_x)
+        rand_y = max(0, rand_y)
+        # Can't exceed the size of the map.
+        rand_x = min(map_width - 1, rand_x)
+        rand_y = min(map_height - 1, rand_y)
+        return rand_x, rand_y
 
 
 class ArenaMapUnit(object):

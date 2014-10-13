@@ -9,10 +9,8 @@ from battlesnake.core.utils import add_escaping_percent_sequences
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands.mux_commands import remit, trigger
 from battlesnake.outbound_commands.think_fn_wrappers import btgetxcodevalue, \
-    btsetxcodevalue, get_map_dimensions, get
+    btsetxcodevalue, get
 
-from battlesnake.plugins.contrib.arena_master.game_modes.wave_survival.wave_spawning import \
-    choose_unit_spawn_spot
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
 from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
@@ -142,18 +140,19 @@ def _assemble_modified_damages(modified_sections):
 
 
 @inlineCallbacks
-def spawn_fixer_unit(protocol, map_dbref, fixer_type, fix_percent):
+def spawn_fixer_unit(protocol, map_dbref, x, y, fixer_type, fix_percent):
     """
     Spawning logic for fixer units.
 
     :param str map_dbref: The dbref of the map to spawn the fixer on.
+    :param int x: The X coord to spawn the fixer at.
+    :param int y: The Y coord to spawn the fixer at.
     :param str fixer_type: One of the refs in :py:var:`FIXER_REFS`.
     :param float fix_percent: For armor fixer, percentage of armor to fix.
         Ignored for other types. Range is 0...1.
     :return:
     """
 
-    p = protocol
     if fixer_type == 'armor':
         unit_ref = 'ArmorFixer'
         fix_percent = fix_percent
@@ -167,16 +166,14 @@ def spawn_fixer_unit(protocol, map_dbref, fixer_type, fix_percent):
         raise ValueError('Invalid fixer type: %s' % fixer_type)
 
     faction = get_faction(DEFENDER_FACTION_DBREF)
-    map_width, map_height = yield get_map_dimensions(p, map_dbref)
     # This currently spawns in the same patterns as the attacker AI.
-    unit_x, unit_y = choose_unit_spawn_spot(map_width, map_height)
     extra_status_flags = ['COMBAT_SAFE', 'AUTOCON_WHEN_SHUTDOWN']
     extra_attrs = {
         'FIXER_FIX_PERCENT.D': fix_percent,
         'IS_POWERUP': 1,
     }
     yield create_unit(protocol, unit_ref, map_dbref, faction,
-        unit_x, unit_y, extra_status_flags=extra_status_flags,
+        x, y, extra_status_flags=extra_status_flags,
         extra_attrs=extra_attrs)
 
 

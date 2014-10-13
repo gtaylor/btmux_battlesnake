@@ -257,7 +257,6 @@ def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
     else:
         think_str = "[btsetxy({obj},{map_obj},{unit_x},{unit_y})]".format(
             obj=obj, map_obj=map_obj, unit_x=unit_x, unit_y=unit_y)
-    print "THUNK", think_str
     return mux_commands.think(protocol, think_str)
 
 
