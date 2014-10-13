@@ -88,12 +88,13 @@ def set_attrs(protocol, obj, attr_dict, iter_delim='|'):
         )
         yield mux_commands.think(protocol, think_str)
 
-    iter_vals = ""
+    iter_vals = []
     for key, val in attr_dict.items():
-        iter_vals += "{key}:{val}{iter_delim}".format(
-            key=key, val=val, iter_delim=iter_delim)
+        iter_vals.append("{key}:{val}".format(
+            key=key, val=val, iter_delim=iter_delim))
+    iter_vals_str = '|'.join(iter_vals)
     think_str = "[iter({iter_vals},[set({obj},##)],{iter_delim})]".format(
-        iter_vals=iter_vals, obj=obj, iter_delim=iter_delim)
+        iter_vals=iter_vals_str, obj=obj, iter_delim=iter_delim)
     yield mux_commands.think(protocol, think_str)
 
 
@@ -256,6 +257,7 @@ def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
     else:
         think_str = "[btsetxy({obj},{map_obj},{unit_x},{unit_y})]".format(
             obj=obj, map_obj=map_obj, unit_x=unit_x, unit_y=unit_y)
+    print "THUNK", think_str
     return mux_commands.think(protocol, think_str)
 
 
