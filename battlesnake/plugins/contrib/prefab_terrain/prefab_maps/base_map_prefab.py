@@ -59,6 +59,9 @@ class BaseMapPrefab(object):
             edge_x = pf_x
             edge_y = pf_y - 1
             cls._defcliff_hex_pair(mmap, pf_x, pf_y, edge_x, edge_y)
+            if pf_x % 2 == 0:
+                cls._defcliff_hex_pair(mmap, pf_x, pf_y + 1, edge_x, edge_y)
+                cls._defcliff_hex_pair(mmap, pf_x, pf_y - 1, edge_x, edge_y)
 
         # Lower boundary
         for x in range(0, pf_map.get_map_width()):
@@ -67,6 +70,9 @@ class BaseMapPrefab(object):
             edge_x = pf_x
             edge_y = pf_y + 1
             cls._defcliff_hex_pair(mmap, pf_x, pf_y, edge_x, edge_y)
+            if pf_x % 2 == 0:
+                cls._defcliff_hex_pair(mmap, pf_x, pf_y, edge_x + 1, edge_y)
+                cls._defcliff_hex_pair(mmap, pf_x, pf_y, edge_x - 1, edge_y)
 
         # Left boundary
         for y in range(0, pf_map.get_map_height()):
@@ -75,6 +81,7 @@ class BaseMapPrefab(object):
             edge_x = pf_x - 1
             edge_y = pf_y
             cls._defcliff_hex_pair(mmap, pf_x, pf_y, edge_x, edge_y)
+            cls._defcliff_hex_pair(mmap, pf_x, pf_y, edge_x, edge_y - 1)
 
         # Right boundary
         for y in range(0, pf_map.get_map_height()):
@@ -83,6 +90,7 @@ class BaseMapPrefab(object):
             edge_x = pf_x + 1
             edge_y = pf_y
             cls._defcliff_hex_pair(mmap, pf_x, pf_y, edge_x, edge_y)
+            cls._defcliff_hex_pair(mmap, pf_x, pf_y, edge_x, edge_y - 1)
 
     @classmethod
     def _defcliff_hex_pair(cls, mmap, pf_x, pf_y, edge_x, edge_y):
