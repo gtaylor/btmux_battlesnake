@@ -12,6 +12,9 @@ from btmux_maplib.map_generator.modifiers.mountains import \
 from btmux_maplib.map_generator.modifiers.water_limiter import \
     WaterLimiterModifier
 
+from battlesnake.plugins.contrib.prefab_terrain.prefab_maps.firebases.firebases import \
+    Firebase11x11WalledPrefab
+
 
 def generate_new_muxmap():
     """
@@ -40,4 +43,9 @@ def generate_new_muxmap():
             ),
         ],
     )
-    return gen.generate_map()
+    mmap = gen.generate_map()
+
+    Firebase11x11WalledPrefab.place(
+        mmap, mmap.get_map_width() / 2, mmap.get_map_height() / 2)
+
+    return mmap
