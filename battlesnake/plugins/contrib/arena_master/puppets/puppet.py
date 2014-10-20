@@ -182,15 +182,17 @@ class ArenaMasterPuppet(object):
         if isinstance(mmap_or_mapname, str):
             # This yanks all units off of the map.
             yield think_fn_wrappers.btloadmap(p, self.map_dbref, mmap_or_mapname)
-            map_width, map_height = yield get_map_dimensions(p, self.map_dbref)
+            self.map_width, self.map_height = yield get_map_dimensions(
+                p, self.map_dbref)
         else:
             yield self._populate_arena_map_from_memory(mmap_or_mapname)
-            map_width, map_height = mmap_or_mapname.dimensions
+            self.map_width, self.map_height = mmap_or_mapname.dimensions
 
         # Now we'll put all of the units back on the map.
         for unit in self.unit_store.list_all_units():
             yield think_fn_wrappers.btsetxy(
-                p, unit.dbref, self.map_dbref, map_width / 2, map_height / 2)
+                p, unit.dbref, self.map_dbref,
+                self.map_width / 2, self.map_height / 2)
             if unit.pilot_dbref:
                 mux_commands.force(p, unit.pilot_dbref, 'startup')
         # And reload the staging and puppet OLs.

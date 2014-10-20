@@ -208,6 +208,8 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         yield mark_match_as_destroyed_in_db(self)
         # This causes a new match to be created.
         self.match_id = yield insert_match_in_db(self)
+        yield think_fn_wrappers.set_attrs(
+            p, self.dbref, {'MATCH_ID.D': self.match_id})
         yield self.change_game_state(GAME_STATE_STAGING)
         yield self.set_current_wave(1)
         # TODO: Un-hardcode this.
@@ -337,7 +339,7 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
             return
 
         fx, fy = self.unit_store.get_random_hex_near_unit(unit, max_distance=5)
-        if random.randint(0, 1) == 1:
+        if random.random() <= 0.7:
             fixer_type = 'armor'
             a_an = 'An'
             fixer_name = 'armor fixer'
