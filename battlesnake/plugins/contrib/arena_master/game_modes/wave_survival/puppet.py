@@ -341,22 +341,21 @@ class WaveSurvivalPuppet(ArenaMasterPuppet):
         fx, fy = self.unit_store.get_random_hex_near_unit(unit, max_distance=5)
         if random.random() <= 0.7:
             fixer_type = 'armor'
-            a_an = 'An'
-            fixer_name = 'armor fixer'
         else:
             fixer_type = 'ammo'
-            a_an = 'A'
-            fixer_name = 'reloader'
 
         # Ammo is always 100%. Armor is variable.
         fix_percent = wave_diff_defines['armor_fixer_percent']
-        yield spawn_fixer_unit(
+        fixer_dbref = yield spawn_fixer_unit(
             protocol=self.protocol, map_dbref=self.map_dbref, x=fx, y=fy,
             fixer_type=fixer_type, fix_percent=fix_percent)
         msg = (
-            "%ch{a_an} %cg{fixer_name}%cw falls from the sky, landing roughly "
+            "%ch%cg"
+            "%[[btgetxcodevalue({fixer_dbref}, id)]%] "
+            "[get({fixer_dbref}/Mechname)]%cw "
+            "falls from the sky, landing roughly "
             "around: %cg{x}, {y}%cn".format(
-                a_an=a_an, fixer_name=fixer_name, x=fx, y=fy,
+                fixer_dbref=fixer_dbref, x=fx, y=fy,
             )
         )
         self.pemit_throughout_zone(msg)

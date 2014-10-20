@@ -3,7 +3,7 @@ This module contains everything needed to manipulate a unit's ``mechdamage``
 XCODE attribute.
 """
 
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from battlesnake.core.utils import add_escaping_percent_sequences
 from battlesnake.outbound_commands.mux_commands import remit, trigger
@@ -149,7 +149,8 @@ def spawn_fixer_unit(protocol, map_dbref, x, y, fixer_type, fix_percent):
     :param str fixer_type: One of the refs in :py:var:`FIXER_REFS`.
     :param float fix_percent: For armor fixer, percentage of armor to fix.
         Ignored for other types. Range is 0...1.
-    :return:
+    :rtype: str
+    :returns: The dbref of the created fixer.
     """
 
     if fixer_type == 'armor':
@@ -171,9 +172,10 @@ def spawn_fixer_unit(protocol, map_dbref, x, y, fixer_type, fix_percent):
         'FIXER_FIX_PERCENT.D': fix_percent,
         'IS_POWERUP': 1,
     }
-    yield create_unit(protocol, unit_ref, map_dbref, faction,
+    fixer_dbref = yield create_unit(protocol, unit_ref, map_dbref, faction,
         x, y, extra_status_flags=extra_status_flags,
         extra_attrs=extra_attrs)
+    returnValue(fixer_dbref)
 
 
 def check_unit_for_fixer_use(puppet, unit):
