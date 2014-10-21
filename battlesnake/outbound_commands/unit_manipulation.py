@@ -109,13 +109,43 @@ def reset_unit_counters(protocol, unit_dbref):
     mux_commands.think(protocol, think_str, return_output=False)
 
 
-def save_unit_tics_to_pilot(protocol, unit_dbref):
+def save_unit_tics_to_pilot(protocol, unit):
     """
     Saves the unit's tics to the pilot.
 
-    :param str unit_dbref: A valid MECH xcode object's dbref.
+    :param ArenaMapUnit unit: The unit whose tics to save.
     """
 
+    unit_dbref = unit.dbref
     think_str = "[u({unit_dbref}/STORETICS.F,get({unit_dbref}/Pilot))]".format(
         unit_dbref=unit_dbref)
     mux_commands.think(protocol, think_str, return_output=False)
+
+
+def save_unit_mechprefs_to_pilot(protocol, unit):
+    """
+    Saves the unit's mechprefs to the pilot.
+
+    :param ArenaMapUnit unit: The unit whose mechprefs to save.
+    """
+
+    unit_dbref = unit.dbref
+    pilot_dbref = unit.pilot_dbref
+    think_str = (
+        "[set({pilot_dbref},"
+            "MECHPREFS.D:[btgetxcodevalue({unit_dbref},mechprefs)])]".format(
+        pilot_dbref=pilot_dbref, unit_dbref=unit_dbref))
+    mux_commands.think(protocol, think_str, return_output=False)
+
+
+def restore_mechprefs_on_unit(protocol, unit):
+    """
+    :param ArenaMapUnit unit: The unit whose mechprefs to restore.
+    """
+
+    unit_dbref = unit.dbref
+    pilot_dbref = unit.pilot_dbref
+    if not pilot_dbref:
+        return
+    mux_commands.trigger(
+        protocol, unit_dbref, 'SETLOADPREFS_MECHPREFS.T', [pilot_dbref])

@@ -116,6 +116,8 @@ def create_unit(protocol, unit_ref, map_dbref, faction,
         mux_commands.force(p, unit_dbref, cmd)
         mux_commands.trigger(
             p, unit_dbref, 'SETLOADPREFS_TICS.T', [pilot_dbref, unit_ref])
+        mux_commands.trigger(
+            p, unit_dbref, 'SETLOADPREFS_MECHPREFS.T', [pilot_dbref])
     else:
         # No pilot specified, stay more generic.
         comtitle = unit_ref

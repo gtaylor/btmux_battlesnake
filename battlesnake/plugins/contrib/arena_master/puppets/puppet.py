@@ -4,6 +4,8 @@ from battlesnake.outbound_commands import think_fn_wrappers
 from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import unit_manipulation
 from battlesnake.outbound_commands.think_fn_wrappers import get_map_dimensions
+from battlesnake.outbound_commands.unit_manipulation import \
+    restore_mechprefs_on_unit
 
 from battlesnake.plugins.contrib.arena_master.db_api import \
     update_match_game_state_in_db, \
@@ -167,7 +169,8 @@ class ArenaMasterPuppet(object):
         """
 
         for unit in self.unit_store.list_human_units():
-            unit_manipulation.save_unit_tics_to_pilot(self.protocol, unit.dbref)
+            unit_manipulation.save_unit_tics_to_pilot(self.protocol, unit)
+            unit_manipulation.save_unit_mechprefs_to_pilot(self.protocol, unit)
 
     @inlineCallbacks
     def change_map(self, mmap_or_mapname):
@@ -194,6 +197,7 @@ class ArenaMasterPuppet(object):
                 p, unit.dbref, self.map_dbref,
                 self.map_width / 2, self.map_height / 2)
             if unit.pilot_dbref:
+                restore_mechprefs_on_unit(p, unit)
                 mux_commands.force(p, unit.pilot_dbref, 'startup')
         # And reload the staging and puppet OLs.
         yield self.reload_observers()
