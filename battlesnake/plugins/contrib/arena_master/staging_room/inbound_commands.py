@@ -164,6 +164,37 @@ class EndMatchCommand(BaseCommand):
             "[name({invoker_dbref})] has ended the match.".format(
                 invoker_dbref=invoker_dbref))
         yield destroy_arena(p, arena_master_dbref)
+
+
+class AbortWaveCommand(BaseCommand):
+    """
+    Prematurely aborts the wave.
+    """
+
+    command_name = "am_abortwave"
+
+    @inlineCallbacks
+    def run(self, protocol, parsed_line, invoker_dbref):
+        p = protocol
+        arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
+
+        try:
+            puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
+        except KeyError:
+            raise CommandError('Invalid puppet dbref: %s' % arena_master_dbref)
+
+        leader_dbref = puppet.leader_dbref
+        if leader_dbref != invoker_dbref:
+            raise CommandError("Only the arena leader can do that.")
+
+        game_state = puppet.game_state
+        if game_state != GAME_STATE_ACTIVE:
+            raise CommandError("You can only abort active matches.")
+
+        yield puppet.change_state_to_finished(p)
+        puppet.pemit_throughout_zone(
+            "[name({invoker_dbref})] has aborted the match.".format(
+                invoker_dbref=invoker_dbref))
         
 
 class RestartMatchCommand(BaseCommand):
@@ -269,6 +300,7 @@ class ArenaStagingRoomCommandTable(InboundCommandTable):
         BeginMatchCommand,
         SimpleSpawnCommand,
         EndMatchCommand,
+        AbortWaveCommand,
         RestartMatchCommand,
         TransferLeaderStatusCommand,
     ]
