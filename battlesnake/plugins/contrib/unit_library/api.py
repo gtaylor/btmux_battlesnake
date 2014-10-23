@@ -12,17 +12,24 @@ from battlesnake.plugins.contrib.unit_library.unit_scanning.db_io import update_
 
 
 @inlineCallbacks
-def get_library_summary_list(filter_class=None, filter_type=None):
+def get_library_summary_list(filter_class=None, filter_type=None,
+                             pool='human'):
     """
     Returns a dict of unit library info. This can optionally be filtered.
 
     :keyword str filter_class: One of light, medium, heavy, or assault.
-    :keyword str filter_type: One of mech, tank, vtol, or battlesuit.
+    :keyword str filter_type: One of: mech, tank, vtol, or battlesuit
+    :keyword str pool: One of: human, ai, both
     :rtype: dict
     :returns: A dict with library summary details included.
     """
 
     filters = ['is_hidden=False']
+
+    if pool == 'human':
+        filters.append('is_player_spawnable=True')
+    elif pool == 'ai':
+        filters.append('is_ai_spawnable=True')
 
     if filter_class:
         filter_class = filter_class.lower()

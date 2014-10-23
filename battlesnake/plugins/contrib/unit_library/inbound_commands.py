@@ -219,6 +219,7 @@ class ListrefsCommand(BaseCommand):
         cmd_line = parsed_line.kwargs['cmd'].split()
         class_choices = ['light', 'medium', 'heavy', 'assault']
         type_choices = ['mech', 'tank', 'vtol', 'battlesuit']
+        pool_choices = ['human', 'ai', 'both']
 
         parser = BTMuxArgumentParser(protocol, invoker_dbref,
             prog="listrefs", description='Lists unit references.')
@@ -231,6 +232,10 @@ class ListrefsCommand(BaseCommand):
             "--type", type=str, choices=type_choices, dest='filter_type',
             help="Unit type to filter by")
 
+        parser.add_argument(
+            "--pool", type=str, choices=pool_choices, dest='filter_pool',
+            help="Unit pool to filter by")
+
         args = parser.parse_args(args=cmd_line)
         try:
             yield self.handle(protocol, invoker_dbref, args)
@@ -240,6 +245,7 @@ class ListrefsCommand(BaseCommand):
     @inlineCallbacks
     def handle(self, protocol, invoker_dbref, args):
         lib_summary = yield get_library_summary_list(
+            pool=args.filter_pool,
             filter_class=args.filter_class, filter_type=args.filter_type)
         pval = self._get_header_str('Unit Reference Listing : %d results' % len(lib_summary['refs']))
         pval += '%r%b%b'
