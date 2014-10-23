@@ -7,8 +7,7 @@ from btmux_template_io.item_table import WEAPON_TABLE
 from btmux_template_io.special_techs import TECH_TABLE
 
 from battlesnake.conf import settings
-from battlesnake.core.ansi import ANSI_NORMAL, \
-    ANSI_HI_GREEN, ANSI_HI_YELLOW, ANSI_HI_RED, ANSI_HI_MAGENTA
+from battlesnake.core.ansi import ANSI_NORMAL
 from battlesnake.core.inbound_command_handling.base import BaseCommand, \
     CommandError
 from battlesnake.core.inbound_command_handling.btargparse import \
@@ -234,7 +233,7 @@ class ListrefsCommand(BaseCommand):
 
         parser.add_argument(
             "--pool", type=str, choices=pool_choices, dest='filter_pool',
-            help="Unit pool to filter by")
+            default='human', help="Unit pool to filter by")
 
         args = parser.parse_args(args=cmd_line)
         try:

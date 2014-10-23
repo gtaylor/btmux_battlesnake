@@ -190,7 +190,6 @@ def check_unit_for_fixer_use(puppet, unit):
         unit.x_coord, unit.y_coord)
     for neighbor in hex_neighbors:
         if neighbor.unit_ref in FIXER_REFS and not neighbor.has_been_ran_over:
-            print "%s used fixer %s" % (unit, neighbor)
             use_fixer_unit(puppet, unit, neighbor)
 
 
@@ -213,10 +212,12 @@ def use_fixer_unit(puppet, unit, fixer_unit):
     fix_percent = float(fix_percent)
 
     message = (
-        "%ch%cy%[{unit_id}%] {unit_mechname}%cw "
+        "%ch%cc[name({pilot_dbref})]%cw in "
+        "%cc%[{unit_id}%] {unit_mechname}%cw "
         "has used %cg%[{fixer_id}%] {fixer_mechname}%cw.".format(
             unit_id=unit.contact_id, unit_mechname=unit.mech_name,
-            fixer_id=fixer_unit.contact_id, fixer_mechname=fixer_unit.mech_name))
+            pilot_dbref=unit.pilot_dbref, fixer_id=fixer_unit.contact_id,
+            fixer_mechname=fixer_unit.mech_name))
     puppet.pemit_throughout_zone(message)
 
     if fixer_unit.unit_ref == 'ArmorFixer':
