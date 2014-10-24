@@ -100,6 +100,33 @@ def get_unit_by_ref(unit_ref):
 
 
 @inlineCallbacks
+def get_ref_unit_pool(unit_ref):
+    """
+    :param str unit_ref: The unit reference to check the pool of.
+    :rtype: str
+    :returns: One of 'human', 'ai', or 'both'.
+    """
+
+    conn = yield get_db_connection()
+    results = yield conn.runQuery(
+        'SELECT is_player_spawnable, is_ai_spawnable '
+        'FROM unit_library_unit '
+        'WHERE reference ILIKE %s',
+        (unit_ref,)
+    )
+    for row in results:
+        is_player_spawnable = row['is_player_spawnable']
+        is_ai_spawnable = row['is_ai_spawnable']
+        if is_player_spawnable and is_ai_spawnable:
+            returnValue('both')
+        elif is_player_spawnable:
+            returnValue('human')
+        else:
+            returnValue('ai')
+    raise ValueError("Invalid ref.")
+
+
+@inlineCallbacks
 def save_unit_to_db(unit, offensive_bv2, defensive_bv2, base_cost, tech_list,
                     payload, build_parts):
     """

@@ -18,7 +18,8 @@ from battlesnake.outbound_commands import mux_commands
 from battlesnake.outbound_commands import think_fn_wrappers
 
 from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref, \
-    get_library_summary_list, get_weight_class_color_for_tonnage
+    get_library_summary_list, get_weight_class_color_for_tonnage, \
+    get_ref_unit_pool
 from battlesnake.plugins.contrib.unit_library.outbound_commands import \
     load_ref_in_templater
 from battlesnake.plugins.contrib.unit_library.unit_scanning.api import \
@@ -137,6 +138,14 @@ class UnitSpecsCommand(BaseCommand):
         except ValueError:
             raise CommandError("Invalid reference.")
 
+        unit_pools = yield get_ref_unit_pool(unit_ref)
+        if unit_pools == 'both':
+            pool_display = 'Human + AI'
+        elif unit_pools == 'human':
+            pool_display = 'Human only'
+        else:
+            pool_display = 'AI only'
+
         header_txt = "%cy{unit_ref} %cr{unit_name}%cn".format(
             unit_ref=unit.reference, unit_name=unit.name,
         )
@@ -154,13 +163,15 @@ class UnitSpecsCommand(BaseCommand):
             " [rjust(Off-BV2,{col2rjust})]: [ljust(round(BTGETOBV_REF({unit_ref}),0),{col2ljust})]"
             " Def-BV2: [round(BTGETDBV_REF({unit_ref}),0)]%r"
             ""
-            " [rjust(Mfg,{col1rjust})]: {manufacturer}".format(
+            " [rjust(Pool,{col1rjust})]: [ljust({pool_display},{col1ljust})]"
+            " [rjust(Mfg,{col2rjust})]: {manufacturer}".format(
                 unit_type=unit.unit_type, weight=unit.weight,
                 weight_class=unit.weight_class, walk_mp=unit.walk_mp,
                 run_mp=unit.run_mp, jj_total=unit.jumpjet_total,
                 armor_total=unit.armor_total, internals_total=unit.internals_total,
                 heatsink_total=unit.heatsink_total,
                 unit_ref=unit.reference,
+                pool_display=pool_display,
                 manufacturer=unit.manufacturer if unit.manufacturer else 'Unknown',
                 col1rjust=9, col1ljust=19,
                 col2rjust=9, col2ljust=19

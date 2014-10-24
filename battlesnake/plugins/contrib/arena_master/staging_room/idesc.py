@@ -116,7 +116,7 @@ def _return_in_between_state_help(protocol, arena_master_puppet, invoker_dbref):
     )
     leader_dbref = arena_master_puppet.leader_dbref
     if leader_dbref == invoker_dbref:
-        retval += "%r To end the match, type %ch%cgend%cn."
+        retval += "%r To close the arena, type %ch%cgend%cn."
     return retval
 
 
@@ -126,6 +126,9 @@ def _return_active_state_help(protocol, arena_master_puppet, invoker_dbref):
         " Your fellow humans are currently fending off a wave of homicidal AI foes.%r"
         " You'll be able to join the action once the wave is finished."
     )
+    leader_dbref = arena_master_puppet.leader_dbref
+    if leader_dbref == invoker_dbref:
+        retval += "%r To prematurely end the match, type %ch%cgabort%cn."
     return retval
 
 
@@ -139,5 +142,5 @@ def _return_finished_state_help(protocol, arena_master_puppet, invoker_dbref):
             "%ch%cgrestart%cn to start back at wave 1."
         )
     else:
-        retval = "%r The match has concluded. Hit the showers!"
+        retval = " The match has concluded. Hit the showers!"
     return retval

@@ -9,7 +9,8 @@ from battlesnake.outbound_commands import mux_commands
 
 from battlesnake.plugins.contrib.factions.api import get_faction
 from battlesnake.plugins.contrib.factions.defines import DEFENDER_FACTION_DBREF
-from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref
+from battlesnake.plugins.contrib.unit_library.api import get_unit_by_ref, \
+    get_ref_unit_pool
 from battlesnake.plugins.contrib.unit_spawning.outbound_commands import \
     create_unit
 
@@ -61,9 +62,12 @@ class SimpleSpawnCommand(BaseCommand):
         arena_master_dbref = parsed_line.kwargs['arena_master_dbref']
 
         try:
-            unit = yield get_unit_by_ref(unit_ref)
+            ref_pool = yield get_ref_unit_pool(unit_ref)
         except ValueError:
             raise CommandError('Invalid unit reference!')
+
+        if ref_pool == 'ai':
+            raise CommandError("You may only spawn human pool units.")
 
         try:
             puppet = PUPPET_STORE.get_puppet_by_dbref(arena_master_dbref)
@@ -87,6 +91,7 @@ class SimpleSpawnCommand(BaseCommand):
         faction = get_faction(DEFENDER_FACTION_DBREF)
         unit_x, unit_y = puppet.get_defender_spawn_coords()
 
+        unit = yield get_unit_by_ref(unit_ref)
         unit_dbref = yield create_unit(
             p, unit.reference, map_dbref, faction, unit_x, unit_y,
             pilot_dbref=invoker_dbref, zone_dbref=arena_master_dbref)
