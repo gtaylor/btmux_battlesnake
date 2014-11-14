@@ -37,6 +37,5 @@ def get_db_connection():
             connection_pairs.append('host=%s' % pg_hostname)
 
         connect_str = ' '.join(connection_pairs)
-        print "CONN STR", connect_str
         __DB = yield __DBCONN.connect(connect_str)
     returnValue(__DB)

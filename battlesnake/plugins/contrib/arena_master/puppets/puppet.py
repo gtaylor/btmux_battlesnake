@@ -86,7 +86,8 @@ class ArenaMasterPuppet(object):
             setattr(self, attr, val)
 
         self.difficulty_level = self.difficulty_level.lower()
-        self.map_width, self.map_height = yield get_map_dimensions(p, arena_kwargs['map_dbref'])
+        self.map_width, self.map_height = yield get_map_dimensions(
+            p, arena_kwargs['map_dbref'])
         self.unit_store = ArenaMapUnitStore(
             arena_master_puppet=self, unit_change_callback=self.handle_unit_change)
 
