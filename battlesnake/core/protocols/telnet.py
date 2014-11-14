@@ -2,6 +2,7 @@ from StringIO import StringIO
 
 from twisted.conch.telnet import StatefulTelnetProtocol
 from twisted.internet.defer import inlineCallbacks, maybeDeferred
+from twisted.internet.error import ReactorNotRunning
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 
@@ -60,12 +61,14 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         # tip us off to authenticate.
         self.state = 'login_prompt'
 
-    # noinspection PyUnresolvedReferences
     def connectionLost(self, reason):
         print "Connection lost."
         StatefulTelnetProtocol.connectionLost(self, reason)
-        # noinspection PyUnresolvedReferences
-        reactor.stop()
+        try:
+            # noinspection PyUnresolvedReferences
+            reactor.stop()
+        except ReactorNotRunning:
+            pass
 
     def write(self, line):
         """

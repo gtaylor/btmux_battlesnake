@@ -11,3 +11,5 @@ git+https://github.com/gtaylor/btmux_template_io.git
 git+https://github.com/gtaylor/btmux_maplib.git
 numpy
 djangorestframework-chain==0.1.3
+noise
+Pillow

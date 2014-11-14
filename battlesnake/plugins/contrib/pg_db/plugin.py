@@ -1,3 +1,5 @@
+import psycopg2
+from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.core.base_plugin import BattlesnakePlugin
@@ -16,4 +18,8 @@ class PGDBPlugin(BattlesnakePlugin):
     @inlineCallbacks
     def do_after_plugin_is_loaded(self):
         # Causes the lazy loading to happen.
-        yield get_db_connection()
+        try:
+            yield get_db_connection()
+        except psycopg2.OperationalError:
+            print "Unable to establish postgres DB connection. Bailing."
+            reactor.stop()
