@@ -250,7 +250,7 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             mux_commands.pemit(self, invoker_dbref, str(err.value))
         else:
             strobj = StringIO()
-            err.printTraceback(file=strobj)
+            err.printTraceback(file=strobj, detail='verbose')
 
             mux_commands.pemit(self, invoker_dbref, strobj.getvalue())
             raise err
