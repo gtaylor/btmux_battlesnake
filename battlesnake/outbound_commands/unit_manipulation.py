@@ -84,7 +84,7 @@ def heal_unit_pilot(protocol, unit_dbref):
             unit_dbref=unit_dbref
         )
     )
-    mux_commands.think(protocol, think_str, return_output=False)
+    mux_commands.think(protocol, think_str)
 
 
 def reset_unit_counters(protocol, unit_dbref):
@@ -106,7 +106,7 @@ def reset_unit_counters(protocol, unit_dbref):
             unit_dbref=unit_dbref
         )
     )
-    mux_commands.think(protocol, think_str, return_output=False)
+    mux_commands.think(protocol, think_str)
 
 
 def save_unit_tics_to_pilot(protocol, unit):
@@ -119,7 +119,7 @@ def save_unit_tics_to_pilot(protocol, unit):
     unit_dbref = unit.dbref
     think_str = "[u({unit_dbref}/STORETICS.F,get({unit_dbref}/Pilot))]".format(
         unit_dbref=unit_dbref)
-    mux_commands.think(protocol, think_str, return_output=False)
+    mux_commands.think(protocol, think_str)
 
 
 def save_unit_mechprefs_to_pilot(protocol, unit):
@@ -135,7 +135,7 @@ def save_unit_mechprefs_to_pilot(protocol, unit):
         "[set({pilot_dbref},"
             "MECHPREFS.D:[btgetxcodevalue({unit_dbref},mechprefs)])]".format(
         pilot_dbref=pilot_dbref, unit_dbref=unit_dbref))
-    mux_commands.think(protocol, think_str, return_output=False)
+    mux_commands.think(protocol, think_str)
 
 
 def restore_mechprefs_on_unit(protocol, unit):

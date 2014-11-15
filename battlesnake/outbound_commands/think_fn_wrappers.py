@@ -173,7 +173,7 @@ def teleport(protocol, obj, dest_obj):
 
     think_str = "[tel({obj},{dest_obj})]".format(
         obj=obj, dest_obj=dest_obj)
-    return mux_commands.think(protocol, think_str, return_output=False)
+    return mux_commands.think(protocol, think_str)
 
 
 def btloadmech(protocol, obj, unit_ref):
@@ -213,7 +213,7 @@ def btsetmaphex(protocol, obj, x, y, terrain, elev):
     escaped_terrain = add_escaping_percent_sequences(terrain)
     think_str = "[btsetmaphex({obj},{x},{y},{terrain},{elev})]".format(
         obj=obj, x=x, y=y, terrain=escaped_terrain, elev=elev)
-    return mux_commands.think(protocol, think_str, return_output=False)
+    return mux_commands.think(protocol, think_str)
 
 
 def btsetmaphex_line(protocol, obj, y, terrain_line, elev_line):
@@ -237,7 +237,7 @@ def btsetmaphex_line(protocol, obj, y, terrain_line, elev_line):
         escaped_terrain = add_escaping_percent_sequences(terrain)
         buf += "[btsetmaphex({obj},{x},{y},{terrain},{elev})]".format(
             obj=obj, x=x, y=y, terrain=escaped_terrain, elev=elev)
-    return mux_commands.think(protocol, buf, return_output=False)
+    return mux_commands.think(protocol, buf)
 
 
 def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
@@ -270,7 +270,7 @@ def btsetxcodevalue(protocol, obj, key, val):
 
     think_str = "[btsetxcodevalue({obj},{key},{val})]".format(
         obj=obj, key=key, val=val)
-    return mux_commands.think(protocol, think_str, return_output=False)
+    return mux_commands.think(protocol, think_str)
 
 
 def btsetcharvalue(protocol, obj, skill_or_attrib, val, mode):
@@ -292,7 +292,7 @@ def btsetcharvalue(protocol, obj, skill_or_attrib, val, mode):
 
     think_str = "[btsetcharvalue({obj},{skill_or_attrib},{val},{mode})]".format(
         obj=obj, skill_or_attrib=skill_or_attrib, val=val, mode=mode)
-    return mux_commands.think(protocol, think_str, return_output=False)
+    return mux_commands.think(protocol, think_str)
 
 
 def btgetxcodevalue(protocol, obj, key):
