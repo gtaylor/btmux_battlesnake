@@ -32,6 +32,9 @@ class ResponseWatcherManager(object):
 
         :param basestring regex_str: A regular expression string to match against.
         :param float timeout_secs: How many seconds to wait.
+        :keyword debug_info: Something to repr() if the watcher expires without
+            ever being fired. Should help a developer track down where this
+            watcher was created from.
         :rtype: defer.Deferred
         """
 

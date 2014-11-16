@@ -127,6 +127,9 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         :keyword basestring return_regex_group: If specified, the Deferred will
             be callback'd with the string value of the requested regex group.
             If this is a None value, the whole re.MatchGroup is returned instead.
+        :keyword debug_info: Something to repr() if the watcher expires without
+            ever being fired. Should help a developer track down where this
+            watcher was created from.
         :rtype: defer.Deferred
         """
 

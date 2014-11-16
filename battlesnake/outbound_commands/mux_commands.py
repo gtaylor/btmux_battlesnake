@@ -140,9 +140,9 @@ def think(protocol, thought, return_output=True, debug_info=None):
         comes back. If ``False``, this function returns nothing. It's slightly
         more efficient to set this to False if you don't need to see
         the output.
-    :param debug_info: A helpful string to offer a hint if we never hear
-        back from our watcher. We do this because it doesn't appear to be
-        possible to get a full traceback.
+    :keyword debug_info: Something to repr() if the watcher expires without
+        ever being fired. Should help a developer track down where this
+        watcher was created from.
     :rtype: None or defer.Deferred
     :returns: A Deferred if ``return_output`` is ``True``, ``None`` if not.
     """
