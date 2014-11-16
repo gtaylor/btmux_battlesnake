@@ -1,6 +1,8 @@
 """
 Functions wrappers using the 'think' command.
 """
+
+import inspect
 import itertools
 
 from twisted.internet.defer import inlineCallbacks, returnValue
@@ -21,7 +23,7 @@ def create(protocol, name, otype='r'):
     think_str = "[create({name},1,{otype})]".format(
         name=name, otype=otype,
     )
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def tel(protocol, obj, dest):
@@ -32,7 +34,7 @@ def tel(protocol, obj, dest):
     """
 
     think_str = "[tel({obj},{dest})]".format(obj=obj, dest=dest)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def pemit(protocol, objects, message):
@@ -50,7 +52,7 @@ def pemit(protocol, objects, message):
     think_str = "[pemit({obj_dbrefs},{message})]".format(
         obj_dbrefs=obj_dbrefs, message=message,
     )
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def cemit(protocol, channel, message):
@@ -62,7 +64,7 @@ def cemit(protocol, channel, message):
     think_str = "[cemit({channel},{message})]".format(
         channel=channel, message=message,
     )
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 @inlineCallbacks
@@ -86,7 +88,7 @@ def set_attrs(protocol, obj, attr_dict, iter_delim='|'):
         think_str = "[set({obj},{key}:{val})]".format(
             obj=obj, key=key, val=val,
         )
-        yield mux_commands.think(protocol, think_str)
+        yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
     iter_vals = []
     for key, val in attr_dict.items():
@@ -95,7 +97,7 @@ def set_attrs(protocol, obj, attr_dict, iter_delim='|'):
     iter_vals_str = '|'.join(iter_vals)
     think_str = "[iter({iter_vals},[set({obj},##)],{iter_delim})]".format(
         iter_vals=iter_vals_str, obj=obj, iter_delim=iter_delim)
-    yield mux_commands.think(protocol, think_str)
+    yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def get(protocol, obj, attr_name):
@@ -109,7 +111,7 @@ def get(protocol, obj, attr_name):
 
     think_str = "[get({obj}/{attr_name})]".format(
         obj=obj, attr_name=attr_name)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 @inlineCallbacks
@@ -128,7 +130,7 @@ def get_attrs(protocol, obj, attr_list, attr_delim='@&~'):
     key_iter_str = '|'.join(attr_list)
     think_str = "[iter({key_iter_str},[get({obj}/##)]{attr_delim},|)]".format(
         key_iter_str=key_iter_str, obj=obj, attr_delim=attr_delim)
-    result = yield mux_commands.think(protocol, think_str)
+    result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     vals = result.split(attr_delim)
     combined = itertools.izip(attr_list, vals)
     returnValue({k: v.strip() for k, v in combined})
@@ -143,7 +145,7 @@ def name(protocol, obj):
     """
 
     think_str = "[name({obj})]".format(obj=obj)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def set_flags(protocol, obj, flags):
@@ -161,7 +163,7 @@ def set_flags(protocol, obj, flags):
     iter_vals = ' '.join(flags)
     think_str = "[iter({iter_vals},[set({obj},##)])]".format(
         iter_vals=iter_vals, obj=obj)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def teleport(protocol, obj, dest_obj):
@@ -173,7 +175,7 @@ def teleport(protocol, obj, dest_obj):
 
     think_str = "[tel({obj},{dest_obj})]".format(
         obj=obj, dest_obj=dest_obj)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def btloadmech(protocol, obj, unit_ref):
@@ -185,7 +187,7 @@ def btloadmech(protocol, obj, unit_ref):
 
     think_str = "[btloadmech({obj},{unit_ref})]".format(
         obj=obj, unit_ref=unit_ref)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def btloadmap(protocol, obj, map_filename):
@@ -197,7 +199,7 @@ def btloadmap(protocol, obj, map_filename):
 
     think_str = "[btloadmap({obj},{map_filename})]".format(
         obj=obj, map_filename=map_filename)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def btsetmaphex(protocol, obj, x, y, terrain, elev):
@@ -213,7 +215,7 @@ def btsetmaphex(protocol, obj, x, y, terrain, elev):
     escaped_terrain = add_escaping_percent_sequences(terrain)
     think_str = "[btsetmaphex({obj},{x},{y},{terrain},{elev})]".format(
         obj=obj, x=x, y=y, terrain=escaped_terrain, elev=elev)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def btsetmaphex_line(protocol, obj, y, terrain_line, elev_line):
@@ -237,7 +239,7 @@ def btsetmaphex_line(protocol, obj, y, terrain_line, elev_line):
         escaped_terrain = add_escaping_percent_sequences(terrain)
         buf += "[btsetmaphex({obj},{x},{y},{terrain},{elev})]".format(
             obj=obj, x=x, y=y, terrain=escaped_terrain, elev=elev)
-    return mux_commands.think(protocol, buf)
+    return mux_commands.think(protocol, buf, debug_info=inspect.stack())
 
 
 def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
@@ -257,7 +259,7 @@ def btsetxy(protocol, obj, map_obj, unit_x, unit_y, unit_z=''):
     else:
         think_str = "[btsetxy({obj},{map_obj},{unit_x},{unit_y})]".format(
             obj=obj, map_obj=map_obj, unit_x=unit_x, unit_y=unit_y)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def btsetxcodevalue(protocol, obj, key, val):
@@ -270,7 +272,7 @@ def btsetxcodevalue(protocol, obj, key, val):
 
     think_str = "[btsetxcodevalue({obj},{key},{val})]".format(
         obj=obj, key=key, val=val)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def btsetcharvalue(protocol, obj, skill_or_attrib, val, mode):
@@ -292,7 +294,7 @@ def btsetcharvalue(protocol, obj, skill_or_attrib, val, mode):
 
     think_str = "[btsetcharvalue({obj},{skill_or_attrib},{val},{mode})]".format(
         obj=obj, skill_or_attrib=skill_or_attrib, val=val, mode=mode)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def btgetxcodevalue(protocol, obj, key):
@@ -304,7 +306,7 @@ def btgetxcodevalue(protocol, obj, key):
 
     think_str = "[btgetxcodevalue({obj},{key})]".format(
         obj=obj, key=key)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def btgetxcodevalue_ref(protocol, unit_ref, key):
@@ -316,7 +318,7 @@ def btgetxcodevalue_ref(protocol, unit_ref, key):
 
     think_str = "[btgetxcodevalue_ref({unit_ref},{key})]".format(
         unit_ref=unit_ref, key=key)
-    return mux_commands.think(protocol, think_str)
+    return mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 @inlineCallbacks
@@ -327,7 +329,7 @@ def btgetbv2_ref(protocol, unit_ref):
     """
 
     think_str = "[btgetbv2_ref({unit_ref})]".format(unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     returnValue(float(func_result))
 
 
@@ -340,7 +342,7 @@ def btgetobv_ref(protocol, unit_ref):
     """
 
     think_str = "[btgetobv_ref({unit_ref})]".format(unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     returnValue(float(func_result))
 
 
@@ -353,7 +355,7 @@ def btgetdbv_ref(protocol, unit_ref):
     """
 
     think_str = "[btgetdbv_ref({unit_ref})]".format(unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     returnValue(float(func_result))
 
 
@@ -365,7 +367,7 @@ def btfasabasecost_ref(protocol, unit_ref):
     """
 
     think_str = "[btfasabasecost_ref({unit_ref})]".format(unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     returnValue(max(0, int(func_result)))
 
 
@@ -379,7 +381,7 @@ def btdesignex(protocol, unit_ref):
 
     think_str = "[btdesignex({unit_ref})]".format(
         unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     returnValue(func_result == '1')
 
 
@@ -391,7 +393,7 @@ def bttechlist_ref(protocol, unit_ref):
     """
 
     think_str = "[bttechlist_ref({unit_ref})]".format(unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     returnValue(set(func_result.split()))
 
 
@@ -403,7 +405,7 @@ def btpayload_ref(protocol, unit_ref):
     """
 
     think_str = "[btpayload_ref({unit_ref})]".format(unit_ref=unit_ref)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     retval = {}
     if not func_result:
         returnValue(retval)
@@ -433,7 +435,7 @@ def btweapstat(protocol, weapon):
     for field in fields:
         think_list.append(weapstat_str.format(field=field, weapon=weapon))
     think_str = '^'.join(think_list)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     vrt, weap_type, heat, damage, min_range, short_range, medium_range, \
         long_range, crits, ammo_pt, weight, bv = func_result.split('^')
 
@@ -480,6 +482,7 @@ def _parse_partslist(pl_output):
         retval[part] = int(quantity)
     return retval
 
+
 @inlineCallbacks
 def btunitpartslist_ref(protocol, unit_ref):
     """
@@ -488,8 +491,9 @@ def btunitpartslist_ref(protocol, unit_ref):
     """
 
     think_str = "[btunitpartslist_ref({unit_ref})]".format(unit_ref=unit_ref)
-    pl_output = yield mux_commands.think(protocol, think_str)
+    pl_output = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     returnValue(_parse_partslist(pl_output))
+
 
 @inlineCallbacks
 def btunitpartslist(protocol, obj):
@@ -499,7 +503,7 @@ def btunitpartslist(protocol, obj):
     """
 
     think_str = "[btunitpartslist({obj})]".format(obj=obj)
-    pl_output = yield mux_commands.think(protocol, think_str)
+    pl_output = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     returnValue(_parse_partslist(pl_output))
 
 
@@ -513,6 +517,6 @@ def get_map_dimensions(protocol, map_dbref):
 
     think_str = "[btgetxcodevalue({map_dbref}, mapwidth)] [btgetxcodevalue({map_dbref}, mapheight)]".format(
         map_dbref=map_dbref)
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     coords = func_result.split()
     returnValue((int(coords[0]), int(coords[1])))

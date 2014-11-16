@@ -110,7 +110,8 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
             self.sendLine(postfix_line)
         return deferred
 
-    def expect(self, regex_str, timeout_secs=3.0, return_regex_group=None):
+    def expect(self, regex_str, timeout_secs=3.0, return_regex_group=None,
+               debug_info=None):
         """
         Causes the client to start watching for output from the MUX that
         matches the regex in ``regex_str``. We'll wait as long as ``timeout_secs``
@@ -130,7 +131,10 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
         """
 
         return self.watcher_manager.watch(
-            regex_str, timeout_secs=timeout_secs, return_regex_group=return_regex_group)
+            regex_str,
+            timeout_secs=timeout_secs,
+            return_regex_group=return_regex_group,
+            debug_info=debug_info)
 
     @inlineCallbacks
     def _gen_and_set_hudinfo_key(self):

@@ -12,6 +12,7 @@ from twisted.internet import defer
 from twisted.internet.task import LoopingCall
 
 from battlesnake.conf import settings
+from battlesnake.core.utils import add_escaping_percent_sequences
 
 
 class ResponseWatcherManager(object):
@@ -25,7 +26,7 @@ class ResponseWatcherManager(object):
         self.watcher_store = {}
         self.expiration_loop = LoopingCall(self.expire_stale_watchers)
 
-    def watch(self, regex_str, timeout_secs, return_regex_group):
+    def watch(self, regex_str, timeout_secs, return_regex_group, debug_info=None):
         """
         Creates and registers a watcher in one shot.
 
@@ -34,7 +35,8 @@ class ResponseWatcherManager(object):
         :rtype: defer.Deferred
         """
 
-        mon = ResponseWatcher(regex_str, timeout_secs, return_regex_group)
+        mon = ResponseWatcher(
+            regex_str, timeout_secs, return_regex_group, debug_info)
         self.register_watcher(mon)
         return mon.deferred
 
@@ -103,7 +105,7 @@ class ResponseWatcher(object):
     Encapsulates everything we need to wait for an expected output.
     """
 
-    def __init__(self, regex_str, timeout_secs, return_regex_group):
+    def __init__(self, regex_str, timeout_secs, return_regex_group, debug_info):
         self.id = uuid.uuid4().hex
         self.timeout_secs = timeout_secs
         # This gets populated when this watcher is registered with the manager.
@@ -111,6 +113,7 @@ class ResponseWatcher(object):
         self.deferred = defer.Deferred()
         self.line_regex = re.compile(regex_str)
         self.return_regex_group = return_regex_group
+        self.debug_info = debug_info
 
 
 class NoResponseMatchFoundError(Exception):
@@ -121,5 +124,9 @@ class NoResponseMatchFoundError(Exception):
     def __init__(self, watcher, *args):
         self.watcher = watcher
         self.message = "No response watch match found: %s" % watcher.line_regex.pattern
+        if watcher.debug_info:
+            self.message += "\r"
+            for record in watcher.debug_info:
+                self.message += "\r" + add_escaping_percent_sequences(repr(record[1:]))
         Exception.__init__(
             self, self.message, watcher, *args)

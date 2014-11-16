@@ -126,7 +126,7 @@ def idle(protocol):
     protocol.write("IDLE")
 
 
-def think(protocol, thought, return_output=True):
+def think(protocol, thought, return_output=True, debug_info=None):
     """
     Runs the 'think' command, which is useful for performing actions or
     retrieving values from the MUX. By setting a dynamic prefix, we can
@@ -140,6 +140,9 @@ def think(protocol, thought, return_output=True):
         comes back. If ``False``, this function returns nothing. It's slightly
         more efficient to set this to False if you don't need to see
         the output.
+    :param debug_info: A helpful string to offer a hint if we never hear
+        back from our watcher. We do this because it doesn't appear to be
+        possible to get a full traceback.
     :rtype: None or defer.Deferred
     :returns: A Deferred if ``return_output`` is ``True``, ``None`` if not.
     """
@@ -148,7 +151,8 @@ def think(protocol, thought, return_output=True):
     command_str = 'think %s%s' % (prefix, thought)
     if return_output:
         regex_str = r'^' + prefix + '(?P<value>.*)\r$'
-        deferred = protocol.expect(regex_str, return_regex_group='value')
+        deferred = protocol.expect(
+            regex_str, return_regex_group='value', debug_info=debug_info)
     protocol.write(command_str)
     if return_output:
         # noinspection PyUnboundLocalVariable

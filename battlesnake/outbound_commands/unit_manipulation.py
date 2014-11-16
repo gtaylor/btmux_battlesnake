@@ -2,6 +2,8 @@
 Contains some useful unit manipulation sequences.
 """
 
+import inspect
+
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.outbound_commands import mux_commands
@@ -84,7 +86,7 @@ def heal_unit_pilot(protocol, unit_dbref):
             unit_dbref=unit_dbref
         )
     )
-    mux_commands.think(protocol, think_str)
+    mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def reset_unit_counters(protocol, unit_dbref):
@@ -106,7 +108,7 @@ def reset_unit_counters(protocol, unit_dbref):
             unit_dbref=unit_dbref
         )
     )
-    mux_commands.think(protocol, think_str)
+    mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def save_unit_tics_to_pilot(protocol, unit):
@@ -119,7 +121,7 @@ def save_unit_tics_to_pilot(protocol, unit):
     unit_dbref = unit.dbref
     think_str = "[u({unit_dbref}/STORETICS.F,get({unit_dbref}/Pilot))]".format(
         unit_dbref=unit_dbref)
-    mux_commands.think(protocol, think_str)
+    mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def save_unit_mechprefs_to_pilot(protocol, unit):
@@ -135,7 +137,7 @@ def save_unit_mechprefs_to_pilot(protocol, unit):
         "[set({pilot_dbref},"
             "MECHPREFS.D:[btgetxcodevalue({unit_dbref},mechprefs)])]".format(
         pilot_dbref=pilot_dbref, unit_dbref=unit_dbref))
-    mux_commands.think(protocol, think_str)
+    mux_commands.think(protocol, think_str, debug_info=inspect.stack())
 
 
 def restore_mechprefs_on_unit(protocol, unit):

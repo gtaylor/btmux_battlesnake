@@ -1,3 +1,5 @@
+import inspect
+
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.conf import settings
@@ -27,7 +29,7 @@ def populate_puppet_store(protocol):
     # Find all arena puppet master dbrefs.
     thought = "[children({parent_dbref})]".format(
         parent_dbref=puppet_parent_dbref)
-    puppet_master_dbrefs = yield mux_commands.think(protocol, thought)
+    puppet_master_dbrefs = yield mux_commands.think(protocol, thought, debug_info=inspect.stack())
     # Returns a list of dbrefs which we can then call into the game for more
     # details on.
     puppet_master_split = puppet_master_dbrefs.split()
@@ -95,7 +97,7 @@ def update_store_from_btfuncs(protocol, arena_unit_store):
     ).format(
         puppet_parent_dbref=puppet_parent_dbref, map_dbref=map_dbref
     )
-    unit_data = yield mux_commands.think(protocol, thought)
+    unit_data = yield mux_commands.think(protocol, thought, debug_info=inspect.stack())
     unit_data = unit_data.split('^')
     for unit_entry in unit_data:
         if not unit_entry:

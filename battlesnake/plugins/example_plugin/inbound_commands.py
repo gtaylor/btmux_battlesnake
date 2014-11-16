@@ -72,31 +72,11 @@ class CliffTestCommand(BaseCommand):
 
     command_name = "clifftest"
 
+    @inlineCallbacks
     def run(self, protocol, parsed_line, invoker_dbref):
-        cmd_line = parsed_line.kwargs['cmd'].split()
-
-        parser = BTMuxArgumentParser(protocol, invoker_dbref,
-            prog="clifftest", description='Process some integers.')
-        """
-        parser.add_argument(
-            'integers', metavar='N', type=int, nargs='+',
-            help='an integer for the accumulator')
-        parser.add_argument(
-            '--sum', dest='accumulate', action='store_const',
-            const=sum, default=max,
-            help='sum the integers (default: find the max)')
-        """
-
-        subparsers = parser.add_subparsers(
-            title="Subcommands", description="Valid subcommands",
-            dest="subparser_name")
-        foo_parser = subparsers.add_parser('foo', protocol=protocol, invoker_dbref=invoker_dbref)
-        foo_parser.add_argument('-x', type=int, default=1)
-
-        args = parser.parse_args(args=cmd_line)
-        #output = str(args.accumulate(args.integers))
-        output = str(args)
-        mux_commands.pemit(protocol, invoker_dbref, output)
+        import inspect
+        mux_commands.pemit(protocol, invoker_dbref, "YAR")
+        yield protocol.expect(r'^test', debug_info=inspect.stack(), timeout_secs=1.0)
 
 
 class ExampleCommandTable(InboundCommandTable):

@@ -2,6 +2,8 @@
 Emits and announcements.
 """
 
+import inspect
+
 from twisted.internet.defer import inlineCallbacks
 
 from battlesnake.outbound_commands import mux_commands
@@ -18,6 +20,6 @@ def announce_arena_state_change(protocol, message):
 
     # We do the setdiff() here to remove dupes.
     think_str = "[setdiff(iter(lwho(),ifelse(hasflag(loc(##),IN_CHARACTER),,##)),)]"
-    func_result = yield mux_commands.think(protocol, think_str)
+    func_result = yield mux_commands.think(protocol, think_str, debug_info=inspect.stack())
     ooc_players = func_result.split()
     mux_commands.pemit(protocol, ooc_players, full_msg)
