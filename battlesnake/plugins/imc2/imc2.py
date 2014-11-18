@@ -8,6 +8,7 @@ from twisted.internet import protocol
 from twisted.conch import telnet
 
 from battlesnake.conf import settings
+from battlesnake.outbound_commands import mux_commands
 
 from .imc2lib import imc2_ansi
 from .imc2lib import imc2_packets as pck
@@ -125,6 +126,14 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
         self.sequence = None
         self.imc2_mudlist = IMC2MudList()
         self.imc2_chanlist = IMC2ChanList()
+        # Maps IMC2 chans to local MUX chans, and vice-versa.
+        self.imc2_to_mux_channel_map = {}
+        self.mux_to_imc2_channel_map = {}
+        self.telnet_factory = None
+
+    @property
+    def telnet_protocol(self):
+        return self.telnet_factory.get_protocol_instance()
 
     def _send_packet(self, packet):
         """
@@ -176,14 +185,7 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
         Handle reply from server from an imcwhois request.
         """
 
-        # packet.target potentially contains the id of an character to target
-        # not using that here
-        response_text = imc2_ansi.parse_ansi(packet.optional_data.get('text', 'Unknown'))
-        string = 'Whois reply from %(origin)s: %(msg)s' % {
-            "origin": packet.origin,
-            "msg": response_text}
-        # somehow pass reply on to a given player, for now we just send to channel
-        self.data_in(string)
+        self.data_in(packet)
 
     def _format_tell(self, packet):
         """
@@ -278,7 +280,7 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
             # packets when they are intended for us.
             self.send_packet(pck.IMC2PacketIsAlive())
         elif packet.packet_type == 'ice-msg-b':
-            self.data_out(text=line, packettype="broadcast")
+            self.data_in(packet)
         elif packet.packet_type == 'whois-reply':
             # handle eventual whois reply
             self._whois_reply(packet)
@@ -292,12 +294,28 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
             # send message to identified player
             pass
 
-    def data_in(self, text=None, **kwargs):
+    def data_in(self, packet):
         """
         Data IMC2 -> Evennia
         """
-        text = "bot_data_in " + text
-        self.sessionhandler.data_in(self, text=text, **kwargs)
+
+        if packet.packet_type == 'ice-msg-b':
+            print "IMC: RECV> %s" % packet
+            sender = packet.sender
+            origin = packet.origin
+            message = packet.optional_data.get('text', None)
+            imc2_chan = packet.optional_data.get('channel', None)
+            if not (sender and origin and message and imc2_chan):
+                return
+            mux_chan = self.imc2_to_mux_channel_map.get(imc2_chan, None)
+            if not mux_chan:
+                return
+            prefix = "%s@%s" % (sender, origin)
+            full_message = "%s: %s" % (prefix, message)
+            # noinspection PyTypeChecker
+            mux_commands.cemit(self.telnet_protocol, mux_chan, full_message)
+        else:
+            print "IMC: UNKNOWN DATA_IN PACKET", packet
 
     def data_out(self, text=None, **kwargs):
         """
@@ -360,9 +378,10 @@ class IMC2BotFactory(protocol.ReconnectingClientFactory):
     factor = 1.5
     maxDelay = 60
 
-    def __init__(self, uid=None, network=None, channel=None,
-                 port=None, client_pwd=None, server_pwd=None):
+    def __init__(self, telnet_factory, uid=None, network=None, channel=None,
+                 port=None, client_pwd=None, server_pwd=None,):
 
+        self.telnet_factory = telnet_factory
         imc2_settings = settings['imc2']
         self.uid = uid
         self.network = imc2_settings['hub_hostname']
@@ -386,11 +405,20 @@ class IMC2BotFactory(protocol.ReconnectingClientFactory):
 
         imc2_protocol = IMC2Bot()
         imc2_protocol.factory = self
+        imc2_protocol.telnet_factory = self.telnet_factory
         imc2_protocol.network = self.network
         imc2_protocol.servername = self.servername
         imc2_protocol.channel = self.channel
         imc2_protocol.mudname = self.mudname
         imc2_protocol.port = self.port
+
+        raw_channel_pairs = settings['imc2']['channel_map_pairs']
+        channel_map_pairs = [pair.split(' ', 1) for pair in raw_channel_pairs]
+        imc2_protocol.imc2_to_mux_channel_map = \
+            {ichan: muxchan for ichan, muxchan in channel_map_pairs}
+        imc2_protocol.mux_to_imc2_channel_map = \
+            {muxchan: ichan for ichan, muxchan in channel_map_pairs}
+
         self.bot = imc2_protocol
         self.start()
         return imc2_protocol

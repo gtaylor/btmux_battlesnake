@@ -42,11 +42,11 @@ class ServiceMaker(object):
         telnet_service = get_telnet_service()
         telnet_service.setServiceParent(top_service)
 
-        self.load_extra_services(top_service)
+        self.load_extra_services(top_service, telnet_service)
 
         return top_service
 
-    def load_extra_services(self, top_service):
+    def load_extra_services(self, top_service, telnet_service):
         """
         If the user has added additional services in their config file,
         load and start them.
@@ -60,7 +60,7 @@ class ServiceMaker(object):
         for svc_loader in extra_services:
             print "  - Loading %s" % svc_loader
             loader = import_class(svc_loader)
-            svc = loader()
+            svc = loader(telnet_service)
             svc.setServiceParent(top_service)
 
 

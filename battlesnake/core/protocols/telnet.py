@@ -266,10 +266,14 @@ class BattlesnakeTelnetProtocol(StatefulTelnetProtocol):
 # noinspection PyAttributeOutsideInit,PyClassHasNoInit,PyClassicStyleClass
 class BattlesnakeTelnetFactory(ClientFactory):
     """
-    Bullshit enterprisey factory class. Java all the things.
+    Creates and sets up the BattlesnakeTelnetProtocol instances used to
+    communicate with the MUX.
     """
 
     protocol = BattlesnakeTelnetProtocol
+
+    def __init__(self):
+        self._latest_proto = None
 
     def buildProtocol(self, addr):
         protocol = self.protocol(
@@ -280,8 +284,16 @@ class BattlesnakeTelnetFactory(ClientFactory):
             plugins=self._load_and_return_plugins(),
         )
         protocol.factory = self
-
+        self._latest_proto = protocol
         return protocol
+
+    def get_protocol_instance(self):
+        """
+        :rtype: BattlesnakeTelnetProtocol
+        :returns: The most recently created telnet protocol instance.
+        """
+
+        return self._latest_proto
 
     def _load_and_return_plugins(self):
         """

@@ -96,7 +96,7 @@ class IMC2Packet(object):
                 counter += 1
 
     def __str__(self):
-        retval =  """
+        retval = """
         --IMC2 package (%s)
         Sender:   %s
         Origin:   %s
