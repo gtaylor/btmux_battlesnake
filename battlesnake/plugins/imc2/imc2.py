@@ -9,9 +9,13 @@ from twisted.conch import telnet
 
 from battlesnake.conf import settings
 from battlesnake.outbound_commands import mux_commands
+from battlesnake.plugins.imc2.channel_map import IMC2_TO_MUX_CHANNEL_MAP
 
 from .imc2lib import imc2_ansi
 from .imc2lib import imc2_packets as pck
+
+
+IMC2_PROTO_INSTANCE = None
 
 
 # storage containers for IMC2 muds and channels
@@ -126,9 +130,6 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
         self.sequence = None
         self.imc2_mudlist = IMC2MudList()
         self.imc2_chanlist = IMC2ChanList()
-        # Maps IMC2 chans to local MUX chans, and vice-versa.
-        self.imc2_to_mux_channel_map = {}
-        self.mux_to_imc2_channel_map = {}
         self.telnet_factory = None
 
     @property
@@ -140,9 +141,11 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
         Helper function to send packets across the wire.
         """
 
+        print "OUTBOUND PACKET", packet
         packet.imc2_protocol = self
         packet_str = str(packet.assemble(self.factory.mudname,
                          self.factory.client_pwd, self.factory.server_pwd))
+        print "RAW", packet_str
         self.sendLine(packet_str)
 
     def _isalive(self):
@@ -263,6 +266,7 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
             self._imc_login(line)
             return
 
+
         # Parse the packet and encapsulate it for easy access
         try:
             packet = pck.IMC2Packet(self.mudname, packet_str=line)
@@ -302,18 +306,22 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
         if packet.packet_type == 'ice-msg-b':
             print "IMC: RECV> %s" % packet
             sender = packet.sender
-            origin = packet.origin
+            origin = packet.origin.strip()
+            if origin == settings['imc2']['mudname']:
+                return
             message = packet.optional_data.get('text', None)
             imc2_chan = packet.optional_data.get('channel', None)
             if not (sender and origin and message and imc2_chan):
                 return
-            mux_chan = self.imc2_to_mux_channel_map.get(imc2_chan, None)
+            mux_chan = IMC2_TO_MUX_CHANNEL_MAP.get(imc2_chan, None)
             if not mux_chan:
                 return
-            prefix = "%s@%s" % (sender, origin)
+            prefix = "{%s} %s@%s" % (mux_chan, sender, origin)
             full_message = "%s: %s" % (prefix, message)
             # noinspection PyTypeChecker
-            mux_commands.cemit(self.telnet_protocol, mux_chan, full_message)
+            mux_commands.cemit(
+                self.telnet_protocol, mux_chan, full_message,
+                no_header=True)
         else:
             print "IMC: UNKNOWN DATA_IN PACKET", packet
 
@@ -337,23 +345,16 @@ class IMC2Bot(telnet.StatefulTelnetProtocol):
             # This gets incremented with every command.
             self.sequence += 1
 
-        packet_type = kwargs.get("packet_type", "imcbroadcast")
+        packet_type = kwargs.get("packet_type", "broadcast")
 
         if packet_type == "broadcast":
             # broadcast to everyone on IMC channel
 
-            if text.startswith("bot_data_out"):
-                text = text.split(" ", 1)[1]
-            else:
-                return
-
             # we remove the extra channel info since imc2 supplies this anyway
-            if ":" in text:
-                header, message = [part.strip() for part in text.split(":", 1)]
+
             # Create imc2packet and send it
-            self._send_packet(pck.IMC2PacketIceMsgBroadcasted(self.servername,
-                                                        self.channel,
-                                                        header, text))
+            self._send_packet(pck.IMC2PacketIceMsgBroadcasted(
+                self.servername, kwargs['channel'], kwargs['sender'], text))
         elif packet_type == "tell":
             # send an IMC2 tell
             sender = kwargs.get("sender", self.mudname)
@@ -403,6 +404,8 @@ class IMC2BotFactory(protocol.ReconnectingClientFactory):
         Build the protocol
         """
 
+        global IMC2_PROTO_INSTANCE
+
         imc2_protocol = IMC2Bot()
         imc2_protocol.factory = self
         imc2_protocol.telnet_factory = self.telnet_factory
@@ -411,16 +414,9 @@ class IMC2BotFactory(protocol.ReconnectingClientFactory):
         imc2_protocol.channel = self.channel
         imc2_protocol.mudname = self.mudname
         imc2_protocol.port = self.port
-
-        raw_channel_pairs = settings['imc2']['channel_map_pairs']
-        channel_map_pairs = [pair.split(' ', 1) for pair in raw_channel_pairs]
-        imc2_protocol.imc2_to_mux_channel_map = \
-            {ichan: muxchan for ichan, muxchan in channel_map_pairs}
-        imc2_protocol.mux_to_imc2_channel_map = \
-            {muxchan: ichan for ichan, muxchan in channel_map_pairs}
-
         self.bot = imc2_protocol
         self.start()
+        IMC2_PROTO_INSTANCE = imc2_protocol
         return imc2_protocol
 
     def clientConnectionFailed(self, connector, reason):

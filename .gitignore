@@ -4,6 +4,7 @@
 .idea
 *.cache
 battlesnake.cfg
+bs-comms.cfg
 doc_src/_build
 .DS_Store
 autobahn

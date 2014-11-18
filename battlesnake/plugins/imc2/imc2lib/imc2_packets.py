@@ -3,6 +3,7 @@ IMC2 packets. These are pretty well documented at:
 http://www.mudbytes.net/index.php?a=articles&s=imc2_protocol
 
 """
+from collections import OrderedDict
 
 import shlex
 
@@ -38,7 +39,7 @@ class IMC2Packet(object):
             mudname = settings['imc2']['mudname']
         self.origin = mudname
         self.sequence = None
-        self.route = mudname
+        self.route = '%s!%s' % (mudname, settings['imc2']['hub_servername'])
         self.packet_type = None
         self.target = None
         self.destination = None
@@ -124,7 +125,7 @@ class IMC2Packet(object):
                 # Determine the number of words in this value.
                 words = len(str(value).split(' '))
                 # Anything over 1 word needs double quotes.
-                if words > 1:
+                if words > 1 or key == 'text':
                     value = '"%s"' % (value,)
                 data_string += '%s=%s ' % (key, value)
             return data_string.strip()
@@ -140,16 +141,9 @@ class IMC2Packet(object):
             return '*'
         elif str(self.sender).isdigit():
             return self.sender
-        elif type(self.sender) in [type(u""),type(str())]:
+        elif type(self.sender) in [type(u""), type(str())]:
             #this is used by e.g. IRC where no user object is present.
             return self.sender.strip().replace(' ', '_')
-        elif self.sender:
-            # Player object.
-            name = self.sender.get_name(fullname=False, show_dbref=False,
-                                        show_flags=False,
-                                        no_ansi=True)
-            # IMC2 does not allow for spaces.
-            return name.strip().replace(' ', '_')
         else:
             # None value. Do something or other.
             return 'Unknown'
@@ -262,10 +256,11 @@ class IMC2PacketIsAlive(IMC2Packet):
         self.packet_type = 'is-alive'
         self.target = '*'
         self.destination = '*'
-        self.optional_data = {'versionid': 'Evennia IMC2',
-                              'url': '"http://www.evennia.com"',
-                              'host': 'test.com',
-                              'port': '5555'}
+        self.optional_data = {
+            'versionid': 'Battlesnake',
+            'url': '"http://battlesnake.readthedocs.org/"',
+            'host': 'sandsofsolaris.com',
+            'port': '5555'}
 
 
 class IMC2PacketIceRefresh(IMC2Packet):
@@ -434,24 +429,23 @@ class IMC2PacketIceMsgBroadcasted(IMC2Packet):
     Broadcasted Packet:
     You@YourMUD 1234567890 YourMUD!Hub1 ice-msg-b *@* channel=Hub1:ichat text=Hi! emote=0 echo=1
     """
-    def __init__(self, server, channel, pobject, message):
+    def __init__(self, server, channel, sender, message):
         """
         Args:
           server: (String) Server name the channel resides on (obs - this is
                            e.g. Server01, not the full network name!)
           channel: (String) Name of the IMC2 channel.
-          pobject: (Object) Object sending the message.
+          sender: (Object) Object sending the message.
           message: (String) Message to send.
         """
         super(IMC2PacketIceMsgBroadcasted, self).__init__()
-        self.sender = pobject
+        self.sender = sender
         self.packet_type = 'ice-msg-b'
         self.target = '*'
         self.destination = '*'
-        self.optional_data = {'channel': '%s:%s' % (server, channel),
-                              'text': message,
-                              'emote': 0,
-                              'echo': 1}
+        self.optional_data = OrderedDict()
+        self.optional_data['channel'] = '%s' % channel
+        self.optional_data['text'] = message
 
 
 class IMC2PacketUserCache(IMC2Packet):
