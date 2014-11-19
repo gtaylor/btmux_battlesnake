@@ -11,7 +11,7 @@ class ChannelMessageTrigger(Trigger):
     Tries to identify potential IMC2 channel activity.
     """
 
-    line_regex = re.compile(r'.*\[(?P<channel>.*)\] (?P<author>.*): (?P<message>.*)\r')
+    line_regex = re.compile(r'.*\[(?P<channel>.*)\] (?P<author>[\w`$_\-.,\']+)[:] (?P<message>.*)\r')
 
     def run(self, protocol, line, re_match):
         """
